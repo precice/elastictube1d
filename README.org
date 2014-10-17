@@ -1,0 +1,35 @@
+elastictube1d preCICE fluid-structure coupling example
+
+* Compilation
+** Environment variables
+Customize init_env.sh and source the file
+*** PRECICE_ROOT
+points to the precice source directory, usually the root of the git checkout.
+*** PRECICE_BOOST_ROOT
+either the system boost distribution, e.g. at /usr/include/boost or your own one.
+** Compile by executing scons.
+Either in the root dir of the checkout or in fluid_solver and structure_solver
+* Execution
+1) Create a directory called output inside your working directory
+2) Start the two solvers, preferably in two seperate shells for output monitoring
+   ./structure_solver/StructureSolver precice_config_for_1D_solvers N 
+   ./fluid_solver/FluidSolver precice_config_for_1D_solvers N tau kappa
+   Use the same directory to start from, otherwise the solvers won't find the sockets for communication.
+* Parameters
+** N
+Number of mesh elements, needs to be equal for fluid and structure solver
+** tau
+The dimensionless time step size.
+tau = u0 * Delta t / L
+Try tau = 0.01..0.1 as starting value.
+** kappa
+Dimensionless structural stiffness:
+kappa = sqrt( (E*h)/(2*rho*r0-p0/2) )
+Try kappa = 10..100 as starting value.
+
+A set of values that is known to converge: N=100, tau=0.1, kappa=10
+* Reference
+Mehl, M., Uekermann, B., Bijl, H., Blom, D., Gatzhammer, B., & van Zuijlen, A. (2014).
+Parallel coupling numerics for partitioned fluid-structure interaction simulations.
+     
+   
