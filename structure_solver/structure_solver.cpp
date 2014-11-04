@@ -57,6 +57,7 @@ int main (int argc, char **argv)
   {
     vertexIDs[i]=i;
     a[i]=1.0;
+    p[i]=0.0;
   }
  
   int t = 0;
