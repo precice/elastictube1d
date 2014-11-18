@@ -63,8 +63,8 @@
       <extrapolation-order value="2"/>
       <relative-convergence-measure data="CrossSectionalArea" mesh="WetSurface" limit="1e-7"/>
       <relative-convergence-measure data="Pressure" mesh="WetSurface" limit="1e-7"/>
-      <exchange data="Pressure" mesh="WetSurface" from="FLUID_1D"/>
-      <exchange data="CrossSectionalArea" mesh="WetSurface" from="STRUCTURE_1D" initialize="yes"/>
+      <exchange data="Pressure" mesh="WetSurface" from="FLUID_1D" to="STRUCTURE_1D" />
+      <exchange data="CrossSectionalArea" mesh="WetSurface" from="STRUCTURE_1D" to="FLUID_1D" initialize="yes"/>
     </coupling-scheme:serial-implicit>
     
   </solver-interface>
