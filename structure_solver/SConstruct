@@ -4,12 +4,13 @@ useSystemBoost = False if ARGUMENTS.get('boost-inst', 'off') == "off" else True
 
 ##### Determine boost root path from environment variable
 
-boostRootPath = os.getenv ( 'PRECICE_BOOST_ROOT' )
-if ( boostRootPath == None ):
-   print 'ERROR: Environment variable PRECICE_BOOST_ROOT not defined!'
-   sys.exit(1)
-else:
-   print 'Using environment variable PRECICE_BOOST_ROOT =', boostRootPath
+if not useSystemBoost:
+   boostRootPath = os.getenv ( 'PRECICE_BOOST_ROOT' )
+   if ( boostRootPath == None ):
+      print 'ERROR: Environment variable PRECICE_BOOST_ROOT not defined!'
+      sys.exit(1)
+   else:
+      print 'Using environment variable PRECICE_BOOST_ROOT =', boostRootPath
 
 preciceRoot = os.getenv ('PRECICE_ROOT')
 if ( preciceRoot == None ):
@@ -37,8 +38,8 @@ libs = [
    'boost_thread' if useSystemBoost else ''
 ]
 
-cxx = 'mpicxx.mpich2' # For systems offering mpicxx compiler
-# cxx = 'mpic++'      # For systems offering mpic++ compiler
+# cxx = 'mpicxx.mpich2' # For systems offering mpicxx compiler
+cxx = 'mpic++'      # For systems offering mpic++ compiler
 
 ccflags = []
 #ccflags.append('-g3')

@@ -37,8 +37,8 @@ libs = [
    'boost_thread' if useSystemBoost else ''
 ]
 
-cxx = 'mpicxx.mpich2' # For systems offering mpicxx compiler
-# cxx = 'mpic++'      # For systems offering mpic++ compiler
+# cxx = 'mpicxx.mpich2' # For systems offering mpicxx compiler
+cxx = 'mpic++'      # For systems offering mpic++ compiler
 
 ccflags = []
 #ccflags.append('-g3')
@@ -48,7 +48,7 @@ ccflags.append('-Wall')
 #libpath.append (preciceRoot + '/build/' + buildmode + '-dim2-nompi/')
 #libpath.append('/usr/lib/')
 
-##### Setup build environment and issue builds
+##### Setup ostbuild environment and issue builds
 
 env = Environment ( 
    CPPDEFINES = cppdefines,  # defines for preprocessor (#define xyz)
