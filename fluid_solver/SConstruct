@@ -1,15 +1,5 @@
 import os, sys
 
-useSystemBoost = False if ARGUMENTS.get('boost-inst', 'off') == "off" else True
-
-if not useSystemBoost:
-   boostRootPath = os.getenv ( 'PRECICE_BOOST_ROOT' )
-   if ( boostRootPath == None ):
-      print 'ERROR: Environment variable PRECICE_BOOST_ROOT not defined! Set variable or use boost-inst=on.'
-      sys.exit(1)
-   else:
-      print 'Using environment variable PRECICE_BOOST_ROOT =', boostRootPath
-
 preciceRoot = os.getenv ('PRECICE_ROOT')
 if ( preciceRoot == None ):
    print 'ERROR: Environment variable PRECICE_ROOT not defined!'
@@ -33,8 +23,6 @@ libs = [
    'precice',   # preCICE library 
    'python2.7', # Python library (shared)
    'lapack',
-   'boost_system' if useSystemBoost else '',
-   'boost_thread' if useSystemBoost else ''
 ]
 
 # cxx = 'mpicxx.mpich2' # For systems offering mpicxx compiler
