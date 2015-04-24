@@ -18,7 +18,7 @@ else:
    print 'Using environment variable PRECICE_ROOT =', preciceRoot
 
 env.Append(CPPPATH = [os.path.join(preciceRoot, 'src')])
-env.Append(LIBPATH = [os.path.join(preciceRoot, 'build/debug')])
+env.Append(LIBPATH = [os.path.join(preciceRoot, 'build/last')])
 env.Append(CPPDEFINES = ['PRECICE_USE_MPI'])
 
 conf.CheckLib("precice")
@@ -41,8 +41,9 @@ conf.CheckLib("lapack")
 
 # cxx = 'mpicxx.mpich2' # For systems offering mpicxx compiler
 env["CXX"] = 'mpic++'      # For systems offering mpic++ compiler
+# env["CXX"] = 'g++-4.8'
 
-env.Append(CCFLAGS = ["-g3", "-O3", "-Wall"])
+env.Append(CCFLAGS = ["-g3", "-O3", "-Wall", "-std=c++11"])
 
 env = conf.Finish()
    
