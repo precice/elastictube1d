@@ -20,7 +20,7 @@
     </mesh>
 
     <!-- Communication method, use TCP sockets -->
-    <communication:sockets from="FLUID_1D" to="STRUCTURE_1D" />
+    <m2n:sockets from="FLUID_1D" to="STRUCTURE_1D" />
 
     <!-- Represents each solver using preCICE. In a coupled simulation, two participants have to be
          defined. The name of the participant has to match the name given on construction of the

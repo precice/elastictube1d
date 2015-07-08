@@ -2,18 +2,14 @@ elastictube1d preCICE fluid-structure coupling example
 
 * Compilation
 ** Environment variables
-Customize init_env.sh and source the file
 *** PRECICE_ROOT
 points to the precice source directory, usually the root of the git checkout.
-*** PRECICE_BOOST_ROOT
-either the system boost distribution, e.g. at /usr/include/boost or your own one.
-** Compile by executing scons.
-Either in the root dir of the checkout or in fluid_solver and structure_solver
+** Compile by executing scons
 * Execution
 1) Create a directory called output inside your working directory
 2) Start the two solvers, preferably in two seperate shells for output monitoring
-   ./structure_solver/StructureSolver precice_config_for_1D_solvers N 
-   ./fluid_solver/FluidSolver precice_config_for_1D_solvers N tau kappa
+   ./StructureSolver precice_config_for_1D_solvers N
+   ./FluidSolver precice_config_for_1D_solvers N tau kappa
    Use the same directory to start from, otherwise the solvers won't find the sockets for communication.
 * Parameters
 ** N
