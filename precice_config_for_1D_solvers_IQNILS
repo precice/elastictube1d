@@ -57,21 +57,21 @@
          <participants first="FLUID_1D" second="STRUCTURE_1D"/>
          <max-time value="40.0"/>
          <timestep-length value="1e-2" valid-digits="8"/>
-         <!--<checkpoint timestep-interval="10"/> -->
+         <checkpoint timestep-interval="10"/>
          <max-iterations value="40"/>
          <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>
-         <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D" initialize="true"/>
+         <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D"/>
          <relative-convergence-measure data="Stresses"        mesh="Structure_Nodes" limit="1e-5"/>
          <relative-convergence-measure data="Displacements" mesh="Structure_Nodes" limit="1e-5"/>
-         <post-processing:aitken> 
+         <post-processing:IQN-ILS> 
 	    <!-- PostProc always done on the second solver -->
-            <data name="Displacements" mesh="Structure_Nodes">
+            <data name="Displacements" mesh="Structure_Nodes" scaling="1.0">
             <!-- <data name="Stresses" mesh="Structure_Nodes" scaling="1e7">  Won't work for a serial scheme--> 
             <initial-relaxation value="0.001"/>
-            <!--<max-used-iterations value="50"/>
+            <max-used-iterations value="50"/>
             <timesteps-reused value="8"/>
-            <singularity-limit value="1e-10"/> -->
-         </post-processing:aitken>
+            <singularity-limit value="1e-10"/>
+         </post-processing:IQN-ILS>
          <extrapolation-order value="2"/>
       </coupling-scheme:serial-implicit>
     
