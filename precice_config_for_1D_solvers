@@ -2,25 +2,30 @@
 
 <precice-configuration>
   
-  <log-filter target="debug" component="precice" switch="on" />
+  <log-filter target="debug" component="precice" switch="off" />
   <log-filter target="info"  component="" switch="on"/>
-  <log-filter target="debug" component="precice::cplscheme::impl::IQN" switch="on" />
-  <log-filter target="debug" component="precice::cplscheme::ImplicitCouplingScheme" switch="on" />
+  <log-filter target="debug" component="precice::cplscheme::impl::IQN" switch="off" />
+  <log-filter target="debug" component="precice::cplscheme::ImplicitCouplingScheme" switch="off" />
   
   <solver-interface dimensions="2">
     
     <!-- Data fields that are exchanged between the solvers -->
-    <data:scalar name="CrossSectionalArea" />
-    <data:scalar name="Pressure" />
+    <data:vector name="Stresses"/>
+    <data:vector name="Displacements"/>
 
     <!-- A common mesh that uses these data fields -->
-    <mesh name="WetSurface" flip-normals="no">
-      <use-data name="CrossSectionalArea" />
-      <use-data name="Pressure" />
+    <mesh name="Fluid_Nodes">
+        <use-data name="Displacements"/>
+        <use-data name="Stresses"/>
+    </mesh>
+
+    <mesh name="Structure_Nodes">
+       <use-data name="Displacements"/>   
+       <use-data name="Stresses"/>
     </mesh>
 
     <!-- Communication method, use TCP sockets -->
-    <communication:sockets from="FLUID_1D" to="STRUCTURE_1D" />
+    <m2n:sockets from="FLUID_1D" to="STRUCTURE_1D" />
 
     <!-- Represents each solver using preCICE. In a coupled simulation, two participants have to be
          defined. The name of the participant has to match the name given on construction of the
@@ -28,44 +33,47 @@
     
     <participant name="FLUID_1D">
       <!-- Makes the named mesh available to the participant. Mesh is provided by the solver directly. -->
-      <use-mesh name="WetSurface" provide="yes" />
+
+      <use-mesh name="Fluid_Nodes" provide="yes"/>
+      <use-mesh name="Structure_Nodes" from="STRUCTURE_1D"/>
       <!-- Define input/output of the solver.  -->
-      <read-data  name="CrossSectionalArea"  mesh="WetSurface" />
-      <write-data name="Pressure" mesh="WetSurface" />
+      <write-data name="Stresses" mesh="Fluid_Nodes"/>
+      <read-data  name="Displacements" mesh="Fluid_Nodes"/>
+      <mapping:nearest-projection direction="write" from="Fluid_Nodes" to="Structure_Nodes" constraint="consistent" timing="initial"/>
+      <mapping:nearest-projection direction="read"  from="Structure_Nodes" to="Fluid_Nodes" constraint="consistent" timing="initial"/>
       <export:vtk timestep-interval="1" directory="output/"/>
     </participant>
     
     <participant name="STRUCTURE_1D">
-      <!-- We use the same mesh a the fluid solver, but we don't construct it by ourself. -->
-      <use-mesh name="WetSurface" from="FLUID_1D"/>
-      <read-data name="Pressure" mesh="WetSurface" />
-      <write-data  name="CrossSectionalArea"  mesh="WetSurface" />
+      <use-mesh name="Structure_Nodes" provide="yes"/>
+      <write-data name="Displacements" mesh="Structure_Nodes"/>
+      <read-data  name="Stresses"      mesh="Structure_Nodes"/>
       <export:vtk timestep-interval="1" directory="output/"/>
     </participant>
 
     
-    <coupling-scheme:serial-implicit>
-      <!--<post-processing:constant mesh="WetSurface">
-	  <data name="CrossSectionalArea"/>
-	  <relaxation value="0.1"/>
-	  </post-processing:constant> -->
-      <post-processing:IQN-ILS>
-	<data name="CrossSectionalArea" mesh="WetSurface" />
-	<initial-relaxation value="0.1"/>
-	<max-used-iterations value="30"/>
-	<timesteps-reused value="5"/>
-	<singularity-limit value="1e-9"/>
-      </post-processing:IQN-ILS> 
-      <participants first="FLUID_1D" second="STRUCTURE_1D" />
-      <max-time value="1.0" />
-      <timestep-length value="0.01" />
-      <max-iterations value="100" />
-      <extrapolation-order value="2"/>
-      <relative-convergence-measure data="CrossSectionalArea" mesh="WetSurface" limit="1e-7"/>
-      <relative-convergence-measure data="Pressure" mesh="WetSurface" limit="1e-7"/>
-      <exchange data="Pressure" mesh="WetSurface" from="FLUID_1D" to="STRUCTURE_1D" />
-      <exchange data="CrossSectionalArea" mesh="WetSurface" from="STRUCTURE_1D" to="FLUID_1D" initialize="yes"/>
-    </coupling-scheme:serial-implicit>
+
+      <coupling-scheme:serial-implicit>
+         <participants first="FLUID_1D" second="STRUCTURE_1D"/>
+         <max-time value="40.0"/>
+         <timestep-length value="1e-2" valid-digits="8"/>
+         <!--<checkpoint timestep-interval="10"/> -->
+         <max-iterations value="40"/>
+         <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>
+         <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D" initialize="true"/>
+         <relative-convergence-measure data="Stresses"        mesh="Structure_Nodes" limit="1e-5"/>
+         <relative-convergence-measure data="Displacements" mesh="Structure_Nodes" limit="1e-5"/>
+         <post-processing:aitken> 
+	    <!-- PostProc always done on the second solver -->
+            <data name="Displacements" mesh="Structure_Nodes">
+            <!-- <data name="Stresses" mesh="Structure_Nodes" scaling="1e7">  Won't work for a serial scheme--> 
+            <initial-relaxation value="0.001"/>
+            <!--<max-used-iterations value="50"/>
+            <timesteps-reused value="8"/>
+            <singularity-limit value="1e-10"/> -->
+         </post-processing:aitken>
+         <extrapolation-order value="2"/>
+      </coupling-scheme:serial-implicit>
     
   </solver-interface>
   
