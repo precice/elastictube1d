@@ -22,7 +22,7 @@ void printData (const std::vector<double>& data)
 int main (int argc, char **argv)
 {
   cout << "Starting Fluid Solver..." << endl;
-  
+
   if ( argc != 5 )
   {
     cout << endl;
@@ -33,7 +33,7 @@ int main (int argc, char **argv)
     cout << "kappa: Dimensionless structural stiffness." << endl;
     return -1;
   }
-  
+
   std::string configFileName(argv[1]);
   int N        = atoi( argv[2] );
   double tau   = atof( argv[3] );
@@ -50,7 +50,7 @@ int main (int argc, char **argv)
   // Reads the XML file and contacts the server, if used.
   interface.configure(configFileName);
   cout << "preCICE configured..." << endl;
-  
+
   // init data
   int i;
   double *u, *u_n, *p, *p_n, *a, *a_n;
@@ -59,13 +59,13 @@ int main (int argc, char **argv)
   u_n   = new double[N+1];
   p     = new double[N+1]; // Pressure
   p_n   = new double[N+1];
-  a     = new double[N+1]; 
+  a     = new double[N+1];
   a_n   = new double[N+1];
 
   //precice stuff
-  int meshID = interface.getMeshID("WetSurface");
-  int aID = interface.getDataID("CrossSectionalArea", meshID);
-  int pID = interface.getDataID("Pressure", meshID);
+  int meshID = interface.getMeshID("Fluid_Nodes");
+  int aID = interface.getDataID("Displacements", meshID);
+  int pID = interface.getDataID("Stresses", meshID);
   int *vertexIDs;
   vertexIDs = new int[N+1];
   double *grid;
@@ -73,8 +73,8 @@ int main (int argc, char **argv)
 
   for ( i = 0; i <= N; i++ )
   {
-    u[i]   = 1.0 / ( kappa * 1.0 ); 
-    u_n[i] = 1.0 / ( kappa * 1.0 ); 
+    u[i]   = 1.0 / ( kappa * 1.0 );
+    u_n[i] = 1.0 / ( kappa * 1.0 );
     a[i]   = 1.0;
     a_n[i] = 1.0;
     p[i]   = 0.0;
@@ -107,13 +107,13 @@ int main (int argc, char **argv)
   if (interface.isReadDataAvailable()) {
     interface.readBlockScalarData(aID,N+1,vertexIDs,a);
   }
- 
+
   while (interface.isCouplingOngoing()){
     // When an implicit coupling scheme is used, checkpointing is required
     if (interface.isActionRequired(actionWriteIterationCheckpoint())){
       interface.fulfilledAction(actionWriteIterationCheckpoint());
     }
-    
+
     //p_old is not used for gamma = 0.0
     fluid_nl( a, a_n, u, u_n, p, p_n, p, t+1, N, kappa, tau, 0.0);
 

@@ -30,44 +30,52 @@ int main (int argc, char **argv)
     cout << "N:     Number of mesh elements, needs to be equal for fluid and structure solver." << endl;
     return -1;
   }
-  
+
   std::string configFileName(argv[1]);
   int N = atoi( argv[2] );
 
   std::cout << "N: " << N << std::endl;
 
   std::string dummyName = "STRUCTURE_1D";
-  
+
   SolverInterface interface(dummyName, 0, 1);
   interface.configure(configFileName);
 
   //init data
-  double *p, *a;
-  p     = new double[N+1];
-  a     = new double[N+1];
+  double *displ, *sigma;
+  displ     = new double[N+1];
+  sigma     = new double[N+1];
+  double *grid;
+  grid = new double[N+1];
 
   //precice stuff
-  int meshID = interface.getMeshID("WetSurface");
-  int aID = interface.getDataID ( "CrossSectionalArea", meshID );
-  int pID = interface.getDataID ( "Pressure", meshID );
+  int meshID = interface.getMeshID("Structure_Nodes");
+  int displID = interface.getDataID ( "Displacements", meshID );
+  int sigmaID = interface.getDataID ( "Stresses", meshID );
   int *vertexIDs;
   vertexIDs = new int[N+1];
 
   for(int i=0; i<=N; i++)
   {
     vertexIDs[i]=i;
-    a[i]=1.0;
-    p[i]=0.0;
+    displ[i]=1.0;
+    sigma[i]=0.0;
+    grid[i]= 0;
   }
- 
+
   int t = 0;
+
+  for(int i=0;i<=N;i++)
+  {
+    vertexIDs[i] = interface.setMeshVertex(meshID, static_cast<const double*>(grid + i));
+  }
 
   cout << "Structure: init precice..." << endl;
   double dt = interface.initialize();
 
   if (interface.isActionRequired(actionWriteInitialData()))
   {
-    interface.writeBlockScalarData(aID, N+1, vertexIDs, a);
+    interface.writeBlockScalarData(displID, N+1, vertexIDs, displ);
     //interface.initializeData();
     interface.fulfilledAction(actionWriteInitialData());
   }
@@ -77,7 +85,7 @@ int main (int argc, char **argv)
 
   if (interface.isReadDataAvailable())
   {
-    interface.readBlockScalarData(pID , N+1, vertexIDs, p);
+    interface.readBlockScalarData(sigmaID , N+1, vertexIDs, sigma);
   }
 
   while (interface.isCouplingOngoing())
@@ -87,16 +95,16 @@ int main (int argc, char **argv)
     {
       interface.fulfilledAction(actionWriteIterationCheckpoint());
     }
-      
+
     for ( int i = 0; i <= N; i++ )
     {
-      a[i]   = 4.0 / ((2.0 - p[i])*(2.0 - p[i]));
+      displ[i]   = 4.0 / ((2.0 - sigma[i])*(2.0 - sigma[i]));
     }
-	
-    interface.writeBlockScalarData(aID, N+1, vertexIDs, a);
+
+    interface.writeBlockScalarData(displID, N+1, vertexIDs, displ);
     interface.advance(0.01); // Advance by dt = 0.01
-    interface.readBlockScalarData(pID, N+1, vertexIDs, p);
-      
+    interface.readBlockScalarData(sigmaID, N+1, vertexIDs, sigma);
+
     if (interface.isActionRequired(actionReadIterationCheckpoint()))
     {
       cout << "Iterate" << endl;
@@ -111,6 +119,6 @@ int main (int argc, char **argv)
 
   interface.finalize();
   cout << "Exiting StructureSolver" << endl;
-  
+
   return 0;
 }
