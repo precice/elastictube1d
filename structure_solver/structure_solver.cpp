@@ -67,14 +67,6 @@ int main (int argc, char **argv)
 
   int t = 0;
   interface.setMeshVertices(meshID, N+1, grid, vertexIDs);
-  //for (int i=0; i < (N+1); i++){
-    //cout << "VertexID: " << vertexIDs[i] << " | grid: " << grid[i*dimensions + 0] << ", " << grid[i*dimensions + 1] << " | Displacements: " << displ[i*dimensions + 0] << ", " << displ[i*dimensions + 1] << " | Stresses: " << sigma[i*dimensions + 0] << ", " << sigma[i*dimensions + 1] << "\n";
-  //}
-  cout << "\n";
-  //for(int i=0;i<=N;i++)
-  //{
-  //  vertexIDs[i] = interface.setMeshVertex(meshID, static_cast<const double*>(grid + i));
-  //}
 
   cout << "Structure: init precice..." << endl;
   double dt = interface.initialize();
