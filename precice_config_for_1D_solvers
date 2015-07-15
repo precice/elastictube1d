@@ -25,17 +25,17 @@
     </mesh>
 
     <!-- Communication method, use TCP sockets -->
-    <m2n:sockets from="FLUID_1D" to="STRUCTURE_1D" />
+    <m2n:sockets from="FLUID" to="STRUCTURE" />
 
     <!-- Represents each solver using preCICE. In a coupled simulation, two participants have to be
          defined. The name of the participant has to match the name given on construction of the
          precice::SolverInterface object used by the participant. -->
     
-    <participant name="FLUID_1D">
+    <participant name="FLUID">
       <!-- Makes the named mesh available to the participant. Mesh is provided by the solver directly. -->
 
       <use-mesh name="Fluid_Nodes" provide="yes"/>
-      <use-mesh name="Structure_Nodes" from="STRUCTURE_1D"/>
+      <use-mesh name="Structure_Nodes" from="STRUCTURE"/>
       <!-- Define input/output of the solver.  -->
       <write-data name="Stresses" mesh="Fluid_Nodes"/>
       <read-data  name="Displacements" mesh="Fluid_Nodes"/>
@@ -44,7 +44,7 @@
       <export:vtk timestep-interval="1" directory="output/"/>
     </participant>
     
-    <participant name="STRUCTURE_1D">
+    <participant name="STRUCTURE">
       <use-mesh name="Structure_Nodes" provide="yes"/>
       <write-data name="Displacements" mesh="Structure_Nodes"/>
       <read-data  name="Stresses"      mesh="Structure_Nodes"/>
@@ -54,13 +54,13 @@
     
 
       <coupling-scheme:serial-implicit>
-         <participants first="FLUID_1D" second="STRUCTURE_1D"/>
+         <participants first="FLUID" second="STRUCTURE"/>
          <max-time value="40.0"/>
          <timestep-length value="1e-2" valid-digits="8"/>
          <!--<checkpoint timestep-interval="10"/> -->
          <max-iterations value="40"/>
-         <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>
-         <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D" initialize="true"/>
+         <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID" to="STRUCTURE"/>
+         <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE" to="FLUID" initialize="true"/>
          <relative-convergence-measure data="Stresses"        mesh="Structure_Nodes" limit="1e-5"/>
          <relative-convergence-measure data="Displacements" mesh="Structure_Nodes" limit="1e-5"/>
          <post-processing:aitken> 
