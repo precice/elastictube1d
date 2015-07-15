@@ -62,7 +62,7 @@ int main (int argc, char **argv)
     displ[i] = 1.0;
     sigma[i] = 0.0;
     for(int dim = 0; dim < dimensions; dim++)
-      grid[i*dimensions + dim] = 0;//i*(1-dim);   // Define the y-component of each grid point as zero
+      grid[i*dimensions + dim] = i*(1-dim);   // Define the y-component of each grid point as zero
   }
 
   int t = 0;

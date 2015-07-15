@@ -81,7 +81,7 @@ int main (int argc, char **argv)
     p[i]   = 0.0;
     p_n[i] = 0.0;
     for(int dim = 0; dim < dimensions; dim++)
-      grid[i*dimensions + dim]= 0;//i*(1-dim);
+      grid[i*dimensions + dim]= i*(1-dim);
   }
 
   int t = 0; //number of timesteps
