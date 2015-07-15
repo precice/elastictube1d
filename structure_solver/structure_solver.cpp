@@ -45,8 +45,8 @@ int main (int argc, char **argv)
   //init data
   double *displ, *sigma;
   int dimensions = interface.getDimensions();
-  displ     = new double[(N+1)];  // Second dimension (only one cell deep) stored right after the first dimension: see SolverInterfaceImpl::setMeshVertices
-  sigma     = new double[(N+1)];
+  displ     = new double[N+1];  // Second dimension (only one cell deep) stored right after the first dimension: see SolverInterfaceImpl::setMeshVertices
+  sigma     = new double[N+1];
   double *grid;
   grid = new double[dimensions*(N+1)];
 
@@ -59,14 +59,14 @@ int main (int argc, char **argv)
 
   for(int i=0; i<=N; i++)
   {
-      displ[i] = 1.0;
-      sigma[i] = 0.0;
-      for(int dim = 0; dim < dimensions; dim++)
-          grid[i*dimensions + dim] = i*(1-dim);   // Define the y-component of each grid point as zero
+    displ[i] = 1.0;
+    sigma[i] = 0.0;
+    for(int dim = 0; dim < dimensions; dim++)
+      grid[i*dimensions + dim] = 0;//i*(1-dim);   // Define the y-component of each grid point as zero
   }
 
   int t = 0;
-  interface.setMeshVertices(meshID, N+1, (grid), vertexIDs);
+  interface.setMeshVertices(meshID, N+1, grid, vertexIDs);
   //for (int i=0; i < (N+1); i++){
     //cout << "VertexID: " << vertexIDs[i] << " | grid: " << grid[i*dimensions + 0] << ", " << grid[i*dimensions + 1] << " | Displacements: " << displ[i*dimensions + 0] << ", " << displ[i*dimensions + 1] << " | Stresses: " << sigma[i*dimensions + 0] << ", " << sigma[i*dimensions + 1] << "\n";
   //}

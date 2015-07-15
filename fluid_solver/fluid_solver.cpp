@@ -56,12 +56,12 @@ int main (int argc, char **argv)
   double *u, *u_n, *p, *p_n, *a, *a_n;
   int dimensions = interface.getDimensions();
 
-  u     = new double[(N+1)]; // Speed
-  u_n   = new double[(N+1)];
-  p     = new double[(N+1)]; // Pressure
-  p_n   = new double[(N+1)];
-  a     = new double[(N+1)];
-  a_n   = new double[(N+1)];
+  u     = new double[N+1]; // Speed
+  u_n   = new double[N+1];
+  p     = new double[N+1]; // Pressure
+  p_n   = new double[N+1];
+  a     = new double[N+1];
+  a_n   = new double[N+1];
 
   //precice stuff
   int meshID = interface.getMeshID("Fluid_Nodes");
@@ -81,14 +81,14 @@ int main (int argc, char **argv)
     p[i]   = 0.0;
     p_n[i] = 0.0;
     for(int dim = 0; dim < dimensions; dim++)
-        grid[i*dimensions + dim]= (double)(i*(1-dim));
+      grid[i*dimensions + dim]= 0;//i*(1-dim);
   }
 
   int t = 0; //number of timesteps
 
   //not yet supported by precice
   //interface.setMeshVertices(meshID,N+1,vertexIDs,grid);
-  interface.setMeshVertices(meshID, N+1, (grid), vertexIDs);
+  interface.setMeshVertices(meshID, N+1, grid, vertexIDs);
   //for (i=0; i < (N+1); i++){
     //cout << "VertexID: " << vertexIDs[i] << " | grid: " << grid[i*dimensions + 0] << ", " << grid[i*dimensions + 1] << " | Displacements: " << a[i*dimensions + 0] << ", " << a[i*dimensions + 1] << " | Stresses: " << p[i*dimensions + 0] << ", " << p[i*dimensions + 1] << "\n";
   //}
