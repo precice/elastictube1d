@@ -36,17 +36,19 @@ int main (int argc, char **argv)
 
   std::cout << "N: " << N << std::endl;
 
-  std::string dummyName = "STRUCTURE_1D";
+  std::string dummyName = "STRUCTURE";
 
   SolverInterface interface(dummyName, 0, 1);
   interface.configure(configFileName);
+  cout << "preCICE configured..." << endl;
 
   //init data
   double *displ, *sigma;
-  displ     = new double[N+1];
+  int dimensions = interface.getDimensions();
+  displ     = new double[N+1];  // Second dimension (only one cell deep) stored right after the first dimension: see SolverInterfaceImpl::setMeshVertices
   sigma     = new double[N+1];
   double *grid;
-  grid = new double[N+1];
+  grid = new double[dimensions*(N+1)];
 
   //precice stuff
   int meshID = interface.getMeshID("Structure_Nodes");
@@ -57,18 +59,14 @@ int main (int argc, char **argv)
 
   for(int i=0; i<=N; i++)
   {
-    vertexIDs[i]=i;
-    displ[i]=1.0;
-    sigma[i]=0.0;
-    grid[i]= 0;
+    displ[i] = 1.0;
+    sigma[i] = 0.0;
+    for(int dim = 0; dim < dimensions; dim++)
+      grid[i*dimensions + dim] = i*(1-dim);   // Define the y-component of each grid point as zero
   }
 
   int t = 0;
-
-  for(int i=0;i<=N;i++)
-  {
-    vertexIDs[i] = interface.setMeshVertex(meshID, static_cast<const double*>(grid + i));
-  }
+  interface.setMeshVertices(meshID, N+1, grid, vertexIDs);
 
   cout << "Structure: init precice..." << endl;
   double dt = interface.initialize();

@@ -41,7 +41,7 @@ int main (int argc, char **argv)
 
   std::cout << "N: " << N << " tau: " << tau << " kappa: " << kappa << std::endl;
 
-  std::string solverName = "FLUID_1D";
+  std::string solverName = "FLUID";
 
   cout << "Configure preCICE..." << endl;
   // Initialize the solver interface with our name, our process index (like rank) and the total number of processes.
@@ -54,6 +54,7 @@ int main (int argc, char **argv)
   // init data
   int i;
   double *u, *u_n, *p, *p_n, *a, *a_n;
+  int dimensions = interface.getDimensions();
 
   u     = new double[N+1]; // Speed
   u_n   = new double[N+1];
@@ -67,9 +68,9 @@ int main (int argc, char **argv)
   int aID = interface.getDataID("Displacements", meshID);
   int pID = interface.getDataID("Stresses", meshID);
   int *vertexIDs;
-  vertexIDs = new int[N+1];
+  vertexIDs = new int[(N+1)];
   double *grid;
-  grid = new double[N+1];
+  grid = new double[dimensions*(N+1)];
 
   for ( i = 0; i <= N; i++ )
   {
@@ -79,18 +80,13 @@ int main (int argc, char **argv)
     a_n[i] = 1.0;
     p[i]   = 0.0;
     p_n[i] = 0.0;
-    grid[i]= 0;
+    for(int dim = 0; dim < dimensions; dim++)
+      grid[i*dimensions + dim]= i*(1-dim);
   }
 
   int t = 0; //number of timesteps
 
-  //not yet supported by precice
-  //interface.setMeshVertices(meshID,N+1,vertexIDs,grid);
-
-  for(int i=0;i<=N;i++)
-  {
-    vertexIDs[i] = interface.setMeshVertex(meshID, static_cast<const double*>(grid + i));
-  }
+  interface.setMeshVertices(meshID, N+1, grid, vertexIDs);
 
   cout << "Fluid: init precice..." << endl;
   interface.initialize();
