@@ -2,6 +2,8 @@ import os, sys
 
 vars = Variables(None, ARGUMENTS)
 vars.Add(BoolVariable("petsc", "Enable use of the Petsc linear algebra library.", True))
+vars.Add(BoolVariable("boost_inst", "Enable if Boost is available compiled and installed.", False))
+
 
 env = Environment(variables = vars, ENV = os.environ)
 Help(vars.GenerateHelpText(env))
@@ -44,6 +46,11 @@ env["CXX"] = 'mpic++'      # For systems offering mpic++ compiler
 # env["CXX"] = 'g++-4.8'
 
 env.Append(CCFLAGS = ["-g3", "-O3", "-Wall", "-std=c++11"])
+
+# ===== boost ======
+if env["boost_inst"]:
+   conf.CheckLib("boost_system")
+   conf.CheckLib("boost_filesystem")
 
 env = conf.Finish()
    
