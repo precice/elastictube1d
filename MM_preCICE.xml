@@ -7,7 +7,7 @@
   <log-filter target="debug" component="precice::cplscheme::impl::IQNILSPostProcessing" switch="on" />
   <log-filter target="debug" component="precice::cplscheme::impl::MVQNPostProcessing" switch="on" />
   <log-filter target="debug" component="precice::cplscheme::impl::BaseQNPostProcessing" switch="on" />
-  <log-filter target="debug" component="precice::cplscheme::impl::BroydenPostProcessing" switch="on" />
+  <log-filter target="debug" component="precice::cplscheme::impl::MMPostProcessing" switch="on" />
   <log-filter target="debug" component="precice::cplscheme::ImplicitCouplingScheme" switch="on" />
   
   <solver-interface dimensions="2">
@@ -34,6 +34,7 @@
       <use-data name="Stresses"/>
     </mesh>
 
+<!--
     <!-- coarse model meshes -->
     <mesh name="Coarse_Fluid_Nodes">
       <use-data name="Coarse_Displacements"/>
@@ -44,6 +45,7 @@
       <use-data name="Coarse_Displacements"/>   
       <use-data name="Coarse_Stresses"/>
     </mesh>
+-->
 
     <!-- Communication method, use TCP sockets -->
     <m2n:sockets from="FLUID_1D" to="STRUCTURE_1D" />
@@ -64,16 +66,20 @@
       <mapping:nearest-projection direction="write" from="Fluid_Nodes" to="Structure_Nodes" constraint="consistent" timing="initial"/>
       <mapping:nearest-projection direction="read"  from="Structure_Nodes" to="Fluid_Nodes" constraint="consistent" timing="initial"/>
       
+      <write-data name="Coarse_Stresses" mesh="Fluid_Nodes"/>
+      <read-data  name="Coarse_Displacements" mesh="Fluid_Nodes"/>
 
+<!--
       <!-- coarse model -->
       <use-mesh name="Coarse_Fluid_Nodes" provide="yes"/>
       <use-mesh name="Coarse_Structure_Nodes" from="STRUCTURE_1D"/>
       <!-- Define input/output of the solver.  -->
       <write-data name="Coarse_Stresses" mesh="Coarse_Fluid_Nodes"/>
       <read-data  name="Coarse_Displacements" mesh="Coarse_Fluid_Nodes"/>
-      <!-- mappings between coars model meshes of both participants -->
+      <!-- mappings between coarse model meshes of both participants -->
       <mapping:nearest-projection direction="write" from="Coaes_Fluid_Nodes" to="Coarse_Structure_Nodes" constraint="consistent" timing="initial"/>
       <mapping:nearest-projection direction="read"  from="Coarse_Structure_Nodes" to="Coarse_Fluid_Nodes" constraint="consistent" timing="initial"/>
+-->
 
       <export:vtk timestep-interval="1" directory="output/"/>
     </participant>
@@ -86,6 +92,10 @@
       <write-data name="Displacements" mesh="Structure_Nodes"/>
       <read-data  name="Stresses"      mesh="Structure_Nodes"/>
 
+      <write-data name="Coarse_Displacements" mesh="Structure_Nodes"/>
+      <read-data  name="Coarse_Stresses"      mesh="Structure_Nodes"/>
+
+<!--
       <!-- coarse model -->
       <!-- Makes the named mesh available to the participant. Mesh is provided by the solver directly. -->
       <use-mesh name="Coarse_Structure_Nodes" provide="yes"/>
@@ -96,6 +106,7 @@
       <!-- mappings from coarse grid to coupling grid and vice versa (if assumed that coupling grid = fine model structure grid) -->
       <mapping:rbf-thin-plate-splines direction="down" from="Structure_Nodes" to="Coarse_Structure_Nodes"  /> <!--NEW -->
       <mapping:rbf-thin-plate-splines direction="up" from="Coarse_Structure_Nodes" to="Structure_Nodes"  /> <!--NEW -->
+-->
 
       <export:vtk timestep-interval="1" directory="output/"/>
     </participant>
@@ -112,17 +123,17 @@
       <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>
       <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D"/>
       <relative-convergence-measure  limit="1e-5" data="Stresses"        mesh="Structure_Nodes"/>
-      <relative-convergence-measure  limit="1e-5" data="Displacements" mesh="Structure_Nodes"/>
+      <relative-convergence-measure  limit="1e-5" data="Displacements"   mesh="Structure_Nodes"/>
 
       <!-- coarse model exchange data and associated convergence measures -->
       <exchange data="Coarse_Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>
       <exchange data="Coarse_Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D"/>
       <!-- convergence criterion for coarse coupling data needs to be more restrictive -->
       <relative-convergence-measure  limit="1e-7" data="Coarse_Stresses"        mesh="Structure_Nodes"/>
-      <relative-convergence-measure  limit="1e-7" data="Coarse_Displacements" mesh="Structure_Nodes"/>
-
+      <relative-convergence-measure  limit="1e-7" data="Coarse_Displacements"   mesh="Structure_Nodes"/>
+ 
       <post-processing:MM> 
-  <!-- PostProcessing always done on the second solver -->
+        <!-- PostProcessing always done on the second solver -->
         <data name="Displacements" mesh="Structure_Nodes" scaling="1.0">
           <!-- <data name="Stresses" mesh="Structure_Nodes" scaling="1e7">  Won't work for a serial scheme--> 
           <max-used-iterations value="50"/>
@@ -131,8 +142,11 @@
           <singularity-limit value="1e-13"/>
           
           <coarse-model-optimization:IQN-ILS>
-            <data mesh="Coarse_Structure_Nodes" name="Coarse_Displacements" />
-            <!-- <data mesh="Coarse_Structure_Nodes" name="Coarse_Stresses" scaling="1e7" /> -->
+            <data mesh="Structure_Nodes" name="Coarse_Displacements" />
+<!--            
+            <data mesh="Structure_Nodes" name="Coarse_Displacements" />
+            <data mesh="Coarse_Structure_Nodes" name="Coarse_Stresses" scaling="1e7" />
+-->
             <initial-relaxation value="0.001" />
             <max-used-iterations value="50" />
             <timesteps-reused value="8" />
