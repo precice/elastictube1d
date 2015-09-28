@@ -27,8 +27,8 @@ conf.CheckLib("precice")
 conf.CheckLib("python2.7")
 
 # ====== petsc ======
-PETSC_DIR = env["ENV"]["PETSC_DIR"]
-PETSC_ARCH = env["ENV"]["PETSC_ARCH"]
+#PETSC_DIR = env["ENV"]["PETSC_DIR"]
+#PETSC_ARCH = env["ENV"]["PETSC_ARCH"]
 
 if env["petsc"]:
    env.Append(CPPPATH = [os.path.join( PETSC_DIR, "include"),
@@ -41,7 +41,7 @@ else:
 # ====== lapack ======
 conf.CheckLib("lapack")
 
-# cxx = 'mpicxx.mpich2' # For systems offering mpicxx compiler
+cxx = 'mpicxx.mpich2' # For systems offering mpicxx compiler
 env["CXX"] = 'mpic++'      # For systems offering mpic++ compiler
 # env["CXX"] = 'g++-4.8'
 
@@ -54,5 +54,5 @@ if env["boost_inst"]:
 
 env = conf.Finish()
    
-env.Program('StructureSolver', ['structure_solver/structure_solver.cpp'])
-env.Program('FluidSolver', ['fluid_solver/fluid_solver.cpp', 'fluid_solver/fluid_nl.cpp'])
+env.Program('StructureSolver', ['structure_solver/structure_solver.cpp', 'fluid_solver/NearestNeighborMapping.cpp'])
+env.Program('FluidSolver', ['fluid_solver/fluid_solver.cpp', 'fluid_solver/fluid_nl.cpp', 'fluid_solver/NearestNeighborMapping.cpp'])
