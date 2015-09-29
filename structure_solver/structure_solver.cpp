@@ -16,6 +16,42 @@ void printData (const std::vector<double>& data)
   cout << endl;
 }
 
+/**
+void testMapping()
+{
+
+  // mappings
+    NearestNeighborMapping upMapping, downMapping;
+    int N = 10, N_SM = 5;
+
+    double *displ_copy_coarse, *displ_coarse, *tmp;
+    displ_coarse = new double[N_SM];
+    tmp = new double[N_SM];
+    displ_copy_coarse = new double[N];
+
+    for (int i = 0; i < N; i++)
+      displ_copy_coarse[i] = i;
+    for (int i = 0; i < N_SM; i++)
+          displ_coarse[i] = i;
+    std::cout<<"init: ";
+    for(int i = 0; i <N; i++)
+      std::cout<<displ_copy_coarse[i]<<", ";
+    std::cout<<"\n";
+
+    downMapping.map(N, N_SM, displ_copy_coarse, tmp);
+
+    std::cout<<"\n\nfine --> coarse: ";
+    for(int i = 0; i <N_SM; i++)
+      std::cout<<tmp[i]<<", ";
+
+    upMapping.map(N_SM, N, tmp, displ_copy_coarse);
+
+    std::cout<<"\n\ncoarse --> fine: ";
+    for(int i = 0; i <N; i++)
+      std::cout<<displ_copy_coarse[i]<<", ";
+}
+**/
+
 
 int main (int argc, char **argv)
 {

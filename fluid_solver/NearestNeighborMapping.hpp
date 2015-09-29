@@ -11,6 +11,7 @@
 #include <limits>
 #include <vector>
 #include <cmath>
+#include <iostream>
 
 class NearestNeighborQuery
 {
@@ -24,7 +25,7 @@ public:
 
   ~NearestNeighborQuery(){};
 
-  void find(std::vector<double> mesh)
+  void find(std::vector<double>& mesh)
   {
     double shortestDistance (std::numeric_limits<double>::max());
     for(int id=0; id<mesh.size(); id++)

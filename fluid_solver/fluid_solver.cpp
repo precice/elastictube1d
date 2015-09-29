@@ -124,8 +124,6 @@ int main(
     a_n_coarse[i] = 1.0;
     p_coarse[i] = 0.0;
     p_n_coarse[i] = 0.0;
-    //for (int dim = 0; dim < dimensions; dim++)
-    //  grid[i * dimensions + dim] = i * (1 - dim);
   }
 
   int t = 0; //number of timesteps
