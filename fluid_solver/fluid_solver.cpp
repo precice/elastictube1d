@@ -155,7 +155,7 @@ int main(
     }
 
 
-    // only surrogate model evaluation for surrogate model optimization
+    // surrogate model evaluation for surrogate model optimization or MM cycle
     if(interface.hasToEvaluateSurrogateModel())
     {
       // map down:  fine --> coarse
@@ -171,32 +171,16 @@ int main(
 
       // write coarse model response (on fine mesh)
       interface.writeBlockScalarData(pID_coarse, N + 1, vertexIDs_coarse, p_copy_coarse);
+    }
 
-
-      // fine and coarse model evaluation (in MM iteration cycles)
-    }else{
-
+    // fine model evaluation (in MM iteration cycles)
+    if(interface.hasToEvaluateFineModel())
+    {
       // ### fine model evaluation ###    p_old is not used for gamma = 0.0
       fluid_nl(a, a_n, u, u_n, p, p_n, p, t + 1, N, kappa, tau, 0.0);
 
       // write fine model response
       interface.writeBlockScalarData(pID, N + 1, vertexIDs, p);
-
-      // map down:  fine --> coarse
-      downMapping.map(N, N_SM, a_copy_coarse, a_coarse);
-      downMapping.map(N, N_SM, p_copy_coarse, p_coarse);
-
-      // ### surrogate model evaluation ###    p_old is not used for gamma = 0.0
-      fluid_nl(a_coarse, a_n_coarse, u_coarse, u_n_coarse, p_coarse, p_n_coarse, p_coarse, t + 1, N_SM, kappa, tau, 0.0);
-
-      // map up:  coarse --> fine
-      upMapping.map(N_SM, N, a_coarse, a_copy_coarse);
-      upMapping.map(N_SM, N, p_coarse, p_copy_coarse);
-
-      // write coarse model response (on fine mesh)
-      interface.writeBlockScalarData(pID_coarse, N + 1, vertexIDs_coarse, p_copy_coarse);
-
-
     }
 
     // perform coupling using preCICE
@@ -205,15 +189,14 @@ int main(
 
     // read coupling data from preCICE.
 
-    // only surrogate model evaluation for surrogate model optimization
-    if(interface.hasToEvaluateSurrogateModel())
-    {
+    // surrogate model evaluation for surrogate model optimization or MM cycle
+    if (interface.hasToEvaluateSurrogateModel()){
       interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs_coarse, a_copy_coarse);
+    }
 
-      // fine and coarse model evaluation (in MM iteration cycles)
-    }else{
+    // fine model evaluation (in MM iteration cycles)
+    if(interface.hasToEvaluateFineModel()){
       interface.readBlockScalarData(aID, N + 1, vertexIDs, a);
-      interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs_coarse, a_copy_coarse);
     }
 
     if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. not yet converged
