@@ -59,23 +59,44 @@ int main (int argc, char **argv)
   using namespace precice;
   using namespace precice::constants;
 
-  if ( argc != 4 )
+  int isMultilevelApproach = atoi(argv[argc-1]);
+  int N = 0, N_SM = 0;
+
+  if(!isMultilevelApproach)
   {
-    cout << endl;
-    cout << "Usage: " << argv[0] << " configurationFileName N" << endl;
-    cout << endl;
-    cout << "N:     Number of mesh elements, needs to be equal for fluid and structure solver." << endl;
-    cout << "N_SM:  Number of surrogate model mesh elements, needs to be equal for fluid and structure solver." << endl;
-    return -1;
+    if ( argc != 4 )
+    {
+      cout<<"argc= "<<argc<<std::endl;
+      cout << endl;
+      cout << "Usage: " << argv[0] << " configurationFileName N" << endl;
+      cout << endl;
+      cout << "N:     Number of mesh elements, needs to be equal for fluid and structure solver." << endl;
+      cout << "isMultilevelApproach: 0/1" << endl;
+      return -1;
+    }
+    N = atoi( argv[2] );
+    std::cout << "N: " << N << std::endl;
+  }else{
+
+    if ( argc != 5 )
+    {
+      cout<<"argc= "<<argc<<std::endl;
+      cout << endl;
+      cout << "Usage: " << argv[0] << " configurationFileName N" << endl;
+      cout << endl;
+      cout << "N:     Number of mesh elements, needs to be equal for fluid and structure solver." << endl;
+      cout << "N_SM:  Number of surrogate model mesh elements, needs to be equal for fluid and structure solver." << endl;
+      cout << "isMultilevelApproach: 0/1" << endl;
+      return -1;
+    }
+    N = atoi( argv[2] );
+    N_SM = atoi( argv[3] );
+    std::cout << "N: " << N <<" N (surrogate model): "<< N_SM << std::endl;
   }
-
   std::string configFileName(argv[1]);
-  int N = atoi( argv[2] );
-  int N_SM = atoi( argv[3] );
 
-  std::cout << "N: " << N <<" N (surrogate model): "<< N_SM << std::endl;
 
-  std::string dummyName = "STRUCTURE";
+  std::string dummyName = "STRUCTURE_1D";
 
   SolverInterface interface(dummyName, 0, 1);
   interface.configure(configFileName);
@@ -93,48 +114,64 @@ int main (int argc, char **argv)
   double *displ_coarse, *sigma_coarse;
   double *displ_copy_coarse;
   double *sigma_copy_coarse;
-
-  displ_coarse = new double[N_SM+1];  // Second dimension (only one cell deep) stored right after the first dimension: see SolverInterfaceImpl::setMeshVertices
-  sigma_coarse = new double[N_SM+1];
-  displ_copy_coarse = new double[N+1];
-  sigma_copy_coarse = new double[N+1];
-
   // mappings
   NearestNeighborMapping upMapping, downMapping;
+
+  if(isMultilevelApproach)
+  {
+    displ_coarse = new double[N_SM+1];  // Second dimension (only one cell deep) stored right after the first dimension: see SolverInterfaceImpl::setMeshVertices
+    sigma_coarse = new double[N_SM+1];
+    displ_copy_coarse = new double[N+1];
+    sigma_copy_coarse = new double[N+1];
+  }
 
   //precice stuff
   int meshID = interface.getMeshID("Structure_Nodes");
   int displID = interface.getDataID ( "Displacements", meshID );
   int sigmaID = interface.getDataID ( "Stresses", meshID );
-
-  int displID_coarse = interface.getDataID ( "Coarse_Displacements", meshID );
-  int sigmaID_coarse = interface.getDataID ( "Coarse_Stresses", meshID );
   int *vertexIDs, *vertexIDs_coarse;
 
+  int displID_coarse;
+  int sigmaID_coarse;
+
+  if(isMultilevelApproach)
+  {
+    displID_coarse = interface.getDataID ( "Coarse_Displacements", meshID );
+    sigmaID_coarse = interface.getDataID ( "Coarse_Stresses", meshID );
+    vertexIDs_coarse = new int[N+1];
+  }
+
   vertexIDs = new int[N+1];
-  vertexIDs_coarse = new int[N+1];
+
 
   // fine model init
   for(int i=0; i<=N; i++)
   {
     displ[i] = 1.0;
     sigma[i] = 0.0;
-    displ_copy_coarse[i] = 1.0;
+
+    if(isMultilevelApproach)
+      displ_copy_coarse[i] = 1.0;
 
     for(int dim = 0; dim < dimensions; dim++)
       grid[i*dimensions + dim] = i*(1-dim);   // Define the y-component of each grid point as zero
   }
 
-  // surrogate model init
-  for(int i=0; i<=N; i++)
+  if(isMultilevelApproach)
   {
-    displ_coarse[i] = 1.0;
-    sigma_coarse[i] = 0.0;
+    // surrogate model init
+    for(int i=0; i<=N; i++)
+    {
+      displ_coarse[i] = 1.0;
+      sigma_coarse[i] = 0.0;
+    }
   }
 
   int t = 0;
   interface.setMeshVertices(meshID, N+1, grid, vertexIDs);
-  interface.setMeshVertices(meshID, N+1, grid, vertexIDs_coarse); // TODO: ???
+
+  if(isMultilevelApproach)
+    interface.setMeshVertices(meshID, N+1, grid, vertexIDs_coarse); // TODO: ???
 
   cout << "Structure: init precice..." << endl;
   double dt = interface.initialize();
@@ -142,7 +179,10 @@ int main (int argc, char **argv)
   if (interface.isActionRequired(actionWriteInitialData()))
   {
     interface.writeBlockScalarData(displID, N+1, vertexIDs, displ);
-    interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs_coarse, displ_copy_coarse); // TODO: ???
+
+    if(isMultilevelApproach)
+      interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs_coarse, displ_copy_coarse); // TODO: ???
+
     //interface.initializeData();
     interface.fulfilledAction(actionWriteInitialData());
   }
@@ -153,7 +193,9 @@ int main (int argc, char **argv)
   if (interface.isReadDataAvailable())
   {
     interface.readBlockScalarData(sigmaID , N+1, vertexIDs, sigma);
-    interface.readBlockScalarData(sigmaID_coarse , N+1, vertexIDs_coarse, sigma_copy_coarse);
+
+    if(isMultilevelApproach)
+      interface.readBlockScalarData(sigmaID_coarse , N+1, vertexIDs_coarse, sigma_copy_coarse);
   }
 
   while (interface.isCouplingOngoing())
@@ -167,22 +209,25 @@ int main (int argc, char **argv)
     // surrogate model evaluation for surrogate model optimization or MM cycle
     if(interface.hasToEvaluateSurrogateModel())
     {
+      if(isMultilevelApproach)
+      {
+        // map down:  fine --> coarse
+        downMapping.map(N, N_SM, displ_copy_coarse, displ_coarse);
+        downMapping.map(N, N_SM, sigma_copy_coarse, sigma_coarse);
 
-      // map down:  fine --> coarse
-      downMapping.map(N, N_SM, displ_copy_coarse, displ_coarse);
-      downMapping.map(N, N_SM, sigma_copy_coarse, sigma_coarse);
+        // ### surrogate model evaluation ###
+        for ( int i = 0; i <= N_SM; i++ )
+          displ_coarse[i]   = 4.0 / ((2.0 - sigma_coarse[i])*(2.0 - sigma_coarse[i]));
 
-      // ### surrogate model evaluation ###
-      for ( int i = 0; i <= N_SM; i++ )
-        displ_coarse[i]   = 4.0 / ((2.0 - sigma_coarse[i])*(2.0 - sigma_coarse[i]));
+        // map up:  coarse --> fine
+        upMapping.map(N_SM, N, displ_coarse, displ_copy_coarse);
+        upMapping.map(N_SM, N, sigma_coarse, sigma_copy_coarse);
 
-      // map up:  coarse --> fine
-      upMapping.map(N_SM, N, displ_coarse, displ_copy_coarse);
-      upMapping.map(N_SM, N, sigma_coarse, sigma_copy_coarse);
-
-      // write coarse model response (on fine mesh)
-      interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs_coarse, displ_copy_coarse);
+        // write coarse model response (on fine mesh)
+        interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs_coarse, displ_copy_coarse);
+      }
     }
+
 
     // fine model evaluation (in MM iteration cycles)
     if(interface.hasToEvaluateFineModel())
@@ -204,7 +249,8 @@ int main (int argc, char **argv)
 
     // surrogate model evaluation for surrogate model optimization or MM cycle
     if (interface.hasToEvaluateSurrogateModel()){
-      interface.readBlockScalarData(sigmaID_coarse, N + 1, vertexIDs_coarse, sigma_copy_coarse);
+      if(isMultilevelApproach)
+        interface.readBlockScalarData(sigmaID_coarse, N + 1, vertexIDs_coarse, sigma_copy_coarse);
     }
 
     // fine model evaluation (in MM iteration cycles)

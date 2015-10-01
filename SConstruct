@@ -45,7 +45,7 @@ cxx = 'mpicxx.mpich2' # For systems offering mpicxx compiler
 env["CXX"] = 'mpic++'      # For systems offering mpic++ compiler
 # env["CXX"] = 'g++-4.8'
 
-env.Append(CCFLAGS = ["-g3", "-O3", "-Wall", "-std=c++11"])
+env.Append(CCFLAGS = ["-g3", "-O0", "-Wall", "-std=c++11"])
 
 # ===== boost ======
 if env["boost_inst"]:

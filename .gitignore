@@ -2,5 +2,10 @@
 .sconsign.dblite
 fluid_solver/FluidSolver
 structure_solver/StructureSolver
+iterations*
+convergence*
+config.log
+postProcessingInfo.txt
+precice_checkpoint_*
 *.o
 core

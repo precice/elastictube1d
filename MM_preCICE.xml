@@ -27,11 +27,15 @@
     <mesh name="Fluid_Nodes">
       <use-data name="Displacements"/>
       <use-data name="Stresses"/>
+      <use-data name="Coarse_Displacements"/>
+      <use-data name ="Coarse_Stresses"/>
     </mesh>
 
     <mesh name="Structure_Nodes">
       <use-data name="Displacements"/>   
       <use-data name="Stresses"/>
+      <use-data name="Coarse_Displacements"/>
+      <use-data name ="Coarse_Stresses"/>
     </mesh>
 
 <!--
@@ -81,7 +85,7 @@
       <mapping:nearest-projection direction="read"  from="Coarse_Structure_Nodes" to="Coarse_Fluid_Nodes" constraint="consistent" timing="initial"/>
 -->
 
-      <export:vtk timestep-interval="1" directory="output/"/>
+<!--      <export:vtk timestep-interval="1" directory="output/"/> -->
     </participant>
     
     <participant name="STRUCTURE_1D">
@@ -108,7 +112,7 @@
       <mapping:rbf-thin-plate-splines direction="up" from="Coarse_Structure_Nodes" to="Structure_Nodes"  /> <!--NEW -->
 -->
 
-      <export:vtk timestep-interval="1" directory="output/"/>
+<!--      <export:vtk timestep-interval="1" directory="output/"/> -->
     </participant>
 
     <coupling-scheme:serial-implicit>
@@ -122,26 +126,27 @@
       <!-- fine model exchange data and associated convergence measures -->
       <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>
       <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D"/>
-      <relative-convergence-measure  limit="1e-5" data="Stresses"        mesh="Structure_Nodes"/>
+<!--      <relative-convergence-measure  limit="1e-5" data="Stresses"        mesh="Structure_Nodes"/> -->
       <relative-convergence-measure  limit="1e-5" data="Displacements"   mesh="Structure_Nodes"/>
 
       <!-- coarse model exchange data and associated convergence measures -->
-      <exchange data="Coarse_Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>
+      <exchange data="Coarse_Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>  
       <exchange data="Coarse_Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D"/>
       <!-- convergence criterion for coarse coupling data needs to be more restrictive -->
-      <relative-convergence-measure  limit="1e-7" data="Coarse_Stresses"        mesh="Structure_Nodes"/>
+<!--      <relative-convergence-measure  limit="1e-7" data="Coarse_Stresses"        mesh="Structure_Nodes"/>  -->
       <relative-convergence-measure  limit="1e-7" data="Coarse_Displacements"   mesh="Structure_Nodes"/>
  
       <post-processing:MM> 
-        <!-- PostProcessing always done on the second solver -->
-        <data name="Displacements" mesh="Structure_Nodes" scaling="1.0">
-          <!-- <data name="Stresses" mesh="Structure_Nodes" scaling="1e7">  Won't work for a serial scheme--> 
+          <!-- PostProcessing always done on the second solver -->
+          <data name="Displacements" mesh="Structure_Nodes" scaling="1.0">
+          <!-- <data name="Stresses" mesh="Structure_Nodes" scaling="1e7">  Won't work for a serial scheme-->
+          <estimate-jacobian value="false"/> 
           <max-used-iterations value="50"/>
           <timesteps-reused value="0"/>
           <filter name="QR1-filter" />
           <singularity-limit value="1e-13"/>
           
-          <coarse-model-optimization:IQN-ILS>
+          <post-processing:IQN-ILS>
             <data mesh="Structure_Nodes" name="Coarse_Displacements" />
 <!--            
             <data mesh="Structure_Nodes" name="Coarse_Displacements" />
@@ -152,7 +157,7 @@
             <timesteps-reused value="8" />
             <filter name="QR1-filter" />
             <singularity-limit value="1e-13" />
-          </coarse-model-optimization:IQN-ILS>
+          </post-processing:IQN-ILS>
 
         </post-processing:MM>
 
