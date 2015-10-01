@@ -170,8 +170,8 @@ int main (int argc, char **argv)
   int t = 0;
   interface.setMeshVertices(meshID, N+1, grid, vertexIDs);
 
-  if(isMultilevelApproach)
-    interface.setMeshVertices(meshID, N+1, grid, vertexIDs_coarse); // TODO: ???
+ // if(isMultilevelApproach)
+ //   interface.setMeshVertices(meshID, N+1, grid, vertexIDs_coarse); // TODO: ???
 
   cout << "Structure: init precice..." << endl;
   double dt = interface.initialize();
