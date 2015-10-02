@@ -129,7 +129,7 @@ int main (int argc, char **argv)
   int meshID = interface.getMeshID("Structure_Nodes");
   int displID = interface.getDataID ( "Displacements", meshID );
   int sigmaID = interface.getDataID ( "Stresses", meshID );
-  int *vertexIDs, *vertexIDs_coarse;
+  int *vertexIDs;
 
   int displID_coarse;
   int sigmaID_coarse;
@@ -138,7 +138,6 @@ int main (int argc, char **argv)
   {
     displID_coarse = interface.getDataID ( "Coarse_Displacements", meshID );
     sigmaID_coarse = interface.getDataID ( "Coarse_Stresses", meshID );
-    vertexIDs_coarse = new int[N+1];
   }
 
   vertexIDs = new int[N+1];
@@ -170,9 +169,6 @@ int main (int argc, char **argv)
   int t = 0;
   interface.setMeshVertices(meshID, N+1, grid, vertexIDs);
 
- // if(isMultilevelApproach)
- //   interface.setMeshVertices(meshID, N+1, grid, vertexIDs_coarse); // TODO: ???
-
   cout << "Structure: init precice..." << endl;
   double dt = interface.initialize();
 
@@ -181,7 +177,7 @@ int main (int argc, char **argv)
     interface.writeBlockScalarData(displID, N+1, vertexIDs, displ);
 
     if(isMultilevelApproach)
-      interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs_coarse, displ_copy_coarse); // TODO: ???
+      interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs, displ_copy_coarse); // TODO: ???
 
     //interface.initializeData();
     interface.fulfilledAction(actionWriteInitialData());
@@ -195,7 +191,7 @@ int main (int argc, char **argv)
     interface.readBlockScalarData(sigmaID , N+1, vertexIDs, sigma);
 
     if(isMultilevelApproach)
-      interface.readBlockScalarData(sigmaID_coarse , N+1, vertexIDs_coarse, sigma_copy_coarse);
+      interface.readBlockScalarData(sigmaID_coarse , N+1, vertexIDs, sigma_copy_coarse);
   }
 
   while (interface.isCouplingOngoing())
@@ -224,7 +220,7 @@ int main (int argc, char **argv)
         upMapping.map(N_SM, N, sigma_coarse, sigma_copy_coarse);
 
         // write coarse model response (on fine mesh)
-        interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs_coarse, displ_copy_coarse);
+        interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs, displ_copy_coarse);
       }
     }
 
@@ -250,7 +246,7 @@ int main (int argc, char **argv)
     // surrogate model evaluation for surrogate model optimization or MM cycle
     if (interface.hasToEvaluateSurrogateModel()){
       if(isMultilevelApproach)
-        interface.readBlockScalarData(sigmaID_coarse, N + 1, vertexIDs_coarse, sigma_copy_coarse);
+        interface.readBlockScalarData(sigmaID_coarse, N + 1, vertexIDs, sigma_copy_coarse);
     }
 
     // fine model evaluation (in MM iteration cycles)

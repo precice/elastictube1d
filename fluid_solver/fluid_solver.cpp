@@ -116,7 +116,7 @@ int main(
   int meshID = interface.getMeshID("Fluid_Nodes");
   int aID = interface.getDataID("Displacements", meshID);
   int pID = interface.getDataID("Stresses", meshID);
-  int *vertexIDs, *vertexIDs_coarse;
+  int *vertexIDs;
 
   int aID_coarse;
   int pID_coarse;
@@ -125,7 +125,6 @@ int main(
   {
     int aID_coarse = interface.getDataID("Coarse_Displacements", meshID);
     int pID_coarse = interface.getDataID("Coarse_Stresses", meshID);
-    vertexIDs_coarse = new int[(N + 1)];
   }
 
   vertexIDs = new int[(N + 1)];
@@ -169,9 +168,6 @@ int main(
 
   interface.setMeshVertices(meshID, N + 1, grid, vertexIDs);
 
-  if(isMultilevelApproach)
-    interface.setMeshVertices(meshID, N + 1, grid, vertexIDs_coarse); // TODO: ???
-
   cout << "Fluid: init precice..." << endl;
   interface.initialize();
 
@@ -179,7 +175,7 @@ int main(
     interface.writeBlockScalarData(pID, N + 1, vertexIDs, p);
 
     if(isMultilevelApproach)
-      interface.writeBlockScalarData(pID_coarse, N + 1, vertexIDs_coarse, p_copy_coarse); // TODO: ???
+      interface.writeBlockScalarData(pID_coarse, N + 1, vertexIDs, p_copy_coarse); // TODO: ???
 
     //interface.initializeData();
     interface.fulfilledAction(actionWriteInitialData());
@@ -191,7 +187,7 @@ int main(
     interface.readBlockScalarData(aID, N + 1, vertexIDs, a);
 
     if(isMultilevelApproach)
-      interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs_coarse, a_copy_coarse); // TODO: ???
+      interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs, a_copy_coarse); // TODO: ???
   }
 
   while (interface.isCouplingOngoing()) {
@@ -217,7 +213,7 @@ int main(
         upMapping.map(N_SM, N, p_coarse, p_copy_coarse);
 
         // write coarse model response (on fine mesh)
-        interface.writeBlockScalarData(pID_coarse, N + 1, vertexIDs_coarse, p_copy_coarse);
+        interface.writeBlockScalarData(pID_coarse, N + 1, vertexIDs, p_copy_coarse);
       }
     }
 
@@ -240,7 +236,7 @@ int main(
     // surrogate model evaluation for surrogate model optimization or MM cycle
     if (interface.hasToEvaluateSurrogateModel()){
       if(isMultilevelApproach)
-        interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs_coarse, a_copy_coarse);
+        interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs, a_copy_coarse);
     }
 
     // fine model evaluation (in MM iteration cycles)
