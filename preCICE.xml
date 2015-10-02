@@ -68,7 +68,7 @@
       <extrapolation-order value="2"/>
 
       <!-- fine model exchange data and associated convergence measures -->
-      <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"  initialize="true"/>
+      <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>
       <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D"  initialize="true"/>
       <!--      <relative-convergence-measure  limit="1e-5" data="Stresses"        mesh="Structure_Nodes"/> -->
       <relative-convergence-measure  limit="1e-5" data="Displacements"   mesh="Structure_Nodes"/>
