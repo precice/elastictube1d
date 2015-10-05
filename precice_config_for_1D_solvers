@@ -4,8 +4,10 @@
   
   <log-filter target="debug" component="precice" switch="off" />
   <log-filter target="info"  component="" switch="on"/>
-  <log-filter target="debug" component="precice::cplscheme::impl::IQN" switch="off" />
-  <log-filter target="debug" component="precice::cplscheme::ImplicitCouplingScheme" switch="off" />
+  <log-filter target="debug" component="precice::cplscheme::impl::IQNILSPostProcessing" switch="on" />
+  <log-filter target="debug" component="precice::cplscheme::impl::BaseQNPostProcessing" switch="on" />
+  <log-filter target="debug" component="precice::cplscheme::impl::MMPostProcessing" switch="on" />
+  <log-filter target="debug" component="precice::cplscheme::ImplicitCouplingScheme" switch="on" />
   
   <solver-interface dimensions="2">
     
@@ -41,14 +43,14 @@
       <read-data  name="Displacements" mesh="Fluid_Nodes"/>
       <mapping:nearest-projection direction="write" from="Fluid_Nodes" to="Structure_Nodes" constraint="consistent" timing="initial"/>
       <mapping:nearest-projection direction="read"  from="Structure_Nodes" to="Fluid_Nodes" constraint="consistent" timing="initial"/>
-      <export:vtk timestep-interval="1" directory="output/"/>
+<!--      <export:vtk timestep-interval="1" directory="output/"/>-->
     </participant>
     
     <participant name="STRUCTURE">
       <use-mesh name="Structure_Nodes" provide="yes"/>
       <write-data name="Displacements" mesh="Structure_Nodes"/>
       <read-data  name="Stresses"      mesh="Structure_Nodes"/>
-      <export:vtk timestep-interval="1" directory="output/"/>
+<!--      <export:vtk timestep-interval="1" directory="output/"/>-->
     </participant>
 
     
@@ -61,17 +63,18 @@
          <max-iterations value="40"/>
          <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID" to="STRUCTURE"/>
          <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE" to="FLUID" initialize="true"/>
-         <relative-convergence-measure data="Stresses"        mesh="Structure_Nodes" limit="1e-5"/>
-         <relative-convergence-measure data="Displacements" mesh="Structure_Nodes" limit="1e-5"/>
-         <post-processing:aitken> 
+<!--         <relative-convergence-measure data="Stresses"        mesh="Structure_Nodes" limit="1e-7"/> -->
+         <relative-convergence-measure data="Displacements" mesh="Structure_Nodes" limit="1e-7"/>
+         <post-processing:IQN-ILS> 
 	    <!-- PostProc always done on the second solver -->
             <data name="Displacements" mesh="Structure_Nodes">
             <!-- <data name="Stresses" mesh="Structure_Nodes" scaling="1e7">  Won't work for a serial scheme--> 
             <initial-relaxation value="0.001"/>
-            <!--<max-used-iterations value="50"/>
+            <max-used-iterations value="50"/>
             <timesteps-reused value="8"/>
-            <singularity-limit value="1e-10"/> -->
-         </post-processing:aitken>
+            <filter name="QR1-filter"/>
+            <singularity-limit value="1e-13"/>
+         </post-processing:IQN-ILS>
          <extrapolation-order value="2"/>
       </coupling-scheme:serial-implicit>
     
