@@ -159,7 +159,7 @@ int main (int argc, char **argv)
   if(isMultilevelApproach)
   {
     // surrogate model init
-    for(int i=0; i<=N; i++)
+    for(int i=0; i<=N_SM; i++)
     {
       displ_coarse[i] = 1.0;
       sigma_coarse[i] = 0.0;
@@ -208,16 +208,17 @@ int main (int argc, char **argv)
       if(isMultilevelApproach)
       {
         // map down:  fine --> coarse
-        downMapping.map(N, N_SM, displ_copy_coarse, displ_coarse);
-        downMapping.map(N, N_SM, sigma_copy_coarse, sigma_coarse);
+//        downMapping.map(N, N_SM, displ_copy_coarse, displ_coarse);
+//        downMapping.map(N, N_SM, sigma_copy_coarse, sigma_coarse);
 
         // ### surrogate model evaluation ###
         for ( int i = 0; i <= N_SM; i++ )
-          displ_coarse[i]   = 4.0 / ((2.0 - sigma_coarse[i])*(2.0 - sigma_coarse[i]));
+          displ_copy_coarse[i]   = 4.0 / ((2.0 - sigma_copy_coarse[i])*(2.0 - sigma_copy_coarse[i]));
+          //displ_coarse[i]   = 4.0 / ((2.0 - sigma_coarse[i])*(2.0 - sigma_coarse[i]));
 
         // map up:  coarse --> fine
-        upMapping.map(N_SM, N, displ_coarse, displ_copy_coarse);
-        upMapping.map(N_SM, N, sigma_coarse, sigma_copy_coarse);
+//        upMapping.map(N_SM, N, displ_coarse, displ_copy_coarse);
+//        upMapping.map(N_SM, N, sigma_coarse, sigma_copy_coarse);
 
         // write coarse model response (on fine mesh)
         interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs, displ_copy_coarse);

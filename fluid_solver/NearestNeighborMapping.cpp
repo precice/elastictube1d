@@ -11,19 +11,18 @@
 
 NearestNeighborMapping::NearestNeighborMapping()
   :
-_isComputed(false),
 _map()
 {}
 
 void NearestNeighborMapping::computeMapping
 (
-    std::vector<int>& inputIDs,
-    std::vector<int>& outputIDs,
+    int inputN,
+    int outputN,
     std::vector<double>& inputCoords,
     std::vector<double>& outputCoords)
 {
-  _map.resize(outputIDs.size());
-  for (int i=0; i < outputIDs.size(); i++ ){
+  _map.resize(outputN);
+  for (int i=0; i < outputN; i++ ){
       double outCoord = outputCoords.at(i);
       NearestNeighborQuery query(outCoord);
       query.find(inputCoords);
@@ -41,14 +40,14 @@ void NearestNeighborMapping::map
     double* outputData)
 {
   if(!_isComputed){
-    std::vector<int> inputIDs(inputN);
-    std::vector<int> outputIDs(outputN);
-    inputIDs[0] = 0; outputIDs[0] = 0;
+    //std::vector<int> inputIDs(inputN);
+    //std::vector<int> outputIDs(outputN);
+    //inputIDs[0] = 0; outputIDs[0] = 0;
 
-    for(int i=0; i<inputIDs.size(); i++)
-      inputIDs.at(i) = i;
-    for(int i=0; i<outputIDs.size(); i++)
-        outputIDs.at(i) = i;
+    //for(int i=0; i<inputIDs.size(); i++)
+    //  inputIDs.at(i) = i;
+    //for(int i=0; i<outputIDs.size(); i++)
+    //    outputIDs.at(i) = i;
 
     std::vector<double> _inputCoords(inputN);
     std::vector<double> _outputCoords(outputN);
@@ -57,29 +56,13 @@ void NearestNeighborMapping::map
     for(int i=1; i<_outputCoords.size(); i++)
         _outputCoords.at(i) = (double)i/(double)outputN;
 
-    computeMapping(inputIDs, outputIDs, _inputCoords, _outputCoords);
+    computeMapping(inputN, outputN, _inputCoords, _outputCoords);
   }
-
-  /**
-  std::cout<<"\n map: \n";
-  for(int i=0; i<_map.size(); i++){
-    std::cout<<" "<<i<<" --> "<<_map[i]<<std::endl;
-  }
-  */
 
   for(int i=0; i<_map.size(); i++){
     outputData[i] = inputData[_map.at(i)];
   }
 
 }
-
-void NearestNeighborMapping::setIsComputed
-(
-    bool b)
-{
-  _isComputed = false;
-}
-
-
 
 

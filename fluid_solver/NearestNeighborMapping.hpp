@@ -8,6 +8,7 @@
 #ifndef NEARESTNEIGHBORMAPPING_HPP_
 #define NEARESTNEIGHBORMAPPING_HPP_
 
+#include "Mapping.hpp"
 #include <limits>
 #include <vector>
 #include <cmath>
@@ -53,28 +54,26 @@ private:
 };
 
 
-class NearestNeighborMapping
+class NearestNeighborMapping : public Mapping
 {
 
 public:
   NearestNeighborMapping();
 
-  ~NearestNeighborMapping(){};
+  virtual ~NearestNeighborMapping(){};
 
-  void computeMapping(std::vector<int>& inputIDs,
-                      std::vector<int>& outputIDs,
-                      std::vector<double>& inputCoords,
-                      std::vector<double>& outputCoords);
+  virtual void computeMapping(int inputN,
+                                int outputN,
+                                std::vector<double>& inputCoords,
+                                std::vector<double>& outputCoords);
 
-  void map(int inputN,
+  virtual void map(int inputN,
            int outputN,
            double* inputData,
            double* outputData);
 
-  void setIsComputed(bool b);
 
 private:
-  bool _isComputed;
   std::vector<int> _map;
 
 };

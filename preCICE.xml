@@ -59,32 +59,32 @@
       <!--      <export:vtk timestep-interval="1" directory="output/"/> -->
     </participant>
 
-    <coupling-scheme:serial-implicit>
+    <coupling-scheme:parallel-implicit>
       <participants first="FLUID_1D" second="STRUCTURE_1D"/>
       <timestep-length value="1e-2" valid-digits="8"/>
-      <max-time value="40.0"/>
-      <checkpoint timestep-interval="10"/>
+      <max-time value="1.0"/>
+    <!--  <checkpoint timestep-interval="10"/> -->
       <max-iterations value="40"/>
       <extrapolation-order value="2"/>
 
       <!-- fine model exchange data and associated convergence measures -->
       <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>
       <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D"  initialize="true"/>
-      <!--      <relative-convergence-measure  limit="1e-5" data="Stresses"        mesh="Structure_Nodes"/> -->
-      <relative-convergence-measure  limit="1e-5" data="Displacements"   mesh="Structure_Nodes"/>
+      <relative-convergence-measure  limit="1e-7" data="Stresses"        mesh="Structure_Nodes"/>
+      <relative-convergence-measure  limit="1e-7" data="Displacements"   mesh="Structure_Nodes"/>
       
       <post-processing:IQN-ILS> 
         <!-- PostProcessing always done on the second solver -->
         <data name="Displacements" mesh="Structure_Nodes" scaling="1.0">
-          <!-- <data name="Stresses" mesh="Structure_Nodes" scaling="1e7">  Won't work for a serial scheme-->
+        <data name="Stresses" mesh="Structure_Nodes" scaling="1e7"> 
           <initial-relaxation value="0.001" />
           <max-used-iterations value="50"/>
-          <timesteps-reused value="8"/>
+          <timesteps-reused value="0"/>
           <filter name="QR1-filter" />
           <singularity-limit value="1e-13"/>
         </post-processing:IQN-ILS>
 
-      </coupling-scheme:serial-implicit>
+      </coupling-scheme:parallel-implicit>
       
     </solver-interface>
     

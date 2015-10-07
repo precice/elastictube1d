@@ -49,7 +49,7 @@ int main(
     N_SM = atoi(argv[3]);
     tau = atof(argv[4]);
     kappa = atof(argv[5]);
-    std::cout << "N: " << N <<" N (surrogate model): " << N_SM << " tau: " << tau << " kappa: " << kappa << std::endl;
+    std::cout << "N: " << N <<" N (surrogate model): " << N_SM << " tau: " << tau << " kappa: " << kappa<< " multi-level: "<< isMultilevelApproach << std::endl;
   }else{
     if (argc != 6)
         {
@@ -65,8 +65,11 @@ int main(
     N = atoi(argv[2]);
     tau = atof(argv[3]);
     kappa = atof(argv[4]);
-    std::cout << "N: " << N << " tau: " << tau << " kappa: " << kappa << std::endl;
+    std::cout << "N: " << N << " tau: " << tau << " kappa: " << kappa << " multi-level: "<< isMultilevelApproach << std::endl;
   }
+
+  if(isMultilevelApproach)
+    std::cout<<"The solver adapter is running in multi-level coupling mode, i.e., the solver provides one or more surrogate model evaluations to enable a multi-level based coupling method."<<std::endl;
 
   std::string configFileName(argv[1]);
 
@@ -123,9 +126,10 @@ int main(
 
   if(isMultilevelApproach)
   {
-    int aID_coarse = interface.getDataID("Coarse_Displacements", meshID);
-    int pID_coarse = interface.getDataID("Coarse_Stresses", meshID);
+    aID_coarse = interface.getDataID("Coarse_Displacements", meshID);
+    pID_coarse = interface.getDataID("Coarse_Stresses", meshID);
   }
+
 
   vertexIDs = new int[(N + 1)];
   double *grid;
@@ -172,6 +176,7 @@ int main(
   interface.initialize();
 
   if (interface.isActionRequired(actionWriteInitialData())) {
+
     interface.writeBlockScalarData(pID, N + 1, vertexIDs, p);
 
     if(isMultilevelApproach)
@@ -184,6 +189,7 @@ int main(
   interface.initializeData();
 
   if (interface.isReadDataAvailable()) {
+
     interface.readBlockScalarData(aID, N + 1, vertexIDs, a);
 
     if(isMultilevelApproach)
@@ -202,15 +208,16 @@ int main(
       if(interface.hasToEvaluateSurrogateModel())
       {
         // map down:  fine --> coarse
-        downMapping.map(N, N_SM, a_copy_coarse, a_coarse);
-        downMapping.map(N, N_SM, p_copy_coarse, p_coarse);
+//        downMapping.map(N, N_SM, a_copy_coarse, a_coarse);
+//        downMapping.map(N, N_SM, p_copy_coarse, p_coarse);
 
         // ### surrogate model evaluation ###    p_old is not used for gamma = 0.0
-        fluid_nl(a_coarse, a_n_coarse, u_coarse, u_n_coarse, p_coarse, p_n_coarse, p_coarse, t + 1, N_SM, kappa, tau, 0.0);
+        fluid_nl(a_copy_coarse, a_n_coarse, u_coarse, u_n_coarse, p_copy_coarse, p_n_coarse, p_copy_coarse, t + 1, N_SM, kappa, tau, 0.0);
+        //fluid_nl(a_coarse, a_n_coarse, u_coarse, u_n_coarse, p_coarse, p_n_coarse, p_coarse, t + 1, N_SM, kappa, tau, 0.0);
 
         // map up:  coarse --> fine
-        upMapping.map(N_SM, N, a_coarse, a_copy_coarse);
-        upMapping.map(N_SM, N, p_coarse, p_copy_coarse);
+//        upMapping.map(N_SM, N, a_coarse, a_copy_coarse);
+//        upMapping.map(N_SM, N, p_coarse, p_copy_coarse);
 
         // write coarse model response (on fine mesh)
         interface.writeBlockScalarData(pID_coarse, N + 1, vertexIDs, p_copy_coarse);
@@ -235,8 +242,9 @@ int main(
 
     // surrogate model evaluation for surrogate model optimization or MM cycle
     if (interface.hasToEvaluateSurrogateModel()){
-      if(isMultilevelApproach)
+      if(isMultilevelApproach){
         interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs, a_copy_coarse);
+      }
     }
 
     // fine model evaluation (in MM iteration cycles)
