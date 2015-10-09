@@ -70,8 +70,8 @@
       <!-- fine model exchange data and associated convergence measures -->
       <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>
       <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D"  initialize="true"/>
-      <relative-convergence-measure  limit="1e-7" data="Stresses"        mesh="Structure_Nodes"/>
-      <relative-convergence-measure  limit="1e-7" data="Displacements"   mesh="Structure_Nodes"/>
+      <relative-convergence-measure  limit="1e-6" data="Stresses"        mesh="Structure_Nodes"/>
+      <relative-convergence-measure  limit="1e-6" data="Displacements"   mesh="Structure_Nodes"/>
       
       <post-processing:IQN-ILS> 
         <!-- PostProcessing always done on the second solver -->

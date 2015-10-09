@@ -10,6 +10,11 @@
   <log-filter target="debug" component="precice::cplscheme::impl::MMPostProcessing" switch="on" />
   <log-filter target="debug" component="precice::cplscheme::ImplicitCouplingScheme" switch="on" />
   
+  
+  <log-output column-separator=" | " log-time-stamp="no" 
+              log-time-stamp-human-readable="yes" log-machine-name="no" 
+              log-message-type="no" log-trace="yes" />
+  
   <solver-interface dimensions="2">
     
     <!-- Data fields that are exchanged between the solvers -->
@@ -81,22 +86,22 @@
       <participants first="FLUID_1D" second="STRUCTURE_1D"/>
       <timestep-length value="1e-2" valid-digits="8"/>
       <max-time value="1.0"/>
-      <checkpoint timestep-interval="10"/>
-      <max-iterations value="40"/>
+     <!-- <checkpoint timestep-interval="10"/> -->
+      <max-iterations value="100"/>
       <extrapolation-order value="2"/>
 
       <!-- fine model exchange data and associated convergence measures -->
       <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D"  initialize="true"/>
       <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D" />
-      <relative-convergence-measure  limit="1e-5" data="Stresses"        mesh="Structure_Nodes"/> 
-      <relative-convergence-measure  limit="1e-5" data="Displacements"   mesh="Structure_Nodes"/>
+      <relative-convergence-measure  limit="1e-4" data="Stresses"        mesh="Structure_Nodes"/> 
+      <relative-convergence-measure  limit="1e-4" data="Displacements"   mesh="Structure_Nodes"/>
 
       <!-- coarse model exchange data and associated convergence measures -->
       <exchange data="Coarse_Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D"  initialize="true"/>
       <exchange data="Coarse_Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>  
       <!-- convergence criterion for coarse coupling data needs to be more restrictive -->
-      <relative-convergence-measure  limit="1e-7" data="Coarse_Stresses"        mesh="Structure_Nodes"/>  
-      <relative-convergence-measure  limit="1e-7" data="Coarse_Displacements"   mesh="Structure_Nodes"/>
+      <relative-convergence-measure  limit="1e-5" data="Coarse_Stresses"        mesh="Structure_Nodes"/>  
+      <relative-convergence-measure  limit="1e-5" data="Coarse_Displacements"   mesh="Structure_Nodes"/>
  
       <post-processing:MM> 
           <!-- PostProcessing always done on the second solver -->
