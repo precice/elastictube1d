@@ -177,7 +177,7 @@ int main (int argc, char **argv)
     interface.writeBlockScalarData(displID, N+1, vertexIDs, displ);
 
     if(isMultilevelApproach)
-      interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs, displ_copy_coarse); // TODO: ???
+      interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs, displ_copy_coarse);
 
     //interface.initializeData();
     interface.fulfilledAction(actionWriteInitialData());
@@ -205,33 +205,34 @@ int main (int argc, char **argv)
     // surrogate model evaluation for surrogate model optimization or MM cycle
     if(interface.hasToEvaluateSurrogateModel())
     {
-      if(isMultilevelApproach)
-      {
+//      if(isMultilevelApproach)
+//      {
 
         std::cout<<"\n    ### evaluate coarse model of solid solver, t="<<t<<" ###\n"<<std::endl;
-        // map down:  fine --> coarse
-//        downMapping.map(N, N_SM, displ_copy_coarse, displ_coarse);
-//        downMapping.map(N, N_SM, sigma_copy_coarse, sigma_coarse);
+
+        // map down:  fine --> coarse [displ, pressure]00
+        downMapping.map(N+1, N_SM+1, displ_copy_coarse, displ_coarse);
+        downMapping.map(N+1, N_SM+1, sigma_copy_coarse, sigma_coarse);
 
         // ### surrogate model evaluation ###
         for ( int i = 0; i <= N_SM; i++ )
-          displ_copy_coarse[i]   = 4.0 / ((2.0 - sigma_copy_coarse[i])*(2.0 - sigma_copy_coarse[i]));
-          //displ_coarse[i]   = 4.0 / ((2.0 - sigma_coarse[i])*(2.0 - sigma_coarse[i]));
+          //displ_copy_coarse[i]   = 4.0 / ((2.0 - sigma_copy_coarse[i])*(2.0 - sigma_copy_coarse[i]));
+          displ_coarse[i]   = 4.0 / ((2.0 - sigma_coarse[i])*(2.0 - sigma_coarse[i]));
 
-        // map up:  coarse --> fine
-//        upMapping.map(N_SM, N, displ_coarse, displ_copy_coarse);
-//        upMapping.map(N_SM, N, sigma_coarse, sigma_copy_coarse);
+        // map up:  coarse --> fine [displ, pressure]
+        upMapping.map(N_SM+1, N+1, displ_coarse, displ_copy_coarse);
+        upMapping.map(N_SM+1, N+1, sigma_coarse, sigma_copy_coarse);
 
-
+        /*
         std::cout<<"Solidsolver: write displ data coarse, a = [\n";
         for (int i = 0; i < N_SM; i++)
           std::cout<<displ_copy_coarse[i]<<", ";
         std::cout<<"\n"<<endl;
-
+        */
 
         // write coarse model response (on fine mesh)
         interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs, displ_copy_coarse);
-      }
+ //     }
     }
 
 
@@ -240,6 +241,7 @@ int main (int argc, char **argv)
     {
 
       std::cout<<"\n    ### evaluate fine model of solid solver, t="<<t<<" ###\n"<<std::endl;
+
       // ### fine model evaluation ###
       for ( int i = 0; i <= N; i++ ){
         displ[i]   = 4.0 / ((2.0 - sigma[i])*(2.0 - sigma[i]));
@@ -253,8 +255,7 @@ int main (int argc, char **argv)
       */
 
       // write fine model response
-      if (isMultilevelApproach) interface.writeBlockScalarData(displID, N+1, vertexIDs, displ);// displ_copy_coarse
-      else                      interface.writeBlockScalarData(displID, N+1, vertexIDs, displ);
+      interface.writeBlockScalarData(displID, N+1, vertexIDs, displ);
     }
 
     // perform coupling using preCICE
@@ -297,7 +298,11 @@ int main (int argc, char **argv)
     }
     else
     {
-      cout << "\n\n ------------------------------------------------\n Advancing in time, Structure Solver finished timestep: " << t <<"\n ------------------------------------------------"<< endl;
+      cout << "\n\n ------------------------------------------------\n"
+              " Advancing in time, Structure Solver finished timestep: "
+           << t <<"\n ------------------------------------------------"<< endl;
+
+      // advance in time
       t++;
     }
   }
