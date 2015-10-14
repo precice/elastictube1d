@@ -207,6 +207,8 @@ int main (int argc, char **argv)
     {
       if(isMultilevelApproach)
       {
+
+        std::cout<<"\n    ### evaluate coarse model of solid solver, t="<<t<<" ###\n"<<std::endl;
         // map down:  fine --> coarse
 //        downMapping.map(N, N_SM, displ_copy_coarse, displ_coarse);
 //        downMapping.map(N, N_SM, sigma_copy_coarse, sigma_coarse);
@@ -220,6 +222,11 @@ int main (int argc, char **argv)
 //        upMapping.map(N_SM, N, displ_coarse, displ_copy_coarse);
 //        upMapping.map(N_SM, N, sigma_coarse, sigma_copy_coarse);
 
+        std::cout<<"Solidsolver: write displ data coarse, a = [\n";
+        for (int i = 0; i < N_SM; i++)
+          std::cout<<displ_copy_coarse[i]<<", ";
+        std::cout<<"\n"<<endl;
+
         // write coarse model response (on fine mesh)
         interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs, displ_copy_coarse);
       }
@@ -230,12 +237,20 @@ int main (int argc, char **argv)
     if(interface.hasToEvaluateFineModel())
     {
 
+      std::cout<<"\n    ### evaluate fine model of solid solver, t="<<t<<" ###\n"<<std::endl;
       // ### fine model evaluation ###
-      for ( int i = 0; i <= N; i++ )
+      for ( int i = 0; i <= N; i++ ){
         displ[i]   = 4.0 / ((2.0 - sigma[i])*(2.0 - sigma[i]));
+      }
+
+      std::cout<<"Solidsolver: write displ data fine, a = [\n";
+      for (int i = 0; i < N; i++)
+        std::cout<<displ[i]<<", ";
+      std::cout<<"\n"<<endl;
 
       // write fine model response
-      interface.writeBlockScalarData(displID, N+1, vertexIDs, displ);
+      if (isMultilevelApproach) interface.writeBlockScalarData(displID, N+1, vertexIDs, displ_copy_coarse);
+      else                      interface.writeBlockScalarData(displID, N+1, vertexIDs, displ);
     }
 
     // perform coupling using preCICE
@@ -248,11 +263,19 @@ int main (int argc, char **argv)
     if (interface.hasToEvaluateSurrogateModel()){
       if(isMultilevelApproach)
         interface.readBlockScalarData(sigmaID_coarse, N + 1, vertexIDs, sigma_copy_coarse);
+        std::cout << "Solidsolver: read pressure data coarse, p = [\n";
+        for (int i = 0; i < N_SM; i++)
+          std::cout << sigma_copy_coarse[i] << ", ";
+        std::cout << "\n" << endl;
     }
 
     // fine model evaluation (in MM iteration cycles)
     if(interface.hasToEvaluateFineModel()){
       interface.readBlockScalarData(sigmaID, N+1, vertexIDs, sigma);
+      std::cout<<"Solidsolver: read pressure data fine, p = [\n";
+      for (int i = 0; i < N; i++)
+        std::cout<<sigma[i]<<", ";
+      std::cout<<"\n"<<endl;
     }
 
 
@@ -264,10 +287,11 @@ int main (int argc, char **argv)
     }
     else
     {
-      cout << "Advancing in time, finished timestep: " << t << endl;
+      cout << "\n\n ------------------------------------------------\n Advancing in time, Structure Solver finished timestep: " << t <<"\n ------------------------------------------------"<< endl;
       t++;
     }
   }
+
 
   interface.finalize();
   cout << "Exiting StructureSolver" << endl;

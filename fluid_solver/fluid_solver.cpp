@@ -196,6 +196,7 @@ int main(
       interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs, a_copy_coarse); // TODO: ???
   }
 
+
   while (interface.isCouplingOngoing()) {
     // When an implicit coupling scheme is used, checkpointing is required
     if (interface.isActionRequired(actionWriteIterationCheckpoint())) {
@@ -207,6 +208,9 @@ int main(
       // surrogate model evaluation for surrogate model optimization or MM cycle
       if(interface.hasToEvaluateSurrogateModel())
       {
+
+        std::cout<<"\n    ### evaluate coarse model of fluid solver, t="<<t<<" ###\n"<<std::endl;
+
         // map down:  fine --> coarse
 //        downMapping.map(N, N_SM, a_copy_coarse, a_coarse);
 //        downMapping.map(N, N_SM, p_copy_coarse, p_coarse);
@@ -219,19 +223,35 @@ int main(
 //        upMapping.map(N_SM, N, a_coarse, a_copy_coarse);
 //        upMapping.map(N_SM, N, p_coarse, p_copy_coarse);
 
+        std::cout<<"FluidSolver: write pressure data coarse, p = [\n";
+        for (int i = 0; i < N_SM; i++)
+          std::cout<<p_copy_coarse[i]<<", ";
+        std::cout<<"\n"<<endl;
+
         // write coarse model response (on fine mesh)
         interface.writeBlockScalarData(pID_coarse, N + 1, vertexIDs, p_copy_coarse);
+
+        // write also coarse model response on fine mesh
+        interface.writeBlockScalarData(pID, N + 1, vertexIDs, p_copy_coarse);
       }
     }
 
     // fine model evaluation (in MM iteration cycles)
     if(interface.hasToEvaluateFineModel())
     {
+      std::cout<<"\n    ### evaluate fine model of fluid solver, t="<<t<<" ###\n"<<std::endl;
+
       // ### fine model evaluation ###    p_old is not used for gamma = 0.0
       fluid_nl(a, a_n, u, u_n, p, p_n, p, t + 1, N, kappa, tau, 0.0);
 
+      std::cout<<"FluidSolver: write pressure data fine, p = [\n";
+      for (int i = 0; i < N; i++)
+        std::cout<<p[i]<<", ";
+      std::cout<<"\n"<<endl;
+
       // write fine model response
-      interface.writeBlockScalarData(pID, N + 1, vertexIDs, p);
+      if(isMultilevelApproach)  interface.writeBlockScalarData(pID, N + 1, vertexIDs, p_copy_coarse);
+      else                      interface.writeBlockScalarData(pID, N + 1, vertexIDs, p);
     }
 
     // perform coupling using preCICE
@@ -244,12 +264,22 @@ int main(
     if (interface.hasToEvaluateSurrogateModel()){
       if(isMultilevelApproach){
         interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs, a_copy_coarse);
+        std::cout<<"FluidSolver: read displ data coarse, a = [\n";
+        for (int i = 0; i < N_SM; i++)
+          std::cout<<a_copy_coarse[i]<<", ";
+        std::cout<<"\n"<<endl;
+
       }
     }
 
     // fine model evaluation (in MM iteration cycles)
     if(interface.hasToEvaluateFineModel()){
       interface.readBlockScalarData(aID, N + 1, vertexIDs, a);
+
+      std::cout<<"FluidSolver: read displ data fine, a = [\n";
+      for (int i = 0; i < N; i++)
+        std::cout<<a[i]<<", ";
+      std::cout<<"\n"<<endl;
     }
 
     if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. not yet converged
@@ -257,7 +287,7 @@ int main(
       interface.fulfilledAction(actionReadIterationCheckpoint());
     }
     else {
-      // cout << "Fluid: Advancing in time, finished timestep: " << t << endl;
+      cout << "\n\n ------------------------------------------------\n Advancing in time, Fluid Solver finished timestep: " << t <<"\n ------------------------------------------------"<< endl;
       t++;
 
       for (i = 0; i <= N; i++)
@@ -265,6 +295,10 @@ int main(
         u_n[i] = u[i];
         p_n[i] = p[i];
         a_n[i] = a[i];
+        /*
+        u_n[i] = u_coarse[i];
+        p_n[i] = p_coarse[i];
+        a_n[i] = a_coarse[i];*/
       }
 
       if(isMultilevelApproach)
