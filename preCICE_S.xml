@@ -70,7 +70,7 @@
       <max-time value="1.0"/>
     <!--  <checkpoint timestep-interval="10"/> -->
       <max-iterations value="100"/>
-      <extrapolation-order value="0"/>
+      <extrapolation-order value="2"/>
 
       <!-- fine model exchange data and associated convergence measures -->
       <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>
@@ -81,7 +81,7 @@
       <post-processing:IQN-ILS> 
         <!-- PostProcessing always done on the second solver -->
         <data name="Displacements" mesh="Structure_Nodes" scaling="1.0">
-     <!--   <data name="Stresses" mesh="Structure_Nodes" scaling="1e7"> --> 
+        <!--<data name="Stresses" mesh="Structure_Nodes" scaling="1e7">--> 
           <initial-relaxation value="0.001" />
           <max-used-iterations value="50"/>
           <timesteps-reused value="0"/>

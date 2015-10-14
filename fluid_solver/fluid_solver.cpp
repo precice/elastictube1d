@@ -77,8 +77,10 @@ int main(
   std::string solverName = "FLUID_1D";
 
   cout << "Configure preCICE..." << endl;
+
   // Initialize the solver interface with our name, our process index (like rank) and the total number of processes.
   SolverInterface interface(solverName, 0, 1);
+
   // Provide the configuration file to precice. After configuration a usuable state of that SolverInterface is reached.
   // Reads the XML file and contacts the server, if used.
   interface.configure(configFileName);
@@ -170,6 +172,7 @@ int main(
 
   int t = 0; //number of timesteps
 
+  // initialize coupling vertices on the given mesh
   interface.setMeshVertices(meshID, N + 1, grid, vertexIDs);
 
   cout << "Fluid: init precice..." << endl;
@@ -180,7 +183,7 @@ int main(
     interface.writeBlockScalarData(pID, N + 1, vertexIDs, p);
 
     if(isMultilevelApproach)
-      interface.writeBlockScalarData(pID_coarse, N + 1, vertexIDs, p_copy_coarse); // TODO: ???
+      interface.writeBlockScalarData(pID_coarse, N + 1, vertexIDs, p_copy_coarse);
 
     //interface.initializeData();
     interface.fulfilledAction(actionWriteInitialData());
@@ -193,65 +196,93 @@ int main(
     interface.readBlockScalarData(aID, N + 1, vertexIDs, a);
 
     if(isMultilevelApproach)
-      interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs, a_copy_coarse); // TODO: ???
+      interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs, a_copy_coarse);
   }
 
 
+  /**
+   * simulation: time-stepping loop
+   */
   while (interface.isCouplingOngoing()) {
+
     // When an implicit coupling scheme is used, checkpointing is required
     if (interface.isActionRequired(actionWriteIterationCheckpoint())) {
       interface.fulfilledAction(actionWriteIterationCheckpoint());
     }
 
+    // surrogate model evaluation for surrogate model optimization or MM cycle
+    if(interface.hasToEvaluateSurrogateModel())
+    {
+      std::cout<<"\n    ### evaluate coarse model of fluid solver, t="<<t<<" ###\n"<<std::endl;
 
-    if(isMultilevelApproach){
-      // surrogate model evaluation for surrogate model optimization or MM cycle
-      if(interface.hasToEvaluateSurrogateModel())
-      {
+      // map down:  fine --> coarse [displ, pressure]
+      downMapping.map(N+1, N_SM+1, a_copy_coarse, a_coarse);
+      downMapping.map(N+1, N_SM+1, p_copy_coarse, p_coarse);
 
-        std::cout<<"\n    ### evaluate coarse model of fluid solver, t="<<t<<" ###\n"<<std::endl;
+      // ### surrogate model evaluation ###    p_old is not used for gamma = 0.0
+      fluid_nl(a_coarse, a_n_coarse, u_coarse, u_n_coarse, p_coarse, p_n_coarse, p_coarse, t + 1, N_SM, kappa, tau, 0.0);
 
-        // map down:  fine --> coarse
-//        downMapping.map(N, N_SM, a_copy_coarse, a_coarse);
-//        downMapping.map(N, N_SM, p_copy_coarse, p_coarse);
+      // map up:  coarse --> fine [displ, pressure]
+      upMapping.map(N_SM+1, N+1, a_coarse, a_copy_coarse);
+      upMapping.map(N_SM+1, N+1, p_coarse, p_copy_coarse);
 
-        // ### surrogate model evaluation ###    p_old is not used for gamma = 0.0
-        fluid_nl(a_copy_coarse, a_n_coarse, u_coarse, u_n_coarse, p_copy_coarse, p_n_coarse, p_copy_coarse, t + 1, N_SM, kappa, tau, 0.0);
-        //fluid_nl(a_coarse, a_n_coarse, u_coarse, u_n_coarse, p_coarse, p_n_coarse, p_coarse, t + 1, N_SM, kappa, tau, 0.0);
+      /*
+      std::cout<<"FluidSolver: write pressure data coarse, p = [\n";
+      for (int i = 0; i < N_SM; i++)
+        std::cout<<p_copy_coarse[i]<<", ";
+      std::cout<<"\n"<<endl;
+       */
 
-        // map up:  coarse --> fine
-//        upMapping.map(N_SM, N, a_coarse, a_copy_coarse);
-//        upMapping.map(N_SM, N, p_coarse, p_copy_coarse);
+      // write coarse model response to precice
+      interface.writeBlockScalarData(pID_coarse, N + 1, vertexIDs, p_copy_coarse);
 
-        std::cout<<"FluidSolver: write pressure data coarse, p = [\n";
-        for (int i = 0; i < N_SM; i++)
-          std::cout<<p_copy_coarse[i]<<", ";
-        std::cout<<"\n"<<endl;
-
-        // write coarse model response (on fine mesh)
-        interface.writeBlockScalarData(pID_coarse, N + 1, vertexIDs, p_copy_coarse);
-
-        // write also coarse model response on fine mesh
-        interface.writeBlockScalarData(pID, N + 1, vertexIDs, p_copy_coarse);
-      }
+      // write also coarse model response on fine mesh to precice
+      // this is necessary, as the pressure values for the current iterate need
+      // to be propagated to the second solver.
+      interface.writeBlockScalarData(pID, N + 1, vertexIDs, p_copy_coarse);
     }
+
 
     // fine model evaluation (in MM iteration cycles)
     if(interface.hasToEvaluateFineModel())
     {
       std::cout<<"\n    ### evaluate fine model of fluid solver, t="<<t<<" ###\n"<<std::endl;
 
+      // map up:  coarse --> fine  [old velocity, old pressure, old displ]
+      // synchronize the u, p, a data from the previous time step for the fine model with those from the coarse model
+      if(isMultilevelApproach){
+        //upMapping.map(N_SM, N, u_n_coarse, u_n);
+        //upMapping.map(N_SM, N, p_n_coarse, p_n);
+        //upMapping.map(N_SM, N, a_n_coarse, a_n);
+        ///*
+       // for (i = 0; i <= N; i++)
+       // {
+       //   u_n[i] = u_n_coarse[i];
+       //   p_n[i] = p_n_coarse[i];
+       //   a_n[i] = a_n_coarse[i];
+       // }
+        //*/
+      }
+
       // ### fine model evaluation ###    p_old is not used for gamma = 0.0
       fluid_nl(a, a_n, u, u_n, p, p_n, p, t + 1, N, kappa, tau, 0.0);
 
-      std::cout<<"FluidSolver: write pressure data fine, p = [\n";
-      for (int i = 0; i < N; i++)
-        std::cout<<p[i]<<", ";
-      std::cout<<"\n"<<endl;
+      /*
+      if(isMultilevelApproach){
+        std::cout<<"FluidSolver: write pressure data fine, p = [\n";
+        for (int i = 0; i < N; i++)
+          std::cout<<p_copy_coarse[i]<<", ";
+        std::cout<<"\n"<<endl;
+      }else{
+        std::cout<<"FluidSolver: write pressure data fine, p = [\n";
+        for (int i = 0; i < N; i++)
+          std::cout<<p[i]<<", ";
+        std::cout<<"\n"<<endl;
+      }
+      */
 
       // write fine model response
-      if(isMultilevelApproach)  interface.writeBlockScalarData(pID, N + 1, vertexIDs, p_copy_coarse);
-      else                      interface.writeBlockScalarData(pID, N + 1, vertexIDs, p);
+      interface.writeBlockScalarData(pID, N + 1, vertexIDs, p);
     }
 
     // perform coupling using preCICE
@@ -264,11 +295,13 @@ int main(
     if (interface.hasToEvaluateSurrogateModel()){
       if(isMultilevelApproach){
         interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs, a_copy_coarse);
+
+        /*
         std::cout<<"FluidSolver: read displ data coarse, a = [\n";
         for (int i = 0; i < N_SM; i++)
           std::cout<<a_copy_coarse[i]<<", ";
         std::cout<<"\n"<<endl;
-
+        */
       }
     }
 
@@ -276,10 +309,12 @@ int main(
     if(interface.hasToEvaluateFineModel()){
       interface.readBlockScalarData(aID, N + 1, vertexIDs, a);
 
+      /*
       std::cout<<"FluidSolver: read displ data fine, a = [\n";
       for (int i = 0; i < N; i++)
         std::cout<<a[i]<<", ";
       std::cout<<"\n"<<endl;
+      */
     }
 
     if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. not yet converged
@@ -287,29 +322,72 @@ int main(
       interface.fulfilledAction(actionReadIterationCheckpoint());
     }
     else {
-      cout << "\n\n ------------------------------------------------\n Advancing in time, Fluid Solver finished timestep: " << t <<"\n ------------------------------------------------"<< endl;
-      t++;
 
+      // store u, p, a values from old time step
       for (i = 0; i <= N; i++)
       {
         u_n[i] = u[i];
         p_n[i] = p[i];
         a_n[i] = a[i];
-        /*
-        u_n[i] = u_coarse[i];
-        p_n[i] = p_coarse[i];
-        a_n[i] = a_coarse[i];*/
       }
 
       if(isMultilevelApproach)
       {
+        // map down:  fine --> coarse [displ, pressure]
+        // necessary as a_copy_coarse is updated, i.e., red from the coupling (preCICE)
+        downMapping.map(N+1, N_SM+1, a_copy_coarse, a_coarse);
+
+        // save values from last time step for coarse model
         for (i = 0; i <= N_SM; i++)
         {
           u_n_coarse[i] = u_coarse[i];
           p_n_coarse[i] = p_coarse[i];
           a_n_coarse[i] = a_coarse[i];
         }
+        // save values from last time step for fine model
+
+        // map up:  coarse --> fine [velocity]
+        // necessary as a_copy_coarse is updated, i.e., red from the coupling (preCICE)
+        upMapping.map(N_SM+1, N+1, u_coarse, u_n);
+        for (i = 0; i <= N; i++)
+        {
+          p_n[i] = p_copy_coarse[i];
+          a_n[i] = a_copy_coarse[i];
+        }
       }
+
+      cout << "\n\n ------------------------------------------------------\n "
+              "Advancing in time, Fluid Solver finished timestep: "
+           << t <<"\n ------------------------------------------------------"<< endl;
+
+      // advance in time
+      t++;
+
+      /*
+      for (i = 0; i <= N; i++)
+      {
+        if(isMultilevelApproach){
+        u_n[i] = a_copy_coarse[i];
+        p_n[i] = p_copy_coarse[i];
+        a_n[i] = a_coarse[i];
+        }else
+        {
+          u_n[i] = u[i];
+          p_n[i] = p[i];
+          a_n[i] = a[i];
+        }
+      }
+
+      if(isMultilevelApproach)
+      {
+        for (i = 0; i <= N_SM; i++)
+        {
+          u_n_coarse[i] = u_coarse[i]; // mapping issues, but take care that correct data is shifted
+          p_n_coarse[i] = p_copy_coarse[i];
+          a_n_coarse[i] = a_copy_coarse[i];
+        }
+      }
+      */
     }
   }
 

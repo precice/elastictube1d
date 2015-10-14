@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+
+rm convergence-*
+rm iterations-*
+rm postProcessingInfo.txt
+rm precice_checkpoint_*

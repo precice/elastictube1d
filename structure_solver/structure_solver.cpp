@@ -222,10 +222,12 @@ int main (int argc, char **argv)
 //        upMapping.map(N_SM, N, displ_coarse, displ_copy_coarse);
 //        upMapping.map(N_SM, N, sigma_coarse, sigma_copy_coarse);
 
+
         std::cout<<"Solidsolver: write displ data coarse, a = [\n";
         for (int i = 0; i < N_SM; i++)
           std::cout<<displ_copy_coarse[i]<<", ";
         std::cout<<"\n"<<endl;
+
 
         // write coarse model response (on fine mesh)
         interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs, displ_copy_coarse);
@@ -243,13 +245,15 @@ int main (int argc, char **argv)
         displ[i]   = 4.0 / ((2.0 - sigma[i])*(2.0 - sigma[i]));
       }
 
+      /*
       std::cout<<"Solidsolver: write displ data fine, a = [\n";
       for (int i = 0; i < N; i++)
         std::cout<<displ[i]<<", ";
       std::cout<<"\n"<<endl;
+      */
 
       // write fine model response
-      if (isMultilevelApproach) interface.writeBlockScalarData(displID, N+1, vertexIDs, displ_copy_coarse);
+      if (isMultilevelApproach) interface.writeBlockScalarData(displID, N+1, vertexIDs, displ);// displ_copy_coarse
       else                      interface.writeBlockScalarData(displID, N+1, vertexIDs, displ);
     }
 
@@ -263,19 +267,25 @@ int main (int argc, char **argv)
     if (interface.hasToEvaluateSurrogateModel()){
       if(isMultilevelApproach)
         interface.readBlockScalarData(sigmaID_coarse, N + 1, vertexIDs, sigma_copy_coarse);
+
+      /*
         std::cout << "Solidsolver: read pressure data coarse, p = [\n";
         for (int i = 0; i < N_SM; i++)
           std::cout << sigma_copy_coarse[i] << ", ";
-        std::cout << "\n" << endl;
+       std::cout << "\n" << endl;
+       */
     }
 
     // fine model evaluation (in MM iteration cycles)
     if(interface.hasToEvaluateFineModel()){
       interface.readBlockScalarData(sigmaID, N+1, vertexIDs, sigma);
+
+      /*
       std::cout<<"Solidsolver: read pressure data fine, p = [\n";
       for (int i = 0; i < N; i++)
         std::cout<<sigma[i]<<", ";
       std::cout<<"\n"<<endl;
+      */
     }
 
 
