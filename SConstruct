@@ -27,8 +27,8 @@ conf.CheckLib("precice")
 conf.CheckLib("python2.7")
 
 # ====== petsc ======
-#PETSC_DIR = env["ENV"]["PETSC_DIR"]
-#PETSC_ARCH = env["ENV"]["PETSC_ARCH"]
+PETSC_DIR = env["ENV"]["PETSC_DIR"]
+PETSC_ARCH = env["ENV"]["PETSC_ARCH"]
 
 if env["petsc"]:
    env.Append(CPPPATH = [os.path.join( PETSC_DIR, "include"),
