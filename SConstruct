@@ -54,5 +54,5 @@ if env["boost_inst"]:
 
 env = conf.Finish()
    
-env.Program('StructureSolver', ['structure_solver/structure_solver.cpp', 'fluid_solver/NearestNeighborMapping.cpp'])
-env.Program('FluidSolver', ['fluid_solver/fluid_solver.cpp', 'fluid_solver/fluid_nl.cpp', 'fluid_solver/NearestNeighborMapping.cpp'])
+env.Program('StructureSolver', ['structure_solver/structure_solver.cpp', 'mapping/NearestNeighborMapping.cpp', 'mapping/LinearInterpolationMapping.cpp', 'mapping/NearestNeighborQuery.cpp'])
+env.Program('FluidSolver', ['fluid_solver/fluid_solver.cpp', 'fluid_solver/fluid_nl.cpp', 'mapping/NearestNeighborMapping.cpp', 'mapping/LinearInterpolationMapping.cpp', 'mapping/NearestNeighborQuery.cpp'])

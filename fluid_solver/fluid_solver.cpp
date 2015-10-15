@@ -3,7 +3,8 @@
 #include <unistd.h>
 #include "precice/SolverInterface.hpp"
 #include "fluid_nl.h"
-#include "NearestNeighborMapping.hpp"
+#include "../mapping/NearestNeighborMapping.hpp"
+#include "../mapping/LinearInterpolationMapping.hpp"
 
 using std::cout;
 using std::endl;
@@ -102,7 +103,7 @@ int main(
   double *u_coarse, *u_n_coarse, *p_coarse, *p_n_coarse, *a_coarse, *a_n_coarse;
   double *a_copy_coarse, *p_copy_coarse; // fine mesh
   // mappings
-  NearestNeighborMapping upMapping, downMapping;
+  LinearInterpolationMapping upMapping, downMapping;
 
   if(isMultilevelApproach)
   {

@@ -1,7 +1,8 @@
 #include <iostream>
 #include <stdlib.h>
 #include "precice/SolverInterface.hpp"
-#include "../fluid_solver/NearestNeighborMapping.hpp"
+#include "../mapping/NearestNeighborMapping.hpp"
+#include "../mapping/LinearInterpolationMapping.hpp"
 //#include "mpi.h"
 
 using std::cout;
@@ -52,9 +53,52 @@ void testMapping()
 }
 **/
 
+/*
+void testMapping()
+{
+
+  // mappings
+    LinearInterpolationMapping upMapping, downMapping;
+    int N = 10, N_SM = 7;
+
+    double *displ_copy_coarse, *displ_coarse, *tmp, *tmp2;
+    displ_coarse = new double[N_SM];
+    tmp = new double[N_SM];
+    tmp2 = new double[N];
+    displ_copy_coarse = new double[N];
+
+    for (int i = 0; i < N; i++)
+      displ_copy_coarse[i] = i;
+    for (int i = 0; i < N_SM; i++)
+          displ_coarse[i] = i;
+    std::cout<<"init: ";
+    for(int i = 0; i <N; i++)
+      std::cout<<displ_copy_coarse[i]<<", ";
+    std::cout<<"\n";
+
+    downMapping.map(N, N_SM, displ_copy_coarse, tmp);
+
+    std::cout<<"\n\nfine --> coarse: ";
+    for(int i = 0; i <N_SM; i++)
+      std::cout<<tmp[i]<<", ";
+    std::cout<<"\n";
+
+    upMapping.map(N_SM, N, tmp, tmp2);
+
+    std::cout<<"\n\ncoarse --> fine: ";
+    for(int i = 0; i <N; i++)
+      std::cout<<tmp2[i]<<", ";
+    std::cout<<"\n";
+}
+*/
 
 int main (int argc, char **argv)
 {
+
+  testMapping();
+  return 0;
+
+
   cout << "Starting Structure Solver..." << endl;
   using namespace precice;
   using namespace precice::constants;
@@ -115,7 +159,7 @@ int main (int argc, char **argv)
   double *displ_copy_coarse;
   double *sigma_copy_coarse;
   // mappings
-  NearestNeighborMapping upMapping, downMapping;
+  LinearInterpolationMapping upMapping, downMapping;
 
   if(isMultilevelApproach)
   {

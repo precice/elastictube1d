@@ -7,6 +7,7 @@
 
 
 #include "NearestNeighborMapping.hpp"
+#include "NearestNeighborQuery.hpp"
 #include <iostream>
 
 NearestNeighborMapping::NearestNeighborMapping()
