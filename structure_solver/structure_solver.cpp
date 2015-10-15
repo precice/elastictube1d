@@ -94,11 +94,6 @@ void testMapping()
 
 int main (int argc, char **argv)
 {
-
-  testMapping();
-  return 0;
-
-
   cout << "Starting Structure Solver..." << endl;
   using namespace precice;
   using namespace precice::constants;

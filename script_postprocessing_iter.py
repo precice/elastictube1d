@@ -24,7 +24,6 @@ for l in allFiles:
     filename = os.path.join(sourceDir, l)
 
     substrings = l.split("_")
-    print substrings
     tau = float(substrings[-2])
     lhs, rhs = substrings[-3].split("[")
     N = int(rhs)
