@@ -36,7 +36,6 @@ public:
 
 
 private:
-  bool _isComputed;
   Eigen::MatrixXd _map;
 };
 

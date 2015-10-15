@@ -154,7 +154,7 @@ int main (int argc, char **argv)
   double *displ_copy_coarse;
   double *sigma_copy_coarse;
   // mappings
-  LinearInterpolationMapping upMapping, downMapping;
+  NearestNeighborMapping upMapping, downMapping;
 
   if(isMultilevelApproach)
   {

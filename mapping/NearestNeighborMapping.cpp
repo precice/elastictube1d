@@ -41,15 +41,6 @@ void NearestNeighborMapping::map
     double* outputData)
 {
   if(!_isComputed){
-    //std::vector<int> inputIDs(inputN);
-    //std::vector<int> outputIDs(outputN);
-    //inputIDs[0] = 0; outputIDs[0] = 0;
-
-    //for(int i=0; i<inputIDs.size(); i++)
-    //  inputIDs.at(i) = i;
-    //for(int i=0; i<outputIDs.size(); i++)
-    //    outputIDs.at(i) = i;
-
     std::vector<double> _inputCoords(inputN);
     std::vector<double> _outputCoords(outputN);
     for(int i=1; i<_inputCoords.size(); i++)

@@ -50,6 +50,7 @@ sed -i s/coupling-scheme:[A-Za-z-]*/coupling-scheme:${CP}/g ${FILE}
 #change filter
 sed -i s/filter\ name=\"[A-Z0-9a-z-]*\"/filter\ name=\"${FILTER}\"/g ${FILE}
 
+echo "Start Simulation run"
 
 for EXTRAPOLATION in 0 # 2
 do 
@@ -58,12 +59,19 @@ do
     do
         for TAU in 0.1 # 0.01 0.001
         do
+            echo "\n ############################### \n"
+            echo " run 1d elastictube with N="${N}", tau="${TAU}", kappa="${KAPPA}
+            echo " coupling-scheme: "${CP}
+            echo " post-processing: "${PP}
+            echo " reuse="${REUSED}
+            echo " extrapolation order="${EXTRAPOLATION}
+            echo "\n ###############################"
             if [ ${ML} = 0 ]; then
-                ./FluidSolver ${FILE} $N ${TAU} ${KAPPA} ${ML} &
-                ./StructureSolver ${FILE} $N ${ML}
+                ./FluidSolver ${FILE} $N ${TAU} ${KAPPA} ${ML} > log.fluid 2>&1 &
+                ./StructureSolver ${FILE} $N ${ML} > log.structure 2>&1
             else
-                ./FluidSolver ${FILE} $N ${NCOARSE} ${TAU} ${KAPPA} ${ML} &
-                ./StructureSolver ${FILE} $N ${NCOARSE} ${ML}
+                ./FluidSolver ${FILE} $N ${NCOARSE} ${TAU} ${KAPPA} ${ML} > log.fluid 2>&1 &
+                ./StructureSolver ${FILE} $N ${NCOARSE} ${ML} > log.structure 2>&1
             fi
 
             if [ ! -d ${DEST_DIR} ]; then
