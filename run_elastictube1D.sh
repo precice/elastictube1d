@@ -5,13 +5,13 @@ cd $BASE
 
 # 1d tube parameters
 N=100
-NCOARSE=100
+NCOARSE=40
 ML=1 # multi-level, i.e., manifold mapping
 
 
 # coupling parameters
-PPNAME=s-iqn-ils
-CP=serial-implicit
+PPNAME=v-mm-iqn-ils
+CP=parallel-implicit
 PP=IQN-ILS
 
 REUSED=0
@@ -36,11 +36,11 @@ else
 fi
 
 FILE=preCICE.xml
-DEST_DIR=experimens/${PPNAME}/
+DEST_DIR=experiments/${PPNAME}/
 
 
 
-sed -i s/singularity-limit\ value=\"[0-9e]*\"/singularity-limit\ value=\"$EPS\"/g ${FILE}
+#sed -i s/singularity-limit\ value=\"[0-9e]*\"/singularity-limit\ value=\"$EPS\"/g ${FILE}
 # change parameter in config (timesteps reused)
 sed -i s/timesteps-reused\ value=\"[0-9]*\"/timesteps-reused\ value=\"${REUSED}\"/g ${FILE}
 # change post processing
@@ -52,12 +52,12 @@ sed -i s/filter\ name=\"[A-Z0-9a-z-]*\"/filter\ name=\"${FILTER}\"/g ${FILE}
 
 echo "Start Simulation run"
 
-for EXTRAPOLATION in 0 # 2
+for EXTRAPOLATION in  2
 do 
     sed -i s/extrapolation-order\ value=\"[0-9]*\"/extrapolation-order\ value=\"${EXTRAPOLATION}\"/g ${FILE}
-    for KAPPA in 1000 # 100 10
+    for KAPPA in 10 # 1000  100 10
     do
-        for TAU in 0.1 # 0.01 0.001
+        for TAU in 0.1  0.01 0.001
         do
             echo "\n ############################### \n"
             echo " run 1d elastictube with N="${N}", tau="${TAU}", kappa="${KAPPA}
@@ -77,7 +77,11 @@ do
             if [ ! -d ${DEST_DIR} ]; then
                 mkdir ${DEST_DIR}
             fi
-#            cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_${PPNAME}_reused-${REUSED}_extrapol-${EXTRAPOLATION}
+            if [ ${ML} = 0 ]; then
+                cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_${PPNAME}_reused-${REUSED}_extrapol-${EXTRAPOLATION}_[${N}_${TAU}_${KAPPA}].txt
+            else
+                cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_${PPNAME}_reused-${REUSED}_extrapol-${EXTRAPOLATION}_[${N}-${NCOARSE}_${TAU}_${KAPPA}].txt
+            fi
         done
     done
 done

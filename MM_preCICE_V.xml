@@ -110,17 +110,15 @@
           <estimate-jacobian value="false"/> 
           <max-used-iterations value="50"/>
           <timesteps-reused value="0"/>
-          <filter name="QR1-filter" />
-          <singularity-limit value="1e-13"/>
+          <filter name="QR1-filter" singularity-limit="1e-13"/>
           
           <post-processing:IQN-ILS>           
             <data mesh="Structure_Nodes" name="Coarse_Displacements" />
             <data mesh="Structure_Nodes" name="Coarse_Stresses" scaling="1e7" />
-            <initial-relaxation value="0.001" />
+            <initial-relaxation value="0.001" enforce="false" />
             <max-used-iterations value="50" />
             <timesteps-reused value="0" />
-            <filter name="QR1-filter" />
-            <singularity-limit value="1e-13" />
+            <filter name="QR1-filter" singularity-limit="1e-13 "/>
           </post-processing:IQN-ILS>
 
         </post-processing:MM>

@@ -82,11 +82,10 @@
         <!-- PostProcessing always done on the second solver -->
         <data name="Displacements" mesh="Structure_Nodes" scaling="1.0">
         <!--<data name="Stresses" mesh="Structure_Nodes" scaling="1e7">--> 
-          <initial-relaxation value="0.001" />
+          <initial-relaxation value="0.001" enforce="true" />
           <max-used-iterations value="50"/>
           <timesteps-reused value="0"/>
-          <filter name="QR1-filter" />
-          <singularity-limit value="1e-13"/>
+          <filter name="QR1-filter" singularity-limit="1e-13"/>
         </post-processing:IQN-ILS>
 
       </coupling-scheme:serial-implicit>
