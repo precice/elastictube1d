@@ -216,30 +216,9 @@ int main(
     {
       std::cout<<"\n    ### evaluate coarse model of fluid solver, t="<<t<<" ###\n"<<std::endl;
 
-/*
-      std::cout<<"FluidSolver: before down mapping p_copy_coarse = [\n";
-      for (int i = 0; i <= N; i++)
-        std::cout<<p_copy_coarse[i]<<", ";
-      std::cout<<"\n"<<endl;
-      std::cout<<"FluidSolver: before down mapping a_copy_coarse = [\n";
-      for (int i = 0; i <= N; i++)
-        std::cout<<a_copy_coarse[i]<<", ";
-      std::cout<<"\n"<<endl;
-*/
-
       // map down:  fine --> coarse [displ, pressure]
       downMapping.map(N+1, N_SM+1, a_copy_coarse, a_coarse);
       downMapping.map(N+1, N_SM+1, p_copy_coarse, p_coarse);
-/*
-      std::cout<<"FluidSolver: after down mapping p_coarse = [\n";
-      for (int i = 0; i <= N_SM; i++)
-        std::cout<<p_coarse[i]<<", ";
-      std::cout<<"\n"<<endl;
-      std::cout<<"FluidSolver: after down mapping a_coarse = [\n";
-      for (int i = 0; i <= N_SM; i++)
-        std::cout<<a_coarse[i]<<", ";
-      std::cout<<"\n"<<endl;
-*/
 
       // ### surrogate model evaluation ###    p_old is not used for gamma = 0.0
       fluid_nl(a_coarse, a_n_coarse, u_coarse, u_n_coarse, p_coarse, p_n_coarse, p_coarse, t + 1, N_SM, kappa, tau, 0.0);
@@ -247,24 +226,6 @@ int main(
       // map up:  coarse --> fine [displ, pressure]
       upMapping.map(N_SM+1, N+1, a_coarse, a_copy_coarse);
       upMapping.map(N_SM+1, N+1, p_coarse, p_copy_coarse);
-
-/*
-      std::cout<<"N= "<<N<<std::endl;
-      std::cout<<"FluidSolver: after up mapping p_copy_coarse = [\n";
-      for (int i = 0; i <= N; i++)
-        std::cout<<p_copy_coarse[i]<<", ";
-      std::cout<<"\n"<<endl;
-      std::cout<<"FluidSolver: after up mapping a_copy_coarse = [\n";
-      for (int i = 0; i <= N; i++)
-        std::cout<<a_copy_coarse[i]<<", ";
-      std::cout<<"\n"<<endl;
-*/
-      /*
-      std::cout<<"FluidSolver: write pressure data coarse, p = [\n";
-      for (int i = 0; i < N_SM; i++)
-        std::cout<<p_copy_coarse[i]<<", ";
-      std::cout<<"\n"<<endl;
-       */
 
       // write coarse model response to precice
       interface.writeBlockScalarData(pID_coarse, N + 1, vertexIDs, p_copy_coarse);
@@ -300,20 +261,6 @@ int main(
       // ### fine model evaluation ###    p_old is not used for gamma = 0.0
       fluid_nl(a, a_n, u, u_n, p, p_n, p, t + 1, N, kappa, tau, 0.0);
 
-      /*
-      if(isMultilevelApproach){
-        std::cout<<"FluidSolver: write pressure data fine, p = [\n";
-        for (int i = 0; i < N; i++)
-          std::cout<<p_copy_coarse[i]<<", ";
-        std::cout<<"\n"<<endl;
-      }else{
-        std::cout<<"FluidSolver: write pressure data fine, p = [\n";
-        for (int i = 0; i < N; i++)
-          std::cout<<p[i]<<", ";
-        std::cout<<"\n"<<endl;
-      }
-      */
-
       // write fine model response
       interface.writeBlockScalarData(pID, N + 1, vertexIDs, p);
     }
@@ -326,28 +273,12 @@ int main(
 
     // surrogate model evaluation for surrogate model optimization or MM cycle
     if (interface.hasToEvaluateSurrogateModel()){
-      if(isMultilevelApproach){
-        interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs, a_copy_coarse);
-
-        /*
-        std::cout<<"FluidSolver: read displ data coarse, a = [\n";
-        for (int i = 0; i < N_SM; i++)
-          std::cout<<a_copy_coarse[i]<<", ";
-        std::cout<<"\n"<<endl;
-        */
-      }
+      interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs, a_copy_coarse);
     }
 
     // fine model evaluation (in MM iteration cycles)
     if(interface.hasToEvaluateFineModel()){
       interface.readBlockScalarData(aID, N + 1, vertexIDs, a);
-
-      /*
-      std::cout<<"FluidSolver: read displ data fine, a = [\n";
-      for (int i = 0; i < N; i++)
-        std::cout<<a[i]<<", ";
-      std::cout<<"\n"<<endl;
-      */
     }
 
     if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. not yet converged
@@ -395,32 +326,6 @@ int main(
 
       // advance in time
       t++;
-
-      /*
-      for (i = 0; i <= N; i++)
-      {
-        if(isMultilevelApproach){
-        u_n[i] = a_copy_coarse[i];
-        p_n[i] = p_copy_coarse[i];
-        a_n[i] = a_coarse[i];
-        }else
-        {
-          u_n[i] = u[i];
-          p_n[i] = p[i];
-          a_n[i] = a[i];
-        }
-      }
-
-      if(isMultilevelApproach)
-      {
-        for (i = 0; i <= N_SM; i++)
-        {
-          u_n_coarse[i] = u_coarse[i]; // mapping issues, but take care that correct data is shifted
-          p_n_coarse[i] = p_copy_coarse[i];
-          a_n_coarse[i] = a_copy_coarse[i];
-        }
-      }
-      */
     }
   }
 

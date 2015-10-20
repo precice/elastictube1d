@@ -17,80 +17,6 @@ void printData (const std::vector<double>& data)
   cout << endl;
 }
 
-/**
-void testMapping()
-{
-
-  // mappings
-    NearestNeighborMapping upMapping, downMapping;
-    int N = 10, N_SM = 5;
-
-    double *displ_copy_coarse, *displ_coarse, *tmp;
-    displ_coarse = new double[N_SM];
-    tmp = new double[N_SM];
-    displ_copy_coarse = new double[N];
-
-    for (int i = 0; i < N; i++)
-      displ_copy_coarse[i] = i;
-    for (int i = 0; i < N_SM; i++)
-          displ_coarse[i] = i;
-    std::cout<<"init: ";
-    for(int i = 0; i <N; i++)
-      std::cout<<displ_copy_coarse[i]<<", ";
-    std::cout<<"\n";
-
-    downMapping.map(N, N_SM, displ_copy_coarse, tmp);
-
-    std::cout<<"\n\nfine --> coarse: ";
-    for(int i = 0; i <N_SM; i++)
-      std::cout<<tmp[i]<<", ";
-
-    upMapping.map(N_SM, N, tmp, displ_copy_coarse);
-
-    std::cout<<"\n\ncoarse --> fine: ";
-    for(int i = 0; i <N; i++)
-      std::cout<<displ_copy_coarse[i]<<", ";
-}
-**/
-
-/*
-void testMapping()
-{
-
-  // mappings
-    LinearInterpolationMapping upMapping, downMapping;
-    int N = 10, N_SM = 7;
-
-    double *displ_copy_coarse, *displ_coarse, *tmp, *tmp2;
-    displ_coarse = new double[N_SM];
-    tmp = new double[N_SM];
-    tmp2 = new double[N];
-    displ_copy_coarse = new double[N];
-
-    for (int i = 0; i < N; i++)
-      displ_copy_coarse[i] = i;
-    for (int i = 0; i < N_SM; i++)
-          displ_coarse[i] = i;
-    std::cout<<"init: ";
-    for(int i = 0; i <N; i++)
-      std::cout<<displ_copy_coarse[i]<<", ";
-    std::cout<<"\n";
-
-    downMapping.map(N, N_SM, displ_copy_coarse, tmp);
-
-    std::cout<<"\n\nfine --> coarse: ";
-    for(int i = 0; i <N_SM; i++)
-      std::cout<<tmp[i]<<", ";
-    std::cout<<"\n";
-
-    upMapping.map(N_SM, N, tmp, tmp2);
-
-    std::cout<<"\n\ncoarse --> fine: ";
-    for(int i = 0; i <N; i++)
-      std::cout<<tmp2[i]<<", ";
-    std::cout<<"\n";
-}
-*/
 
 int main (int argc, char **argv)
 {
@@ -244,9 +170,6 @@ int main (int argc, char **argv)
     // surrogate model evaluation for surrogate model optimization or MM cycle
     if(interface.hasToEvaluateSurrogateModel())
     {
-//      if(isMultilevelApproach)
-//      {
-
         std::cout<<"\n    ### evaluate coarse model of solid solver, t="<<t<<" ###\n"<<std::endl;
 
         // map down:  fine --> coarse [displ, pressure]00
@@ -255,44 +178,26 @@ int main (int argc, char **argv)
 
         // ### surrogate model evaluation ###
         for ( int i = 0; i <= N_SM; i++ )
-          //displ_copy_coarse[i]   = 4.0 / ((2.0 - sigma_copy_coarse[i])*(2.0 - sigma_copy_coarse[i]));
           displ_coarse[i]   = 4.0 / ((2.0 - sigma_coarse[i])*(2.0 - sigma_coarse[i]));
 
         // map up:  coarse --> fine [displ, pressure]
         upMapping.map(N_SM+1, N+1, displ_coarse, displ_copy_coarse);
         upMapping.map(N_SM+1, N+1, sigma_coarse, sigma_copy_coarse);
 
-        /*
-        std::cout<<"Solidsolver: write displ data coarse, a = [\n";
-        for (int i = 0; i < N_SM; i++)
-          std::cout<<displ_copy_coarse[i]<<", ";
-        std::cout<<"\n"<<endl;
-        */
-
         // write coarse model response (on fine mesh)
         interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs, displ_copy_coarse);
- //     }
     }
 
 
     // fine model evaluation (in MM iteration cycles)
     if(interface.hasToEvaluateFineModel())
     {
-
       std::cout<<"\n    ### evaluate fine model of solid solver, t="<<t<<" ###\n"<<std::endl;
 
       // ### fine model evaluation ###
       for ( int i = 0; i <= N; i++ ){
         displ[i]   = 4.0 / ((2.0 - sigma[i])*(2.0 - sigma[i]));
       }
-
-      /*
-      std::cout<<"Solidsolver: write displ data fine, a = [\n";
-      for (int i = 0; i < N; i++)
-        std::cout<<displ[i]<<", ";
-      std::cout<<"\n"<<endl;
-      */
-
       // write fine model response
       interface.writeBlockScalarData(displID, N+1, vertexIDs, displ);
     }
@@ -305,29 +210,13 @@ int main (int argc, char **argv)
 
     // surrogate model evaluation for surrogate model optimization or MM cycle
     if (interface.hasToEvaluateSurrogateModel()){
-      if(isMultilevelApproach)
-        interface.readBlockScalarData(sigmaID_coarse, N + 1, vertexIDs, sigma_copy_coarse);
-
-      /*
-        std::cout << "Solidsolver: read pressure data coarse, p = [\n";
-        for (int i = 0; i < N_SM; i++)
-          std::cout << sigma_copy_coarse[i] << ", ";
-       std::cout << "\n" << endl;
-       */
+      interface.readBlockScalarData(sigmaID_coarse, N + 1, vertexIDs, sigma_copy_coarse);
     }
 
     // fine model evaluation (in MM iteration cycles)
     if(interface.hasToEvaluateFineModel()){
       interface.readBlockScalarData(sigmaID, N+1, vertexIDs, sigma);
-
-      /*
-      std::cout<<"Solidsolver: read pressure data fine, p = [\n";
-      for (int i = 0; i < N; i++)
-        std::cout<<sigma[i]<<", ";
-      std::cout<<"\n"<<endl;
-      */
     }
-
 
 
     if (interface.isActionRequired(actionReadIterationCheckpoint()))
