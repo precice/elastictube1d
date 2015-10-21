@@ -4,14 +4,14 @@ BASE=$PWD
 cd $BASE
 
 # 1d tube parameters
-N=100
-NCOARSE=40
+N=1000
+NCOARSE=100
 ML=1 # multi-level, i.e., manifold mapping
 
 
 # coupling parameters
-PPNAME=v-mm-iqn-ils
-CP=parallel-implicit
+PPNAME=s-mm-iqn-ils
+CP=serial-implicit
 PP=IQN-ILS
 
 REUSED=0
@@ -36,7 +36,7 @@ else
 fi
 
 FILE=preCICE.xml
-DEST_DIR=experiments/${PPNAME}/
+DEST_DIR=experiments/${PPNAME}/FSI-${N}-${NCOARSE}
 
 
 
@@ -55,9 +55,9 @@ echo "Start Simulation run"
 for EXTRAPOLATION in  2
 do 
     sed -i s/extrapolation-order\ value=\"[0-9]*\"/extrapolation-order\ value=\"${EXTRAPOLATION}\"/g ${FILE}
-    for KAPPA in 10 # 1000  100 10
+    for KAPPA in 10 #  1000  100 10
     do
-        for TAU in 0.1  0.01 0.001
+        for TAU in 0.1 #  0.01 0.001
         do
             echo "\n ############################### \n"
             echo " run 1d elastictube with N="${N}", tau="${TAU}", kappa="${KAPPA}
@@ -78,9 +78,9 @@ do
                 mkdir ${DEST_DIR}
             fi
             if [ ${ML} = 0 ]; then
-                cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_${PPNAME}_reused-${REUSED}_extrapol-${EXTRAPOLATION}_[${N}_${TAU}_${KAPPA}].txt
+                cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_FSI-${N}-${NCOARSE}_${PPNAME}_reused-${REUSED}_extrapol-${EXTRAPOLATION}_[${N}_${TAU}_${KAPPA}].txt
             else
-                cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_${PPNAME}_reused-${REUSED}_extrapol-${EXTRAPOLATION}_[${N}-${NCOARSE}_${TAU}_${KAPPA}].txt
+                cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_FSI-${N}-${NCOARSE}_${PPNAME}_reused-${REUSED}_extrapol-${EXTRAPOLATION}_[${N}-${NCOARSE}_${TAU}_${KAPPA}].txt
             fi
         done
     done
