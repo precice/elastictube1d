@@ -2,6 +2,17 @@
 .sconsign.dblite
 fluid_solver/FluidSolver
 structure_solver/StructureSolver
+FluidSolver
+StructureSolver
+.sconf_temp
+.settings/
+libprecice.so
+log.fluid
+log.structure
+preCICE.xml
+.cproject
+.project
+EventTimings.log
 iterations*
 convergence*
 config.log

@@ -36,7 +36,7 @@ else
 fi
 
 FILE=preCICE.xml
-DEST_DIR=experiments/${PPNAME}/FSI-${N}-${NCOARSE}
+DEST_DIR=experiments/${PPNAME}/FSI-${N}-${NCOARSE}/convMeasure[1e-7_1e-6]_displ/
 
 
 
@@ -55,9 +55,9 @@ echo "Start Simulation run"
 for EXTRAPOLATION in  2
 do 
     sed -i s/extrapolation-order\ value=\"[0-9]*\"/extrapolation-order\ value=\"${EXTRAPOLATION}\"/g ${FILE}
-    for KAPPA in 10 #  1000  100 10
+    for KAPPA in  1000  100 
     do
-        for TAU in 0.1 #  0.01 0.001
+        for TAU in 0.1 0.01 0.001
         do
             echo "\n ############################### \n"
             echo " run 1d elastictube with N="${N}", tau="${TAU}", kappa="${KAPPA}

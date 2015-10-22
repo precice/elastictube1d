@@ -242,22 +242,6 @@ int main(
     {
       std::cout<<"\n    ### evaluate fine model of fluid solver, t="<<t<<" ###\n"<<std::endl;
 
-      // map up:  coarse --> fine  [old velocity, old pressure, old displ]
-      // synchronize the u, p, a data from the previous time step for the fine model with those from the coarse model
-      if(isMultilevelApproach){
-        //upMapping.map(N_SM, N, u_n_coarse, u_n);
-        //upMapping.map(N_SM, N, p_n_coarse, p_n);
-        //upMapping.map(N_SM, N, a_n_coarse, a_n);
-        ///*
-       // for (i = 0; i <= N; i++)
-       // {
-       //   u_n[i] = u_n_coarse[i];
-       //   p_n[i] = p_n_coarse[i];
-       //   a_n[i] = a_n_coarse[i];
-       // }
-        //*/
-      }
-
       // ### fine model evaluation ###    p_old is not used for gamma = 0.0
       fluid_nl(a, a_n, u, u_n, p, p_n, p, t + 1, N, kappa, tau, 0.0);
 
