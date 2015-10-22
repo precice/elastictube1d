@@ -2,7 +2,7 @@
 # set -e
 BASE=$PWD
 cd $BASE
-
+# ---------------------------------------- PARAMETERS --------------------------------------------------------
 # 1d tube parameters
 N=1000
 NCOARSE=100
@@ -14,11 +14,15 @@ PPNAME=s-mm-iqn-ils
 CP=serial-implicit
 PP=IQN-ILS
 
+EXTRAPOLATION=0
 REUSED=0
 
 FILTER=QR1-filter
 EPS=1e-13
 
+
+
+DEST_DIR=experiments/${PPNAME}/FSI-${N}-${NCOARSE}/convMeasure[1e-7_1e-6]_displ/
 # ------------------------------------------------------------------------------------------------------------
 
 if [ ${ML} = 0 ]; then
@@ -36,24 +40,19 @@ else
 fi
 
 FILE=preCICE.xml
-DEST_DIR=experiments/${PPNAME}/FSI-${N}-${NCOARSE}/convMeasure[1e-7_1e-6]_displ/
 
 
-
-#sed -i s/singularity-limit\ value=\"[0-9e]*\"/singularity-limit\ value=\"$EPS\"/g ${FILE}
-# change parameter in config (timesteps reused)
-sed -i s/timesteps-reused\ value=\"[0-9]*\"/timesteps-reused\ value=\"${REUSED}\"/g ${FILE}
-# change post processing
-#sed -i s/post-processing:[A-Za-z-]*/post-processing:${PP}/g ${FILE}
-# change coupling scheme
-sed -i s/coupling-scheme:[A-Za-z-]*/coupling-scheme:${CP}/g ${FILE}
-#change filter
-sed -i s/filter\ name=\"[A-Z0-9a-z-]*\"/filter\ name=\"${FILTER}\"/g ${FILE}
+sed -i s/timesteps-reused\ value=\"[0-9]*\"/timesteps-reused\ value=\"${REUSED}\"/g ${FILE}                # set reuse
+sed -i s/extrapolation-order\ value=\"[0-9]*\"/extrapolation-order\ value=\"${EXTRAPOLATION}\"/g ${FILE}   # set extrapolation order
+#sed -i s/post-processing:[A-Za-z-]*/post-processing:${PP}/g ${FILE}                                       # set post processing method
+sed -i s/coupling-scheme:[A-Za-z-]*/coupling-scheme:${CP}/g ${FILE}                                        # set coupling scheme
+sed -i s/filter\ name=\"[A-Z0-9a-z-]*\"/filter\ name=\"${FILTER}\"/g ${FILE}                               # set filter method
+sed -i s/singularity-limit=\"[0-9e]*\"/singularity-limit=\"$EPS\"/g ${FILE}                                # set singularity limit for filter
 
 echo "Start Simulation run"
 cp ${FILE} ${DEST_DIR}/${FILE}
 
-for EXTRAPOLATION in  2
+for EXTRAPOLATION in  0
 do 
     sed -i s/extrapolation-order\ value=\"[0-9]*\"/extrapolation-order\ value=\"${EXTRAPOLATION}\"/g ${FILE}
     for KAPPA in  1000  100 

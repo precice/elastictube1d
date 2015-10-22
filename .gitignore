@@ -9,11 +9,9 @@ StructureSolver
 libprecice.so
 log.fluid
 log.structure
-preCICE.xml
 .cproject
 .project
 EventTimings.log
-iterations*
 convergence*
 config.log
 postProcessingInfo.txt
