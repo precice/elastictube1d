@@ -316,5 +316,22 @@ int main(
   interface.finalize();
   cout << "Exiting FluidSolver" << endl;
 
+  delete [] u;
+  delete [] u_n;
+  delete [] p;
+  delete [] p_n;
+  delete [] a;
+  delete [] a_n;
+  delete [] grid;
+  delete [] a_copy_coarse;
+  delete [] p_copy_coarse;
+
+  delete [] u_coarse;
+  delete [] u_n_coarse;
+  delete [] p_coarse;
+  delete [] p_n_coarse;
+  delete [] a_coarse;
+  delete [] a_n_coarse;
+
   return 0;
 }
