@@ -51,6 +51,7 @@ sed -i s/coupling-scheme:[A-Za-z-]*/coupling-scheme:${CP}/g ${FILE}
 sed -i s/filter\ name=\"[A-Z0-9a-z-]*\"/filter\ name=\"${FILTER}\"/g ${FILE}
 
 echo "Start Simulation run"
+cp ${FILE} ${DEST_DIR}/${FILE}
 
 for EXTRAPOLATION in  2
 do 
