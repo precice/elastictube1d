@@ -31,6 +31,7 @@ Tsteps = numpy.zeros(shape=(3,3))
 for l in allFiles:
     filename = os.path.join(sourceDir, l)
 
+    print l
     substrings = l.split("_")
     tau = float(substrings[-2])
     lhs, rhs = substrings[-3].split("[")

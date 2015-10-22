@@ -93,10 +93,13 @@ if [ ${ML} = 0 ]; then
 else
     python script_MMpostprocessing_iter.py ${DEST_DIR}
 fi
+
 cp iterations_FSI-${N}-${NCOARSE}_*.dat ${DEST_DIR}/
 cp log.pp ${DEST_DIR}/log.pp
 
+echo "\n -- pgfplots iteration table ---\n\n"
 cat iterations_FSI-${N}-${NCOARSE}_*.dat
+echo "\n -- post procesing log file  ---\n\n"
 cat log.pp
 
 rm iterations_FSI-${N}-${NCOARSE}_*.dat
