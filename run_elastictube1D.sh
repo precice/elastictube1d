@@ -85,3 +85,18 @@ do
         done
     done
 done
+
+
+if [ ${ML} = 0 ]; then
+    python script_postprocessing_iter.py ${DEST_DIR}
+else
+    python script_MMpostprocessing_iter.py ${DEST_DIR}
+fi
+cp iterations_FSI-${N}-${NCOARSE}_*.dat ${DEST_DIR}/
+cp log.pp ${DEST_DIR}/log.pp
+
+cat iterations_FSI-${N}-${NCOARSE}_*.dat
+cat log.pp
+
+rm iterations_FSI-${N}-${NCOARSE}_*.dat
+rm log.pp
