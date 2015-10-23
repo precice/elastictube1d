@@ -26,6 +26,7 @@ for l in allFiles:
     filename = os.path.join(sourceDir, l)
 
     substrings = l.split("_")
+    print substrings
     tau = float(substrings[-2])
     lhs, rhs = substrings[-3].split("[")
     N = int(rhs)
@@ -70,20 +71,16 @@ for l in allFiles:
 
         
 # write info to terminal
-print "Tau" + "   " + "1000fine" + "   " + "1000coarse" + "   " + "100fine" + "   " + "100coarse" + "   " + "10fine" + "   " + "10coarse" + "\n"
+print "Tau" + "   " + "1000" + "   " + "100" + "   " + "10" + "\n"
 print "Table fine iterations: "
 print  table
-print "Table coarse iterations: "
-print  tableCoarse
 print "Table timesteps: "
 print  Tsteps
 
 # write info to log file
-pp_log.write("\n    ### FSI-"+str(N_fine)+":"+str(N_coarse)+" ###\n\n\n")
+pp_log.write("\n    ### FSI-"+str(N)+" ###\n\n\n")
 pp_log.write("Table fine iterations: ")
 pp_log.write("\n" + str(table) + "\n\n")
-pp_log.write("Table coarse iterations: ")
-pp_log.write("\n"+str(tableCoarse)+"\n\n")
 pp_log.write("Table timesteps: ")
 pp_log.write("\n"+str(Tsteps)+"\n\n")
 
