@@ -4,8 +4,8 @@ BASE=$PWD
 cd $BASE
 # ---------------------------------------- PARAMETERS --------------------------------------------------------
 # 1d tube parameters
-N=1000
-NCOARSE=100
+N=100
+NCOARSE=40
 ML=1 # multi-level, i.e., manifold mapping
 
 
@@ -14,15 +14,18 @@ PPNAME=s-mm-iqn-ils
 CP=serial-implicit
 PP=IQN-ILS
 
-EXTRAPOLATION=0
+EXTRAPOLATION=2
 REUSED=0
 
-FILTER=QR1-filter
+FILTER=QR1
 EPS=1e-13
 
+COPY=1
+ONLY_POSTPROC=1
+POSTPROC=1
 
 
-DEST_DIR=experiments/${PPNAME}/FSI-${N}-${NCOARSE}/convMeasure[1e-7_1e-6]_displ/
+DEST_DIR=experiments/${PPNAME}/FSI-${N}-${NCOARSE}_NEW/extrp-2/
 # ------------------------------------------------------------------------------------------------------------
 
 if [ ${ML} = 0 ]; then
@@ -46,60 +49,71 @@ sed -i s/timesteps-reused\ value=\"[0-9]*\"/timesteps-reused\ value=\"${REUSED}\
 sed -i s/extrapolation-order\ value=\"[0-9]*\"/extrapolation-order\ value=\"${EXTRAPOLATION}\"/g ${FILE}   # set extrapolation order
 #sed -i s/post-processing:[A-Za-z-]*/post-processing:${PP}/g ${FILE}                                       # set post processing method
 sed -i s/coupling-scheme:[A-Za-z-]*/coupling-scheme:${CP}/g ${FILE}                                        # set coupling scheme
-sed -i s/filter\ name=\"[A-Z0-9a-z-]*\"/filter\ name=\"${FILTER}\"/g ${FILE}                               # set filter method
-sed -i s/singularity-limit=\"[0-9e]*\"/singularity-limit=\"$EPS\"/g ${FILE}                                # set singularity limit for filter
+#sed -i s/filter\ type=\"[A-Z0-9a-z-]*\"\ limit=\"[0-9e]*\"/filter\ type=\"${FILTER}\"\ limit=\"${EPS}\"/g ${FILE}   # set filter method
 
 echo "Start Simulation run"
-cp ${FILE} ${DEST_DIR}/${FILE}
-
-for EXTRAPOLATION in  0
-do 
-    sed -i s/extrapolation-order\ value=\"[0-9]*\"/extrapolation-order\ value=\"${EXTRAPOLATION}\"/g ${FILE}
-    for KAPPA in  1000  100 
-    do
-        for TAU in 0.1 0.01 0.001
-        do
-            echo "\n ############################### \n"
-            echo " run 1d elastictube with N="${N}", tau="${TAU}", kappa="${KAPPA}
-            echo " coupling-scheme: "${CP}
-            echo " post-processing: "${PP}
-            echo " reuse="${REUSED}
-            echo " extrapolation order="${EXTRAPOLATION}
-            echo "\n ###############################"
-            if [ ${ML} = 0 ]; then
-                ./FluidSolver ${FILE} $N ${TAU} ${KAPPA} ${ML} > log.fluid 2>&1 &
-                ./StructureSolver ${FILE} $N ${ML} > log.structure 2>&1
-            else
-                ./FluidSolver ${FILE} $N ${NCOARSE} ${TAU} ${KAPPA} ${ML} > log.fluid 2>&1 &
-                ./StructureSolver ${FILE} $N ${NCOARSE} ${ML} > log.structure 2>&1
-            fi
-
-            if [ ! -d ${DEST_DIR} ]; then
-                mkdir ${DEST_DIR}
-            fi
-            if [ ${ML} = 0 ]; then
-                cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_FSI-${N}-${NCOARSE}_${PPNAME}_reused-${REUSED}_extrapol-${EXTRAPOLATION}_[${N}_${TAU}_${KAPPA}].txt
-            else
-                cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_FSI-${N}-${NCOARSE}_${PPNAME}_reused-${REUSED}_extrapol-${EXTRAPOLATION}_[${N}-${NCOARSE}_${TAU}_${KAPPA}].txt
-            fi
-        done
-    done
-done
-
-
-if [ ${ML} = 0 ]; then
-    python script_postprocessing_iter.py ${DEST_DIR}
-else
-    python script_MMpostprocessing_iter.py ${DEST_DIR}
+if [ ${COPY} = 1 ]; then
+    cp ${FILE} ${DEST_DIR}/${FILE}
 fi
 
-cp iterations_FSI-${N}-${NCOARSE}_*.dat ${DEST_DIR}/
-cp log.pp ${DEST_DIR}/log.pp
+# COMPUTATION, PARAMETER STUDY
+if [ ${ONLY_POSTPROC} = 0 ]; then
 
-echo "\n -- pgfplots iteration table ---\n\n"
-cat iterations_FSI-${N}-${NCOARSE}_*.dat
-echo "\n -- post procesing log file  ---\n\n"
-cat log.pp
+    for EXTRAPOLATION in  2
+    do 
+        sed -i s/extrapolation-order\ value=\"[0-9]*\"/extrapolation-order\ value=\"${EXTRAPOLATION}\"/g ${FILE}
+        for KAPPA in  10
+        do
+            for TAU in  0.1 0.01 0.001
+            do
+                echo "\n ############################### \n"
+                echo " run 1d elastictube with N="${N}", tau="${TAU}", kappa="${KAPPA}
+                echo " coupling-scheme: "${CP}
+                echo " post-processing: "${PP}
+                echo " reuse="${REUSED}
+                echo " extrapolation order="${EXTRAPOLATION}
+                echo "\n ###############################"
+                if [ ${ML} = 0 ]; then
+                    ./FluidSolver ${FILE} $N ${TAU} ${KAPPA} ${ML} > log.fluid 2>&1 &
+                    ./StructureSolver ${FILE} $N ${ML} > log.structure 2>&1
+                else
+                    ./FluidSolver ${FILE} $N ${NCOARSE} ${TAU} ${KAPPA} ${ML} > log.fluid 2>&1 &
+                    ./StructureSolver ${FILE} $N ${NCOARSE} ${ML} > log.structure 2>&1
+                fi
 
-rm iterations_FSI-${N}-${NCOARSE}_*.dat
-rm log.pp
+                if [ ! -d ${DEST_DIR} ]; then
+                    mkdir ${DEST_DIR}
+                fi
+                if [ ${COPY} = 1 ]; then
+                    if [ ${ML} = 0 ]; then
+                        cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_FSI-${N}-${NCOARSE}_${PPNAME}_reused-${REUSED}_extrapol-${EXTRAPOLATION}_[${N}_${TAU}_${KAPPA}].txt
+                    else
+                        cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_FSI-${N}-${NCOARSE}_${PPNAME}_reused-${REUSED}_extrapol-${EXTRAPOLATION}_[${N}-${NCOARSE}_${TAU}_${KAPPA}].txt
+                    fi
+                fi
+            done
+        done
+    done
+
+fi
+
+
+# POST-PROCESSING OF OUTPUT DATA
+if [ ${POSTPROC} = 1 ]; then
+    if [ ${ML} = 0 ]; then
+        python script_postprocessing_iter.py ${DEST_DIR}
+    else
+        python script_MMpostprocessing_iter.py ${DEST_DIR}
+    fi
+
+    cp iterations_FSI-${N}-${NCOARSE}_*.dat ${DEST_DIR}/
+    cp log.pp ${DEST_DIR}/log.pp
+
+    echo "\n -- pgfplots iteration table ---\n\n"
+    cat iterations_FSI-${N}-${NCOARSE}_*.dat
+    echo "\n -- post procesing log file  ---\n\n"
+    cat log.pp
+
+    rm iterations_FSI-${N}-${NCOARSE}_*.dat
+    rm log.pp
+fi

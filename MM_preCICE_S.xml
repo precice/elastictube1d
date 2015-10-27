@@ -91,15 +91,15 @@
       <!-- fine model exchange data and associated convergence measures -->
       <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D"  initialize="true"/>
       <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D" />
-     <!-- <relative-convergence-measure  limit="1e-4" data="Stresses"        mesh="Structure_Nodes" level="0" />-->
-      <relative-convergence-measure  limit="1e-6" data="Displacements"   mesh="Structure_Nodes" level="0" />
+      <relative-convergence-measure  limit="1e-4" data="Stresses"        mesh="Structure_Nodes" level="0" />
+      <relative-convergence-measure  limit="1e-4" data="Displacements"   mesh="Structure_Nodes" level="0" />
 
       <!-- coarse model exchange data and associated convergence measures -->
       <exchange data="Coarse_Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D"  initialize="true"/>
       <exchange data="Coarse_Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>  
       <!-- convergence criterion for coarse coupling data needs to be more restrictive -->
-      <!--<relative-convergence-measure  limit="1e-5" data="Coarse_Stresses"        mesh="Structure_Nodes"  level="1" />  -->
-      <relative-convergence-measure  limit="1e-7" data="Coarse_Displacements"   mesh="Structure_Nodes"  level="1" />
+      <relative-convergence-measure  limit="1e-5" data="Coarse_Stresses"        mesh="Structure_Nodes"  level="1" />
+      <relative-convergence-measure  limit="1e-5" data="Coarse_Displacements"   mesh="Structure_Nodes"  level="1" />
  
       <post-processing:MM> 
           <!-- PostProcessing always done on the second solver -->
@@ -108,15 +108,17 @@
           <estimate-jacobian value="false"/> 
           <max-used-iterations value="50"/>
           <timesteps-reused value="0"/>
-          <filter name="QR1-filter" singularity-limit="1e-13"/>
+          <filter type="QR1" limit="1e-18"/>
+          <preconditioner type="constant" />
           
           <post-processing:IQN-ILS>           
             <data mesh="Structure_Nodes" name="Coarse_Displacements" />
             <!--<data mesh="Structure_Nodes" name="Coarse_Stresses" scaling="1e7" />-->
-            <initial-relaxation value="0.001" enforce="true"/>
+            <initial-relaxation value="0.001" enforce="false"/>
             <max-used-iterations value="50" />
             <timesteps-reused value="0" />
-            <filter name="QR1-filter" singularity-limit="1e-13"/>
+            <filter type="QR1" limit="1e-13"/>
+            <preconditioner type="constant" />
           </post-processing:IQN-ILS>
 
         </post-processing:MM>
