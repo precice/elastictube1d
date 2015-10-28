@@ -4,8 +4,8 @@ BASE=$PWD
 cd $BASE
 # ---------------------------------------- PARAMETERS --------------------------------------------------------
 # 1d tube parameters
-N=100
-NCOARSE=40
+N=1000
+NCOARSE=100
 ML=1 # multi-level, i.e., manifold mapping
 
 
@@ -14,7 +14,7 @@ PPNAME=s-mm-iqn-ils
 CP=serial-implicit
 PP=IQN-ILS
 
-EXTRAPOLATION=0
+EXTRAPOLATION=2
 REUSED=0
 
 FILTER=QR1
@@ -28,7 +28,8 @@ NOW="$(date +'%Y-%m-%d')"
 
 # ------------------------------------------------------------------------------------------------------------
 DESCRIPTION=${PPNAME}_reused-${REUSED}_extrp-${EXTRAPOLATION}
-DEST_DIR=experiments/${PPNAME}/${NOW}_FSI-${N}-${NCOARSE}/
+D1=experiments/${PPNAME}/${NOW}_FSI-${N}-${NCOARSE}
+DEST_DIR=experiments/${PPNAME}/${NOW}_FSI-${N}-${NCOARSE}/convMeasure[1e-7_1e-6]-displ
 # ------------------------------------------------------------------------------------------------------------
 
 if [ ${ML} = 0 ]; then
@@ -82,6 +83,9 @@ if [ ${ONLY_POSTPROC} = 0 ]; then
                 ./StructureSolver ${FILE} $N ${NCOARSE} ${ML} > log.structure 2>&1
             fi
 
+	    if [ ! -d ${D1} ]; then
+                mkdir ${D1}
+            fi
             if [ ! -d ${DEST_DIR} ]; then
                 mkdir ${DEST_DIR}
             fi
