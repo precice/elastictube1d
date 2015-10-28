@@ -25,6 +25,9 @@ ONLY_POSTPROC=0
 POSTPROC=1
 
 NOW="$(date +'%Y-%m-%d')"
+
+# ------------------------------------------------------------------------------------------------------------
+DESCRIPTION=${PPNAME}_reused-${REUSED}_extrp-${EXTRAPOLATION}
 DEST_DIR=experiments/${PPNAME}/${NOW}_FSI-${N}-${NCOARSE}/
 # ------------------------------------------------------------------------------------------------------------
 
@@ -58,43 +61,39 @@ fi
 
 # COMPUTATION, PARAMETER STUDY
 if [ ${ONLY_POSTPROC} = 0 ]; then
+    #sed -i s/extrapolation-order\ value=\"[0-9]*\"/extrapolation-order\ value=\"${EXTRAPOLATION}\"/g ${FILE}
 
-    for EXTRAPOLATION in  2
-    do 
-        sed -i s/extrapolation-order\ value=\"[0-9]*\"/extrapolation-order\ value=\"${EXTRAPOLATION}\"/g ${FILE}
-        for KAPPA in 10  100   1000
+    for KAPPA in 10  100   1000
+    do
+        for TAU in 0.1 0.01 0.001
         do
-            for TAU in 0.1 0.01 0.001
-            do
-                echo "\n ############################### \n"
-                echo " run 1d elastictube with N="${N}", tau="${TAU}", kappa="${KAPPA}
-                echo " coupling-scheme: "${CP}
-                echo " post-processing: "${PP}
-                echo " reuse="${REUSED}
-                echo " extrapolation order="${EXTRAPOLATION}
-                echo "\n ###############################"
-                if [ ${ML} = 0 ]; then
-                    ./FluidSolver ${FILE} $N ${TAU} ${KAPPA} ${ML} > log.fluid 2>&1 &
-                    ./StructureSolver ${FILE} $N ${ML} > log.structure 2>&1
-                else
-                    ./FluidSolver ${FILE} $N ${NCOARSE} ${TAU} ${KAPPA} ${ML} > log.fluid 2>&1 &
-                    ./StructureSolver ${FILE} $N ${NCOARSE} ${ML} > log.structure 2>&1
-                fi
+            echo "\n ############################### \n"
+            echo " run 1d elastictube with N="${N}", tau="${TAU}", kappa="${KAPPA}
+            echo " coupling-scheme: "${CP}
+            echo " post-processing: "${PP}
+            echo " reuse="${REUSED}
+            echo " extrapolation order="${EXTRAPOLATION}
+            echo "\n ###############################"
+            if [ ${ML} = 0 ]; then
+                ./FluidSolver ${FILE} $N ${TAU} ${KAPPA} ${ML} > log.fluid 2>&1 &
+                ./StructureSolver ${FILE} $N ${ML} > log.structure 2>&1
+            else
+                ./FluidSolver ${FILE} $N ${NCOARSE} ${TAU} ${KAPPA} ${ML} > log.fluid 2>&1 &
+                ./StructureSolver ${FILE} $N ${NCOARSE} ${ML} > log.structure 2>&1
+            fi
 
-                if [ ! -d ${DEST_DIR} ]; then
-                    mkdir ${DEST_DIR}
+            if [ ! -d ${DEST_DIR} ]; then
+                mkdir ${DEST_DIR}
+            fi
+            if [ ${COPY} = 1 ]; then
+                if [ ${ML} = 0 ]; then
+                    cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_FSI-${N}_${DESCRIPTION}_[${N}_${TAU}_${KAPPA}].txt
+                else
+                    cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_FSI-${N}-${NCOARSE}_${DESCRIPTION}_[${N}-${NCOARSE}_${TAU}_${KAPPA}].txt
                 fi
-                if [ ${COPY} = 1 ]; then
-                    if [ ${ML} = 0 ]; then
-                        cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_FSI-${N}-${NCOARSE}_${PPNAME}_reused-${REUSED}_extrapol-${EXTRAPOLATION}_[${N}_${TAU}_${KAPPA}].txt
-                    else
-                        cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_FSI-${N}-${NCOARSE}_${PPNAME}_reused-${REUSED}_extrapol-${EXTRAPOLATION}_[${N}-${NCOARSE}_${TAU}_${KAPPA}].txt
-                    fi
-                fi
-            done
+            fi
         done
     done
-
 fi
 
 
