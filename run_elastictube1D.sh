@@ -24,8 +24,8 @@ COPY=1
 ONLY_POSTPROC=0
 POSTPROC=1
 
-
-DEST_DIR=experiments/${PPNAME}/FSI-${N}-${NCOARSE}_NEW3/extrp-0/
+NOW="$(date +'%Y-%m-%d')"
+DEST_DIR=experiments/${PPNAME}/${NOW}_FSI-${N}-${NCOARSE}/
 # ------------------------------------------------------------------------------------------------------------
 
 if [ ${ML} = 0 ]; then
