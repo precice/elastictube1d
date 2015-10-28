@@ -14,18 +14,18 @@ PPNAME=s-mm-iqn-ils
 CP=serial-implicit
 PP=IQN-ILS
 
-EXTRAPOLATION=2
+EXTRAPOLATION=0
 REUSED=0
 
 FILTER=QR1
 EPS=1e-13
 
 COPY=1
-ONLY_POSTPROC=1
+ONLY_POSTPROC=0
 POSTPROC=1
 
 
-DEST_DIR=experiments/${PPNAME}/FSI-${N}-${NCOARSE}_NEW/extrp-2/
+DEST_DIR=experiments/${PPNAME}/FSI-${N}-${NCOARSE}_NEW3/extrp-0/
 # ------------------------------------------------------------------------------------------------------------
 
 if [ ${ML} = 0 ]; then
@@ -62,9 +62,9 @@ if [ ${ONLY_POSTPROC} = 0 ]; then
     for EXTRAPOLATION in  2
     do 
         sed -i s/extrapolation-order\ value=\"[0-9]*\"/extrapolation-order\ value=\"${EXTRAPOLATION}\"/g ${FILE}
-        for KAPPA in  10
+        for KAPPA in 10  100   1000
         do
-            for TAU in  0.1 0.01 0.001
+            for TAU in 0.1 0.01 0.001
             do
                 echo "\n ############################### \n"
                 echo " run 1d elastictube with N="${N}", tau="${TAU}", kappa="${KAPPA}

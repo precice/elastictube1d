@@ -75,17 +75,18 @@
       <!-- fine model exchange data and associated convergence measures -->
       <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID_1D" to="STRUCTURE_1D"/>
       <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE_1D" to="FLUID_1D"  initialize="true"/>
-      <relative-convergence-measure  limit="1e-5" data="Stresses"        mesh="Structure_Nodes" level="0" />
-      <relative-convergence-measure  limit="1e-5" data="Displacements"   mesh="Structure_Nodes" level="0" />
+      <relative-convergence-measure  limit="1e-4" data="Stresses"        mesh="Structure_Nodes" level="0" />
+      <relative-convergence-measure  limit="1e-4" data="Displacements"   mesh="Structure_Nodes" level="0" />
       
       <post-processing:IQN-ILS> 
         <!-- PostProcessing always done on the second solver -->
         <data name="Displacements" mesh="Structure_Nodes" scaling="1.0">
         <data name="Stresses" mesh="Structure_Nodes" scaling="1e7"> 
-          <initial-relaxation value="0.001" enforce="true" />
+          <initial-relaxation value="0.001" enforce="false" />
           <max-used-iterations value="50"/>
           <timesteps-reused value="0"/>
-          <filter name="QR1-filter" singularity-limit="1e-13"/>
+          <filter type="QR1" limit="1e-13"/>
+          <preconditioner type="constant" />
         </post-processing:IQN-ILS>
 
       </coupling-scheme:parallel-implicit>
