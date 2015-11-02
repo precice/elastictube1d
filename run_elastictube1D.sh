@@ -56,7 +56,15 @@ sed -i s/coupling-scheme:[A-Za-z-]*/coupling-scheme:${CP}/g ${FILE}             
 #sed -i s/filter\ type=\"[A-Z0-9a-z-]*\"\ limit=\"[0-9e]*\"/filter\ type=\"${FILTER}\"\ limit=\"${EPS}\"/g ${FILE}   # set filter method
 
 echo "Start Simulation run"
+
 if [ ${COPY} = 1 ]; then
+    if [ ! -d ${D1} ]; then
+        mkdir ${D1}
+    fi
+    if [ ! -d ${DEST_DIR} ]; then
+        mkdir ${DEST_DIR}
+    fi
+
     cp ${FILE} ${DEST_DIR}/${FILE}
 fi
 
@@ -83,12 +91,6 @@ if [ ${ONLY_POSTPROC} = 0 ]; then
                 ./StructureSolver ${FILE} $N ${NCOARSE} ${ML} > log.structure 2>&1
             fi
 
-	    if [ ! -d ${D1} ]; then
-                mkdir ${D1}
-            fi
-            if [ ! -d ${DEST_DIR} ]; then
-                mkdir ${DEST_DIR}
-            fi
             if [ ${COPY} = 1 ]; then
                 if [ ${ML} = 0 ]; then
                     cp iterations-STRUCTURE_1D.txt ${DEST_DIR}/iter_FSI-${N}_${DESCRIPTION}_[${N}_${TAU}_${KAPPA}].txt
