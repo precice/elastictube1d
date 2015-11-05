@@ -251,7 +251,7 @@ int main(
       std::cout<<"\n    ### evaluate fine model of fluid solver, t="<<t<<" ###\n"<<std::endl;
 
       // nonlinear fluid solver is written with Lagrangian solution, i.e., cross sectional area rather than displacements
-      for (i = 0; i <= N_SM; i++)
+      for (i = 0; i <= N; i++)
         a[i] = a_n[i] + delta_a[i];
 
       // ### fine model evaluation ###    p_old is not used for gamma = 0.0
