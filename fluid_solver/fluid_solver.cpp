@@ -255,7 +255,7 @@ int main(
         a[i] = a_n[i] + delta_a[i];
 
       // ### fine model evaluation ###    p_old is not used for gamma = 0.0
-      fluid_nl(delta_a, a_n, u, u_n, p, p_n, p, t + 1, N, kappa, tau, 0.0);
+      fluid_nl(a, a_n, u, u_n, p, p_n, p, t + 1, N, kappa, tau, 0.0);
 
       // write fine model response
       interface.writeBlockScalarData(pID, N + 1, vertexIDs, p);
