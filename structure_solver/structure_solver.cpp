@@ -263,10 +263,13 @@ int main (int argc, char **argv)
   delete [] sigma;
   delete [] grid;
 
-  delete [] displ_coarse;
-  delete [] sigma_coarse;
-  delete [] displ_copy_coarse;
-  delete [] sigma_copy_coarse;
+  if (isMultilevelApproach)
+  {
+    delete[] displ_coarse;
+    delete[] sigma_coarse;
+    delete[] displ_copy_coarse;
+    delete[] sigma_copy_coarse;
+  }
 
   return 0;
 }

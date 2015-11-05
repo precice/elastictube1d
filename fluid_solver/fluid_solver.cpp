@@ -334,16 +334,20 @@ int main(
   delete [] a_n;
   delete [] a;
   delete [] grid;
-  delete [] delta_a_copy_coarse;
-  delete [] p_copy_coarse;
 
-  delete [] u_coarse;
-  delete [] u_n_coarse;
-  delete [] p_coarse;
-  delete [] p_n_coarse;
-  delete [] delta_a_coarse;
-  delete [] a_n_coarse;
-  delete [] a_coarse;
+
+  if (isMultilevelApproach)
+  {
+    delete[] delta_a_copy_coarse;
+    delete[] p_copy_coarse;
+    delete[] u_coarse;
+    delete[] u_n_coarse;
+    delete[] p_coarse;
+    delete[] p_n_coarse;
+    delete[] delta_a_coarse;
+    delete[] a_n_coarse;
+    delete[] a_coarse;
+    }
 
   return 0;
 }
