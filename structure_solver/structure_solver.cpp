@@ -68,15 +68,16 @@ int main (int argc, char **argv)
   cout << "preCICE configured..." << endl;
 
   //init data (fine model)
-  double *displ, *sigma;
+  double *displ, *a_n,  *sigma;
   int dimensions = interface.getDimensions();
   displ     = new double[N+1];  // Second dimension (only one cell deep) stored right after the first dimension: see SolverInterfaceImpl::setMeshVertices
+  a_n       = new double[N+1];
   sigma     = new double[N+1];
   double *grid;
   grid = new double[dimensions*(N+1)];
 
   //init data (fine model)
-  double *displ_coarse, *sigma_coarse;
+  double *displ_coarse, *a_n_coarse, *sigma_coarse;
   double *displ_copy_coarse;
   double *sigma_copy_coarse;
   // mappings
@@ -84,8 +85,9 @@ int main (int argc, char **argv)
 
   if(isMultilevelApproach)
   {
-    displ_coarse = new double[N_SM+1];  // Second dimension (only one cell deep) stored right after the first dimension: see SolverInterfaceImpl::setMeshVertices
-    sigma_coarse = new double[N_SM+1];
+    displ_coarse      = new double[N_SM+1];  // Second dimension (only one cell deep) stored right after the first dimension: see SolverInterfaceImpl::setMeshVertices
+    a_n_coarse        = new double[N_SM+1];
+    sigma_coarse      = new double[N_SM+1];
     displ_copy_coarse = new double[N+1];
     sigma_copy_coarse = new double[N+1];
   }
@@ -111,11 +113,12 @@ int main (int argc, char **argv)
   // fine model init
   for(int i=0; i<=N; i++)
   {
-    displ[i] = 1.0;
+    displ[i] = 0.0;
+    a_n[i]   = 1.0;
     sigma[i] = 0.0;
 
     if(isMultilevelApproach)
-      displ_copy_coarse[i] = 1.0;
+      displ_copy_coarse[i] = 0.0;
 
     for(int dim = 0; dim < dimensions; dim++)
       grid[i*dimensions + dim] = i*(1-dim);   // Define the y-component of each grid point as zero
@@ -126,7 +129,8 @@ int main (int argc, char **argv)
     // surrogate model init
     for(int i=0; i<=N_SM; i++)
     {
-      displ_coarse[i] = 1.0;
+      displ_coarse[i] = 0.0;
+      a_n_coarse[i]   = 1.0;
       sigma_coarse[i] = 0.0;
     }
   }
@@ -173,16 +177,18 @@ int main (int argc, char **argv)
         std::cout<<"\n    ### evaluate coarse model of solid solver, t="<<t<<" ###\n"<<std::endl;
 
         // map down:  fine --> coarse [displ, pressure]00
-        downMapping.map(N+1, N_SM+1, displ_copy_coarse, displ_coarse);
+        //downMapping.map(N+1, N_SM+1, displ_copy_coarse, displ_coarse);
         downMapping.map(N+1, N_SM+1, sigma_copy_coarse, sigma_coarse);
 
         // ### surrogate model evaluation ###
-        for ( int i = 0; i <= N_SM; i++ )
+        for ( int i = 0; i <= N_SM; i++ ){
           displ_coarse[i]   = 4.0 / ((2.0 - sigma_coarse[i])*(2.0 - sigma_coarse[i]));
+          displ_coarse[i]  -= a_n_coarse[i];
+        }
 
         // map up:  coarse --> fine [displ, pressure]
         upMapping.map(N_SM+1, N+1, displ_coarse, displ_copy_coarse);
-        upMapping.map(N_SM+1, N+1, sigma_coarse, sigma_copy_coarse);
+        //upMapping.map(N_SM+1, N+1, sigma_coarse, sigma_copy_coarse);
 
         // write coarse model response (on fine mesh)
         interface.writeBlockScalarData(displID_coarse, N+1, vertexIDs, displ_copy_coarse);
@@ -197,6 +203,7 @@ int main (int argc, char **argv)
       // ### fine model evaluation ###
       for ( int i = 0; i <= N; i++ ){
         displ[i]   = 4.0 / ((2.0 - sigma[i])*(2.0 - sigma[i]));
+        displ[i]  -= a_n[i];
       }
       // write fine model response
       interface.writeBlockScalarData(displID, N+1, vertexIDs, displ);
@@ -221,11 +228,24 @@ int main (int argc, char **argv)
 
     if (interface.isActionRequired(actionReadIterationCheckpoint()))
     {
+      // i.e., not converged
       cout << "Iterate" << endl;
       interface.fulfilledAction(actionReadIterationCheckpoint());
-    }
-    else
-    {
+
+    // i.e., converged
+    }else{
+      // store absolute cross sectionl area value, i.e., Lagrangian solution
+      for (int i = 0; i <= N; i++)
+        a_n[i] = a_n[i] + displ[i];
+
+      if(isMultilevelApproach)
+      {
+        // store absolute cross sectionl area value, i.e., Lagrangian solution
+        for (int i = 0; i <= N_SM; i++)
+          a_n_coarse[i] = a_n_coarse[i] + displ_coarse[i];
+      }
+
+
       cout << "\n\n ------------------------------------------------\n"
               " Advancing in time, Structure Solver finished timestep: "
            << t <<"\n ------------------------------------------------"<< endl;

@@ -71,13 +71,10 @@ int main(
 
   if(isMultilevelApproach)
     std::cout<<"The solver adapter is running in multi-level coupling mode, i.e., the solver provides one or more surrogate model evaluations to enable a multi-level based coupling method."<<std::endl;
+  cout << "Configure preCICE..." << endl;
 
   std::string configFileName(argv[1]);
-
-
   std::string solverName = "FLUID_1D";
-
-  cout << "Configure preCICE..." << endl;
 
   // Initialize the solver interface with our name, our process index (like rank) and the total number of processes.
   SolverInterface interface(solverName, 0, 1);
@@ -89,34 +86,23 @@ int main(
 
   // init data (fine)
   int i;
-  double *u, *u_n, *p, *p_n, *a, *a_n;
+  double *u, *u_n, *p, *p_n, *delta_a, *a_n, *a;
   int dimensions = interface.getDimensions();
 
   u = new double[N + 1]; // Speed
   u_n = new double[N + 1];
   p = new double[N + 1]; // Pressure
   p_n = new double[N + 1];
-  a = new double[N + 1];
+  delta_a = new double[N + 1];
   a_n = new double[N + 1];
+  a = new double[N + 1];
 
-  // init data (coarse)
-  double *u_coarse, *u_n_coarse, *p_coarse, *p_n_coarse, *a_coarse, *a_n_coarse;
-  double *a_copy_coarse, *p_copy_coarse; // fine mesh
+
   // mappings
   LinearInterpolationMapping upMapping, downMapping;
 
-  if(isMultilevelApproach)
-  {
-    a_copy_coarse = new double[N + 1]; // coarse displ. data on fine mesh
-    p_copy_coarse = new double[N + 1]; // coarse pressure data on fine mesh
 
-    u_coarse = new double[N_SM + 1]; // Speed
-    u_n_coarse = new double[N_SM + 1];
-    p_coarse = new double[N_SM + 1]; // Pressure
-    p_n_coarse = new double[N_SM + 1];
-    a_coarse = new double[N_SM + 1];
-    a_n_coarse = new double[N_SM + 1];
-  }
+
 
   //precice stuff
   int meshID = interface.getMeshID("Fluid_Nodes");
@@ -127,12 +113,25 @@ int main(
   int aID_coarse;
   int pID_coarse;
 
-  if(isMultilevelApproach)
+  // init data (coarse)
+  double *u_coarse, *u_n_coarse, *p_coarse, *p_n_coarse, *delta_a_coarse, *a_n_coarse, *a_coarse;  // coarse mesh, coarse data
+  double *delta_a_copy_coarse, *p_copy_coarse;                                                     // fine mesh, coarse data interpolated
+  if (isMultilevelApproach)
   {
+    delta_a_copy_coarse = new double[N + 1]; // coarse displ. data on fine mesh
+    p_copy_coarse = new double[N + 1]; // coarse pressure data on fine mesh
+
+    u_coarse = new double[N_SM + 1]; // Speed
+    u_n_coarse = new double[N_SM + 1];
+    p_coarse = new double[N_SM + 1]; // Pressure
+    p_n_coarse = new double[N_SM + 1];
+    delta_a_coarse = new double[N_SM + 1];
+    a_n_coarse = new double[N_SM + 1];
+    a_coarse = new double[N_SM + 1];
+
     aID_coarse = interface.getDataID("Coarse_Displacements", meshID);
     pID_coarse = interface.getDataID("Coarse_Stresses", meshID);
   }
-
 
   vertexIDs = new int[(N + 1)];
   double *grid;
@@ -141,18 +140,22 @@ int main(
   // fine model
   for (i = 0; i <= N; i++)
   {
-    u[i] = 1.0 / (kappa * 1.0);
-    u_n[i] = 1.0 / (kappa * 1.0);
-    a[i] = 1.0;
-    a_n[i] = 1.0;
-    p[i] = 0.0;
-    p_n[i] = 0.0;
+    u[i]       = 1.0 / (kappa * 1.0);
+    u_n[i]     = 1.0 / (kappa * 1.0);
+    delta_a[i] = 0.0;
+    a_n[i]     = 1.0;
+    a[i]       = 1.0;
+    p[i]       = 0.0;
+    p_n[i]     = 0.0;
+
+    // init grid
     for (int dim = 0; dim < dimensions; dim++)
       grid[i * dimensions + dim] = i * (1 - dim);
 
+    // also fine mesh
     if(isMultilevelApproach)
     {
-      a_copy_coarse[i] = 1.0;
+      delta_a_copy_coarse[i] = 0.0;
       p_copy_coarse[i] = 0.0;
     }
   }
@@ -162,12 +165,13 @@ int main(
     // surrogate model
     for (i = 0; i <= N_SM; i++)
         {
-      u_coarse[i] = 1.0 / (kappa * 1.0);
-      u_n_coarse[i] = 1.0 / (kappa * 1.0);
-      a_coarse[i] = 1.0;
-      a_n_coarse[i] = 1.0;
-      p_coarse[i] = 0.0;
-      p_n_coarse[i] = 0.0;
+      u_coarse[i]       = 1.0 / (kappa * 1.0);
+      u_n_coarse[i]     = 1.0 / (kappa * 1.0);
+      delta_a_coarse[i] = 0.0;
+      a_n_coarse[i]     = 1.0;
+      a_coarse[i]       = 1.0;
+      p_coarse[i]       = 0.0;
+      p_n_coarse[i]     = 0.0;
     }
   }
 
@@ -194,10 +198,10 @@ int main(
 
   if (interface.isReadDataAvailable()) {
 
-    interface.readBlockScalarData(aID, N + 1, vertexIDs, a);
+    interface.readBlockScalarData(aID, N + 1, vertexIDs, delta_a);
 
     if(isMultilevelApproach)
-      interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs, a_copy_coarse);
+      interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs, delta_a_copy_coarse);
   }
 
 
@@ -217,14 +221,18 @@ int main(
       std::cout<<"\n    ### evaluate coarse model of fluid solver, t="<<t<<" ###\n"<<std::endl;
 
       // map down:  fine --> coarse [displ, pressure]
-      downMapping.map(N+1, N_SM+1, a_copy_coarse, a_coarse);
+      downMapping.map(N+1, N_SM+1, delta_a_copy_coarse, delta_a_coarse);
       downMapping.map(N+1, N_SM+1, p_copy_coarse, p_coarse);
+
+      // nonlinear fluid solver is written with Lagrangian solution, i.e., cross sectional area rather than displacements
+      for (i = 0; i <= N_SM; i++)
+        a_coarse[i] = a_n_coarse[i] + delta_a_coarse[i];
 
       // ### surrogate model evaluation ###    p_old is not used for gamma = 0.0
       fluid_nl(a_coarse, a_n_coarse, u_coarse, u_n_coarse, p_coarse, p_n_coarse, p_coarse, t + 1, N_SM, kappa, tau, 0.0);
 
       // map up:  coarse --> fine [displ, pressure]
-      upMapping.map(N_SM+1, N+1, a_coarse, a_copy_coarse);
+      //upMapping.map(N_SM+1, N+1, delta_a_coarse, delta_a_copy_coarse);
       upMapping.map(N_SM+1, N+1, p_coarse, p_copy_coarse);
 
       // write coarse model response to precice
@@ -242,8 +250,12 @@ int main(
     {
       std::cout<<"\n    ### evaluate fine model of fluid solver, t="<<t<<" ###\n"<<std::endl;
 
+      // nonlinear fluid solver is written with Lagrangian solution, i.e., cross sectional area rather than displacements
+      for (i = 0; i <= N_SM; i++)
+        a[i] = a_n[i] + delta_a[i];
+
       // ### fine model evaluation ###    p_old is not used for gamma = 0.0
-      fluid_nl(a, a_n, u, u_n, p, p_n, p, t + 1, N, kappa, tau, 0.0);
+      fluid_nl(delta_a, a_n, u, u_n, p, p_n, p, t + 1, N, kappa, tau, 0.0);
 
       // write fine model response
       interface.writeBlockScalarData(pID, N + 1, vertexIDs, p);
@@ -257,50 +269,48 @@ int main(
 
     // surrogate model evaluation for surrogate model optimization or MM cycle
     if (interface.hasToEvaluateSurrogateModel()){
-      interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs, a_copy_coarse);
+      interface.readBlockScalarData(aID_coarse, N + 1, vertexIDs, delta_a_copy_coarse);
     }
 
     // fine model evaluation (in MM iteration cycles)
     if(interface.hasToEvaluateFineModel()){
-      interface.readBlockScalarData(aID, N + 1, vertexIDs, a);
+      interface.readBlockScalarData(aID, N + 1, vertexIDs, delta_a);
     }
 
     if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. not yet converged
-      // cout << "Iterate" << endl;
       interface.fulfilledAction(actionReadIterationCheckpoint());
-    }
-    else {
+
+    }else{
 
       // store u, p, a values from old time step
       for (i = 0; i <= N; i++)
       {
         u_n[i] = u[i];
         p_n[i] = p[i];
-        a_n[i] = a[i];
+        a_n[i] = a_n[i] + delta_a[i];
       }
 
       if(isMultilevelApproach)
       {
         // map down:  fine --> coarse [displ, pressure]
-        // necessary as a_copy_coarse is updated, i.e., red from the coupling (preCICE)
-        downMapping.map(N+1, N_SM+1, a_copy_coarse, a_coarse);
+        // necessary as delta_delta_a_copy_coarse is updated, i.e., red from the coupling (preCICE)
+        downMapping.map(N+1, N_SM+1, delta_a_copy_coarse, delta_a_coarse);
 
         // save values from last time step for coarse model
         for (i = 0; i <= N_SM; i++)
         {
           u_n_coarse[i] = u_coarse[i];
           p_n_coarse[i] = p_coarse[i];
-          a_n_coarse[i] = a_coarse[i];
+          a_n_coarse[i] = a_n_coarse[i] + delta_a_coarse[i];
         }
         // save values from last time step for fine model
 
         // map up:  coarse --> fine [velocity]
-        // necessary as a_copy_coarse is updated, i.e., red from the coupling (preCICE)
         upMapping.map(N_SM+1, N+1, u_coarse, u_n);
         for (i = 0; i <= N; i++)
         {
           p_n[i] = p_copy_coarse[i];
-          a_n[i] = a_copy_coarse[i];
+          a_n[i] = a_n[i] + delta_a_copy_coarse[i];
         }
       }
 
@@ -320,18 +330,20 @@ int main(
   delete [] u_n;
   delete [] p;
   delete [] p_n;
-  delete [] a;
+  delete [] delta_a;
   delete [] a_n;
+  delete [] a;
   delete [] grid;
-  delete [] a_copy_coarse;
+  delete [] delta_a_copy_coarse;
   delete [] p_copy_coarse;
 
   delete [] u_coarse;
   delete [] u_n_coarse;
   delete [] p_coarse;
   delete [] p_n_coarse;
-  delete [] a_coarse;
+  delete [] delta_a_coarse;
   delete [] a_n_coarse;
+  delete [] a_coarse;
 
   return 0;
 }
