@@ -4,13 +4,13 @@ BASE=$PWD
 cd $BASE
 # ---------------------------------------- PARAMETERS --------------------------------------------------------
 # 1d tube parameters
-N=1000
+N=100
 NCOARSE=100
-ML=1 # multi-level, i.e., manifold mapping
+ML=0 # multi-level, i.e., manifold mapping
 
 
 # coupling parameters
-PPNAME=s-mm-iqn-ils
+PPNAME=s-iqn-ils
 CP=serial-implicit
 PP=IQN-ILS
 
@@ -28,8 +28,9 @@ NOW="$(date +'%Y-%m-%d')"
 
 # ------------------------------------------------------------------------------------------------------------
 DESCRIPTION=${PPNAME}_reused-${REUSED}_extrp-${EXTRAPOLATION}
-D1=experiments/${PPNAME}/${NOW}_FSI-${N}-${NCOARSE}
-DEST_DIR=experiments/${PPNAME}/${NOW}_FSI-${N}-${NCOARSE}/convMeasure[1e-7_1e-6]-displ
+#D1=experiments/${PPNAME}/${NOW}_FSI-${N}-${NCOARSE}
+D1=experiments/${PPNAME}/${NOW}_FSI-${N}
+DEST_DIR=${D1}/conv-1e-5_extrp-2/
 # ------------------------------------------------------------------------------------------------------------
 
 if [ ${ML} = 0 ]; then
