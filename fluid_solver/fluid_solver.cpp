@@ -82,7 +82,7 @@ int main(
   // Initialize the solver interface with our name, our process index (like rank) and the total number of processes.
   SolverInterface interface(solverName, 0, 1);
 
-  // Provide the configuration file to precice. After configuration a usuable state of that SolverInterface is reached.
+  // Provide the configuration file to precice. After configuration a usable state of that SolverInterface is reached.
   // Reads the XML file and contacts the server, if used.
   interface.configure(configFileName);
   cout << "preCICE configured..." << endl;
