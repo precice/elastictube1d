@@ -80,13 +80,13 @@
       
       <post-processing:IQN-ILS> 
         <!-- PostProcessing always done on the second solver -->
-        <data name="Displacements" mesh="Structure_Nodes" scaling="1.0">
-        <data name="Stresses" mesh="Structure_Nodes" scaling="1e7"> 
+        <data name="Displacements" mesh="Structure_Nodes">
+        <data name="Stresses" mesh="Structure_Nodes"> 
           <initial-relaxation value="0.001" enforce="false" />
           <max-used-iterations value="50"/>
           <timesteps-reused value="0"/>
           <filter type="QR1" limit="1e-13"/>
-          <preconditioner type="constant" />
+          <preconditioner type="residual-sum" />
         </post-processing:IQN-ILS>
 
       </coupling-scheme:parallel-implicit>

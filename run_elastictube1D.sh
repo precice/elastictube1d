@@ -10,9 +10,10 @@ ML=0 # multi-level, i.e., manifold mapping
 
 
 # coupling parameters
-PPNAME=s-iqn-ils
-CP=serial-implicit
+PPNAME=v-iqn-ils
+CP=parallel-implicit
 PP=IQN-ILS
+PRECOND=residual-sum
 
 EXTRAPOLATION=2
 REUSED=0
@@ -27,10 +28,10 @@ POSTPROC=1
 NOW="$(date +'%Y-%m-%d')"
 
 # ------------------------------------------------------------------------------------------------------------
-DESCRIPTION=${PPNAME}_reused-${REUSED}_extrp-${EXTRAPOLATION}
+DESCRIPTION=${PPNAME}_reused-${REUSED}_precond-${PRECOND}_extrp-${EXTRAPOLATION}
 #D1=experiments/${PPNAME}/${NOW}_FSI-${N}-${NCOARSE}
-D1=experiments/${PPNAME}/${NOW}_FSI-${N}
-DEST_DIR=${D1}/conv-1e-5_extrp-2/
+D1=experiments/${PPNAME}/FSI-${N}
+DEST_DIR=${D1}/${NOW}_conv-1e-4_precond-residual-sum_extrp-2/
 # ------------------------------------------------------------------------------------------------------------
 
 if [ ${ML} = 0 ]; then
