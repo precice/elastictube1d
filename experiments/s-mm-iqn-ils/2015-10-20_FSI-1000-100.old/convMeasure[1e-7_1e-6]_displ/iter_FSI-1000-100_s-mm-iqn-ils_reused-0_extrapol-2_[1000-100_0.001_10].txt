@@ -1,4 +1,0 @@
-Timesteps  Total_Iterations  Iterations  Total_Iterations_Surrogate_Model  Iterations_Surrogate_Model  Convergence  avgConvRate(0)  deleted_Columns  
-1  7  7  44  44  1  0.5450555003986414  0  
-2  12  5  85  41  1  0.5255574403969162  0  
-3  21  9  151  66  1  0.6990445570383633  1  
