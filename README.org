@@ -14,19 +14,19 @@ execute *scons* on the command line in the root directory of this tutorial. Foll
 1) Create a directory called output inside your working directory
 2) Start the two solvers, preferably in two seperate shells for output monitoring
 
-   For serial mode:
+   *For serial mode*:
 
 	   ./StructureSolverSerial_Exec ./ConfigurationFiles/precice-config.xml N
 	   
 	   ./FluidSolverSerial_Exec ./ConfigurationFiles/precice-config.xml N tau kappa
 
-   For parallel mode:
+   *For parallel mode*:
 
 	   mpiexec -np <nprocs> ./StructureSolverParallel_Exec ./ConfigurationFiles/precice-config-parallel.xml N
 	   
 	   mpiexec -np <nprocs> ./FluidSolverParallel_Exec ./ConfigurationFiles/precice-config-parallel.xml N tau kappa
 	   
-   Use the same directory to start from, otherwise the solvers won't find the sockets for communication.
+Use the same directory to start from, otherwise the solvers won't find the sockets for communication.
    
 * Parameters
 ** N
