@@ -1,6 +1,15 @@
 import os, sys
 
 ######### FUNCTIONS ########
+def uniqueCheckLib(conf, lib):
+   """ Checks for a library and appends it to env if not already appended. """
+   if conf.CheckLib(lib, autoadd=0, language="C++"):
+      conf.env.AppendUnique(LIBS = [lib])
+      return True
+   else:
+      print "ERROR: Library '" + lib + "' not found!"
+      Exit(1)
+
 def checkset_var(varname, default):
     """ Checks if environment variable is set, use default otherwise and print the value. """
     var = os.getenv(varname)
@@ -30,8 +39,9 @@ def vprint(name, value, default=True, description = None):
 
 vars = Variables(None, ARGUMENTS)
 vars.Add(BoolVariable("boost_inst", "Enable if Boost is available compiled and installed.", False))
-vars.Add(BoolVariable("petsc", "Enable use of the Petsc linear algebra library.", True))
 vars.Add(BoolVariable("parallel", "Compile source-code for parallel version of 1D Example for preCICE", False))
+vars.Add(BoolVariable("petsc", "Enable use of the Petsc linear algebra library.", True))
+vars.Add(BoolVariable("python", "Enable use of python", False))
 vars.Add(BoolVariable("supermuc", "Compile tutorial on SuperMUC", False))
 
 env = Environment(variables = vars, ENV = os.environ)
@@ -55,8 +65,13 @@ env.Append(CPPPATH = [os.path.join(preciceRoot, 'src')])
 env.Append(LIBPATH = [os.path.join(preciceRoot, 'build/last')])
 env.Append(CPPDEFINES = ['PRECICE_USE_MPI'])
 
-conf.CheckLib("precice")
-conf.CheckLib("python2.7")
+uniqueCheckLib(conf, "precice")
+
+# ====== python ======
+if env["python"]:
+   uniqueCheckLib(conf, "python2.7")
+else:
+   env.Append(CPPDEFINES = ['PRECICE_NO_PYTHON'])
 
 # ====== petsc ======
 if env["petsc"]:
@@ -67,13 +82,7 @@ if env["petsc"]:
    env.Append(LIBPATH = [os.path.join( PETSC_DIR, PETSC_ARCH, "lib")])
    conf.CheckLib("petsc")
 else:
-    env.Append(CPPDEFINES = ['PRECICE_NO_PETSC'])
-
-# ====== lapack ======
-if env["supermuc"]:
-   print "DEV: Find appropriate flag"
-else:
-   conf.CheckLib("lapack")
+   env.Append(CPPDEFINES = ['PRECICE_NO_PETSC'])
 
 # ======= compiler ======
 if env["supermuc"]:
@@ -89,10 +98,44 @@ env.Append(CCFLAGS = ["-g3", "-O3", "-Wall", "-std=c++11"])
 # ====== boost ======
 if not env["boost_inst"]:
    boostRootPath = checkset_var('PRECICE_BOOST_ROOT', "./src")
-   env.AppendUnique(CXXFLAGS = ['-isystem', boostRootPath]) # -isystem supresses compilation warnings for boost headers
+   env.AppendUnique(CXXFLAGS = ['-isystem', '-lrt', boostRootPath]) # -isystem supresses compilation warnings for boost headers
 else:
-   conf.CheckLib("boost_system")
-   conf.CheckLib("boost_filesystem")
+   if env["supermuc"]:
+      boostOnSupermuc = env["ENV"]["BOOST_LIBDIR"]
+      env.Append(LIBPATH = [boostOnSupermuc])
+   uniqueCheckLib(conf, "boost_system")
+   uniqueCheckLib(conf, "boost_filesystem")
+
+# ====== lapack ======
+if env["supermuc"]:
+   groupedLibs = ['/lrz/sys/intel/compiler/composer_xe_2015.5.223/mkl/lib/intel64/libmkl_intel_lp64.a', 
+                  '/lrz/sys/intel/compiler/composer_xe_2015.5.223/mkl/lib/intel64/libmkl_intel_thread.a', 
+                  '/lrz/sys/intel/compiler/composer_xe_2015.5.223/mkl/lib/intel64/libmkl_core.a']
+   if (len(groupedLibs) > 0):
+      linkFlags = ['-Wl,--start-group'] 
+      linkFlags = linkFlags + groupedLibs
+      linkFlags = linkFlags + ['-Wl,--end-group']
+      linkFlags = linkFlags + ['-lpthread','-lm', '-openmp']
+
+      env['GEN_LIB_BUILD_STATIC'] = linkFlags
+
+      env.Append(SHLINKCOM = ' $GEN_LIB_BUILD_STATIC')
+      env.Append(LINKCOM = ' $GEN_LIB_BUILD_STATIC')
+else:
+   #lapackRoot = os.getenv('LAPACK_ROOT')
+   #if (lapackRoot == None):
+   #   print 'ERROR: Environment variable LAPACK_ROOT not defined!'
+   #   sys.exit(1)
+   #else:
+   #   print 'Using environment variable LAPACK_ROOT =', preciceRoot
+   env.Append(LIBPATH = ['./lib'])
+   uniqueCheckLib(conf, "lapack")
+   uniqueCheckLib(conf, "blas")
+   uniqueCheckLib(conf, "gfortran")
+   uniqueCheckLib(conf, "quadmath")
+   uniqueCheckLib(conf, "m")
+   env.Append(SHLINKCOM = ' -Wl,--allow-multiple-definition')
+   env.Append(LINKCOM = ' -Wl,--allow-multiple-definition')
 
 env = conf.Finish()
    
