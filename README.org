@@ -1,4 +1,4 @@
-elastictube1d preCICE fluid-structure coupling example
+elastictube1d preCICE Fluid-Structure Coupling Example
 
 * Compile Instructions
 First, clone the reposiory to your computer. Porting the source-code to SuperMUC can be done via ssh. See https://goo.gl/L6DGAJ for details.
