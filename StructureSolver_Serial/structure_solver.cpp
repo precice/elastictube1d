@@ -69,7 +69,7 @@ int main (int argc, char **argv)
   interface.setMeshVertices(meshID, N+1, grid, vertexIDs);
 
   cout << "Structure: init precice..." << endl;
-  double dt = interface.initialize();
+  interface.initialize();
 
   if (interface.isActionRequired(actionWriteInitialData()))
   {

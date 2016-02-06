@@ -88,10 +88,7 @@ else:
 if env["supermuc"]:
    env["CXX"] = 'mpicc'      # For SuperMUC
 else:
-   if env["parallel"]:
-      env["CXX"] = 'mpic++'      # For systems offering mpic++ compiler
-   else:
-      env["CXX"] = 'g++-4.8'
+   env["CXX"] = 'mpic++'      # For systems offering mpic++ compiler
 
 env.Append(CCFLAGS = ["-g3", "-O3", "-Wall", "-std=c++11"])
 
@@ -122,20 +119,12 @@ if env["supermuc"]:
       env.Append(SHLINKCOM = ' $GEN_LIB_BUILD_STATIC')
       env.Append(LINKCOM = ' $GEN_LIB_BUILD_STATIC')
 else:
-   #lapackRoot = os.getenv('LAPACK_ROOT')
-   #if (lapackRoot == None):
-   #   print 'ERROR: Environment variable LAPACK_ROOT not defined!'
-   #   sys.exit(1)
-   #else:
-   #   print 'Using environment variable LAPACK_ROOT =', preciceRoot
-   env.Append(LIBPATH = ['./lib'])
-   uniqueCheckLib(conf, "lapack")
-   uniqueCheckLib(conf, "blas")
-   uniqueCheckLib(conf, "gfortran")
-   uniqueCheckLib(conf, "quadmath")
-   uniqueCheckLib(conf, "m")
-   env.Append(SHLINKCOM = ' -Wl,--allow-multiple-definition')
-   env.Append(LINKCOM = ' -Wl,--allow-multiple-definition')
+   if env["parallel"]:
+      env.Append(LIBPATH = ['./lib'])
+      uniqueCheckLib(conf, "lapack")
+   else:
+      uniqueCheckLib(conf, "lapack")
+
 
 env = conf.Finish()
    

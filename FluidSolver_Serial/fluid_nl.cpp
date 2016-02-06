@@ -122,7 +122,7 @@ int fluid_nl (
     temp_sum = 0;
     for ( i = 0; i < (N+1); i++ )
     {
-      temp_sum += (p[i]*p[i]) + (velocity[i]*velocity[i]);
+      temp_sum += (pressure[i]*pressure[i]) + (velocity[i]*velocity[i]);
     }
     norm_2 = sqrt(temp_sum);
       
