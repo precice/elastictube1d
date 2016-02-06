@@ -6,9 +6,9 @@ First, clone the reposiory to your computer. Porting the source-code to SuperMUC
 *PRECICE_ROOT*: points to the precice source directory.
 ** Compilation
 execute *scons* on the command line in the root directory of this tutorial. Follow the instructions on the screen to set boolean variables as required. The following boolean variables are of particular interest:
-1) *parallel*: set to **on** to compile the parallel version of the tutorial
-2) *supermuc*: set to **on** if executing on the SuperMUC
-3) *boost_inst*: set to **on** if boost has been pre-installed
+1) *parallel*: set to "on" to compile the parallel version of the tutorial
+2) *supermuc*: set to "on" if executing on the SuperMUC
+3) *boost_inst*: set to "on" if boost has been pre-installed
 
 ** Execution
 1) Create a directory called output inside your working directory
