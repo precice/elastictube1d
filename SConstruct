@@ -105,6 +105,9 @@ else:
 
 # ====== lapack ======
 if env["supermuc"]:
+   if not os.genenv("MKL_LIB"):
+      print 'ERROR: Environment variable MKL_LIB not defined! Please load the MKL library for Lapack by executing "module load mkl".'
+      sys.exit(1)
    env['GEN_LIB_BUILD_STATIC'] = env["ENV"]["MKL_LIB"]
    env.Append(SHLINKCOM = ' $GEN_LIB_BUILD_STATIC')
    env.Append(LINKCOM = ' $GEN_LIB_BUILD_STATIC')
