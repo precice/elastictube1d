@@ -36,7 +36,6 @@ void fluidComputeSolution(
 	 */
 	if (rank != 0) {
 		int tagStart = 7 * rank;
-		std::cout << "fluidSolverLOL" << rank << ": Send begins.." << std::endl;
 		MPI_Send(pressure, chunkLength, MPI_DOUBLE, 0, tagStart+0, MPI_COMM_WORLD);
 		MPI_Send(pressure_n, chunkLength, MPI_DOUBLE, 0, tagStart+1, MPI_COMM_WORLD);
 		MPI_Send(pressure_old, chunkLength, MPI_DOUBLE, 0, tagStart+2, MPI_COMM_WORLD);
@@ -44,16 +43,13 @@ void fluidComputeSolution(
 		MPI_Send(crossSectionLength_n, chunkLength, MPI_DOUBLE, 0, tagStart+4, MPI_COMM_WORLD);
 		MPI_Send(velocity, chunkLength, MPI_DOUBLE, 0, tagStart+5, MPI_COMM_WORLD);
 		MPI_Send(velocity_n, chunkLength, MPI_DOUBLE, 0, tagStart+6, MPI_COMM_WORLD);
-		std::cout << "fluidSolverLOL" << rank << ": ..send done!" << std::endl;
 
-		std::cout << "fluidSolverLOL" << rank << ": Recv begins.." << std::endl;
 		MPI_Recv(pressure, chunkLength, MPI_DOUBLE, 0, tagStart+0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		MPI_Recv(pressure_n, chunkLength, MPI_DOUBLE, 0, tagStart+1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		MPI_Recv(crossSectionLength, chunkLength, MPI_DOUBLE, 0, tagStart+3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		MPI_Recv(crossSectionLength_n, chunkLength, MPI_DOUBLE, 0, tagStart+4, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		MPI_Recv(velocity, chunkLength, MPI_DOUBLE, 0, tagStart+5, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		MPI_Recv(velocity_n, chunkLength, MPI_DOUBLE, 0, tagStart+6, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		std::cout << "fluidSolverLOL" << rank << ": ..recv done!" << std::endl;
 
 	} else {
 		double *pressure_NLS, *pressure_n_NLS, *pressure_old_NLS;
@@ -96,7 +92,6 @@ void fluidComputeSolution(
 		    	gridOffset = ((N+1) % size) * ((N+1)/size + 1) + (i - ((N+1) % size)) * (N+1)/size;
 		    }
 
-		    std::cout << "fluidSolverLOL Master: Recv begins.." << std::endl;
 			MPI_Recv(pressure_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart+0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			MPI_Recv(pressure_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart+1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			MPI_Recv(pressure_old_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart+2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -104,7 +99,6 @@ void fluidComputeSolution(
 			MPI_Recv(crossSectionLength_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart+4, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			MPI_Recv(velocity_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart+5, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			MPI_Recv(velocity_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart+6, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			std::cout << "fluidSolverLOL Master: ..recv done!" << std::endl;
 		}
 
 		// LAPACK Variables here
@@ -277,15 +271,12 @@ void fluidComputeSolution(
 		    	chunkLength_temp = (N+1)/size;
 		    	gridOffset = ((N+1) % size) * ((N+1)/size + 1) + (i - ((N+1) % size)) * (N+1)/size;
 		    }
-
-		    std::cout << "fluidSolverLOL Master: Send begins.." << chunkLength_temp << std::endl;
 			MPI_Send(pressure_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart+0, MPI_COMM_WORLD);
 			MPI_Send(pressure_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart+1, MPI_COMM_WORLD);
 			MPI_Send(crossSectionLength_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart+3, MPI_COMM_WORLD);
 			MPI_Send(crossSectionLength_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart+4, MPI_COMM_WORLD);
 			MPI_Send(velocity_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart+5, MPI_COMM_WORLD);
 			MPI_Send(velocity_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart+6, MPI_COMM_WORLD);
-			std::cout << "fluidSolverLOL Master: ..send done!" << std::endl;
 		}
 
 		delete(pressure_NLS);

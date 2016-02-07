@@ -56,12 +56,9 @@ int main(int argc, char** argv){
 	for (int i = 0; i < chunkLength; i++) {
 		crossSectionLength[i] = 1.0;
 		pressure[i] = 0.0;
-		std::cout << "[  ";
 		for (int j = 0; j < dimensions; j++) {
 			grid[i*dimensions + j] = j == 0 ? gridOffset + (double)i : 0.0;
-			std::cout << grid[i*dimensions + j] << "  ";
 		}
-		std::cout << "]" << std::endl;
 	}
 
     interface.setMeshVertices(meshID, chunkLength, grid, vertexIDs);
@@ -69,10 +66,9 @@ int main(int argc, char** argv){
     interface.initialize();
 
     double t = 0;
-    double dt = 1.0;
+    double dt = 0.01;
 
 	if (interface.isActionRequired(actionWriteInitialData())) {
-		std::cout << "Structure: Writing initial data.." << std::endl;
 		interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs, crossSectionLength);
 		interface.fulfilledAction(actionWriteInitialData());
 	}
@@ -80,7 +76,6 @@ int main(int argc, char** argv){
     interface.initializeData();
 
 	if (interface.isReadDataAvailable()) {
-		std::cout << "Structure: Reading initial data.." << std::endl;
 		interface.readBlockScalarData(pressureID, chunkLength, vertexIDs, pressure);
 	}
 
@@ -90,8 +85,8 @@ int main(int argc, char** argv){
 		}
 
         structureComputeSolution(rank, size, chunkLength, pressure, crossSectionLength);   // Call Solver
-        structureDataDisplay(crossSectionLength, chunkLength);
-        structureDataDisplay(pressure, chunkLength);
+        //structureDataDisplay(crossSectionLength, chunkLength);
+        //structureDataDisplay(pressure, chunkLength);
 
 		interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs, crossSectionLength);
 
@@ -107,17 +102,11 @@ int main(int argc, char** argv){
 		}
     }
 
-    std::cout << "Structure" << rank << ": Time-loop finished." << std::endl;
-
     delete(pressure);
     delete(crossSectionLength);
     delete(grid);
 
-    std::cout << "Structure" << rank << ": Memory deallocation done." << std::endl;
-
     MPI_Finalize();
-
-    std::cout << "Structure: MPIFinalize() done. Exiting.." << std::endl;
 
     return 0;
 }

@@ -12,18 +12,18 @@
   <solver-interface dimensions="2">
     
     <!-- Data fields that are exchanged between the solvers -->
-    <data:vector name="Stresses"/>
-    <data:vector name="Displacements"/>
+    <data:vector name="Pressure"/>
+    <data:vector name="CrossSectionLength"/>
 
     <!-- A common mesh that uses these data fields -->
     <mesh name="Fluid_Nodes">
-        <use-data name="Displacements"/>
-        <use-data name="Stresses"/>
+        <use-data name="CrossSectionLength"/>
+        <use-data name="Pressure"/>
     </mesh>
 
     <mesh name="Structure_Nodes">
-       <use-data name="Displacements"/>   
-       <use-data name="Stresses"/>
+       <use-data name="CrossSectionLength"/>   
+       <use-data name="Pressure"/>
     </mesh>
 
     <!-- Represents each solver using preCICE. In a coupled simulation, two participants have to be
@@ -36,17 +36,19 @@
       <use-mesh name="Fluid_Nodes" provide="yes"/>
       <use-mesh name="Structure_Nodes" from="STRUCTURE"/>
       <!-- Define input/output of the solver.  -->
-      <write-data name="Stresses" mesh="Fluid_Nodes"/>
-      <read-data  name="Displacements" mesh="Fluid_Nodes"/>
-      <mapping:nearest-projection direction="write" from="Fluid_Nodes" to="Structure_Nodes" constraint="conservative" timing="initial"/>
-      <mapping:nearest-projection direction="read"  from="Structure_Nodes" to="Fluid_Nodes" constraint="consistent" timing="initial"/>
+      <write-data name="Pressure" mesh="Fluid_Nodes"/>
+      <read-data  name="CrossSectionLength" mesh="Fluid_Nodes"/>
+      <!--mapping:nearest-projection direction="write"  from="Fluid_Nodes" to="Structure_Nodes" constraint="conservative" timing="initial"/-->
+      <mapping:nearest-neighbor direction="read"  from="Structure_Nodes" to="Fluid_Nodes" constraint="consistent" timing="initial"/>
     </participant>
     
     <participant name="STRUCTURE">
       <master:mpi-single/>
       <use-mesh name="Structure_Nodes" provide="yes"/>
-      <write-data name="Displacements" mesh="Structure_Nodes"/>
-      <read-data  name="Stresses"      mesh="Structure_Nodes"/>
+      <use-mesh name="Fluid_Nodes" provide="FLUID"/>
+      <write-data name="CrossSectionLength" mesh="Structure_Nodes"/>
+      <read-data  name="Pressure"      mesh="Structure_Nodes"/>
+      <mapping:nearest-neighbor direction="read"  from="Fluid_Nodes" to="Structure_Nodes" constraint="consistent" timing="ondemand"/>
     </participant>
 
     <!-- Communication method, use TCP sockets -->
@@ -57,18 +59,18 @@
          <max-time value="40.0"/>
          <timestep-length value="1e-2" valid-digits="8"/>
          <max-iterations value="40"/>
-         <exchange data="Stresses"      mesh="Structure_Nodes" from="FLUID" to="STRUCTURE" />
-         <exchange data="Displacements" mesh="Structure_Nodes" from="STRUCTURE" to="FLUID" initialize="true"/>
-         <relative-convergence-measure data="Stresses"        mesh="Structure_Nodes" limit="1e-5"/>
-         <relative-convergence-measure data="Displacements" mesh="Structure_Nodes" limit="1e-5"/>
+         <exchange data="Pressure"      mesh="Structure_Nodes" from="FLUID" to="STRUCTURE" />
+         <exchange data="CrossSectionLength" mesh="Structure_Nodes" from="STRUCTURE" to="FLUID" initialize="true"/>
+         <relative-convergence-measure data="Pressure"        mesh="Structure_Nodes" limit="1e-5"/>
+         <relative-convergence-measure data="CrossSectionLength" mesh="Structure_Nodes" limit="1e-5"/>
          <extrapolation-order value="2"/>
-         <post-processing:IQN-ILS> 
+         <post-processing:aitken> 
 	     <!-- PostProc always done on the second participant -->
-            <data name="Displacements" mesh="Structure_Nodes"/>
+            <data name="CrossSectionLength" mesh="Structure_Nodes"/>
             <initial-relaxation value="0.01"/>
-            <max-used-iterations value="50"/>
-            <timesteps-reused value="8"/>
-         </post-processing:IQN-ILS>
+            <!--max-used-iterations value="50"/-->
+            <!--timesteps-reused value="8"/-->
+         </post-processing:aitken>
       </coupling-scheme:serial-implicit>
     
   </solver-interface>

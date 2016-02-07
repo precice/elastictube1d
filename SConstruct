@@ -105,19 +105,9 @@ else:
 
 # ====== lapack ======
 if env["supermuc"]:
-   groupedLibs = ['/lrz/sys/intel/compiler/composer_xe_2015.5.223/mkl/lib/intel64/libmkl_intel_lp64.a', 
-                  '/lrz/sys/intel/compiler/composer_xe_2015.5.223/mkl/lib/intel64/libmkl_intel_thread.a', 
-                  '/lrz/sys/intel/compiler/composer_xe_2015.5.223/mkl/lib/intel64/libmkl_core.a']
-   if (len(groupedLibs) > 0):
-      linkFlags = ['-Wl,--start-group'] 
-      linkFlags = linkFlags + groupedLibs
-      linkFlags = linkFlags + ['-Wl,--end-group']
-      linkFlags = linkFlags + ['-lpthread','-lm', '-openmp']
-
-      env['GEN_LIB_BUILD_STATIC'] = linkFlags
-
-      env.Append(SHLINKCOM = ' $GEN_LIB_BUILD_STATIC')
-      env.Append(LINKCOM = ' $GEN_LIB_BUILD_STATIC')
+   env['GEN_LIB_BUILD_STATIC'] = env["ENV"]["MKL_LIB"]
+   env.Append(SHLINKCOM = ' $GEN_LIB_BUILD_STATIC')
+   env.Append(LINKCOM = ' $GEN_LIB_BUILD_STATIC')
 else:
    if env["parallel"]:
       env.Append(LIBPATH = ['./lib'])

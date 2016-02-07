@@ -31,8 +31,6 @@ int main(int argc, char** argv){
     tau = 		 atof(argv[3]);
     kappa = 	 atof(argv[4]);
 
-    std::cout << "tau: " << tau << ", kappa: " << kappa << std::endl;
-
     if ((domainSize+1) % size == 0) {
     	chunkLength = (domainSize+1)/size;
     	gridOffset = rank * chunkLength;
@@ -51,7 +49,7 @@ int main(int argc, char** argv){
     velocity = 			new double[chunkLength];
     velocity_n = 		new double[chunkLength];
 
-    fluidDataDisplay(pressure, chunkLength);
+    //fluidDataDisplay(pressure, chunkLength);
 
     std::string configFileName(argv[1]);
     std::string solverName = "FLUID";
@@ -60,8 +58,8 @@ int main(int argc, char** argv){
     interface.configure(configFileName);
 
     int meshID = interface.getMeshID("Fluid_Nodes");
-    int pressureID = interface.getDataID("Stresses", meshID);
-    int crossSectionLengthID = interface.getDataID("Displacements", meshID);
+    int pressureID = interface.getDataID("Pressure", meshID);
+    int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
 
     int dimensions = interface.getDimensions();
     grid = new double[dimensions * chunkLength];
@@ -74,12 +72,9 @@ int main(int argc, char** argv){
 		crossSectionLength_n[i] = 1.0;
 		velocity[i] = 1.0 / kappa;
 		velocity_n[i] = 1.0 / kappa;
-		std::cout << "[  ";
 		for (int j = 0; j < dimensions; j++) {
 			grid[i*dimensions + j] = j == 0 ? gridOffset + (double)i : 0.0;
-			std::cout << grid[i*dimensions + j] << "  ";
 		}
-		std::cout << "]" << std::endl;
 	}
 
     interface.setMeshVertices(meshID, chunkLength, grid, vertexIDs);
@@ -87,10 +82,9 @@ int main(int argc, char** argv){
     interface.initialize();
 
     double t = 0;
-    double dt = 1.0;
+    double dt = 0.01;
 
 	if (interface.isActionRequired(actionWriteInitialData())) {
-		std::cout << "Fluid: Writing initial data.." << std::endl;
 		interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs, pressure);
 		interface.fulfilledAction(actionWriteInitialData());
 	}
@@ -98,7 +92,6 @@ int main(int argc, char** argv){
     interface.initializeData();
 
 	if (interface.isReadDataAvailable()) {
-		std::cout << "Fluid: Reading initial data.." << std::endl;
 		interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs, crossSectionLength);
 	}
 
@@ -110,8 +103,8 @@ int main(int argc, char** argv){
 
         fluidComputeSolution(rank, size, domainSize, chunkLength, kappa, tau, 1, t, pressure, pressure_n, pressure, crossSectionLength, crossSectionLength_n, velocity, velocity_n);// Call "Solver"
 
-        fluidDataDisplay(pressure, chunkLength);
-        fluidDataDisplay(crossSectionLength, chunkLength);
+        //fluidDataDisplay(pressure, chunkLength);
+        //fluidDataDisplay(crossSectionLength, chunkLength);
 
 		interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs, pressure);
 
@@ -124,7 +117,6 @@ int main(int argc, char** argv){
 			convergenceCounter++;
 		}
 		else {
-			std::cout << "Fluid" << rank << ": CONVERGED in " << convergenceCounter << " iterations." << std::endl;
 			t += dt;
 			for (int i = 0; i < chunkLength; i++) {
 				pressure_n[i] = pressure[i];
@@ -134,8 +126,6 @@ int main(int argc, char** argv){
 		}
     }
 
-    std::cout << "Fluid" << rank << ": Time-loop finished." << std::endl;
-
     delete(pressure);
     delete(pressure_n);
     delete(crossSectionLength);
@@ -144,11 +134,7 @@ int main(int argc, char** argv){
     delete(velocity_n);
     delete(grid);
 
-    std::cout << "Fluid" << rank << ": Memory deallocation done." << std::endl;
-
     MPI_Finalize();
-
-    std::cout << "Fluid: MPIFinalize() done. Exiting.." << std::endl;
 
     return 0;
 }
