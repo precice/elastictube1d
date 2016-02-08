@@ -1,16 +1,33 @@
-elastictube1d preCICE fluid-structure coupling example
+elastictube1d preCICE Fluid-Structure Coupling Example
 
-* Compilation
+* Compile Instructions
+First, clone the reposiory to your computer. Porting the source-code to SuperMUC can be done via ssh. See https://goo.gl/L6DGAJ for details.
 ** Environment variables
-*** PRECICE_ROOT
-points to the precice source directory, usually the root of the git checkout.
-** Compile by executing scons
-* Execution
+*PRECICE_ROOT*: points to the precice source directory.
+** Compilation
+execute *scons --config=force* on the command line in the root directory of this tutorial. Follow the instructions on the screen to set boolean variables as required. The following boolean variables are of particular interest:
+1) *parallel*: set to "on" to compile the parallel version of the tutorial
+2) *supermuc*: set to "on" if executing on the SuperMUC
+3) *boost_inst*: set to "on" if boost has been pre-installed
+
+** Execution
 1) Create a directory called output inside your working directory
 2) Start the two solvers, preferably in two seperate shells for output monitoring
-   ./StructureSolver precice_config_for_1D_solvers N
-   ./FluidSolver precice_config_for_1D_solvers N tau kappa
-   Use the same directory to start from, otherwise the solvers won't find the sockets for communication.
+
+   *For serial mode*:
+
+	   ./StructureSolverSerial_Exec ./ConfigurationFiles/precice-config.xml N
+	   
+	   ./FluidSolverSerial_Exec ./ConfigurationFiles/precice-config.xml N tau kappa
+
+   *For parallel mode*:
+
+	   mpiexec -np <nprocs> ./StructureSolverParallel_Exec ./ConfigurationFiles/precice-config-parallel.xml N
+	   
+	   mpiexec -np <nprocs> ./FluidSolverParallel_Exec ./ConfigurationFiles/precice-config-parallel.xml N tau kappa
+	   
+Use the same directory to start from, otherwise the solvers won't find the sockets for communication.
+   
 * Parameters
 ** N
 Number of mesh elements, needs to be equal for fluid and structure solver
