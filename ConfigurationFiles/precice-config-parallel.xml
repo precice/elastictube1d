@@ -31,7 +31,8 @@
          precice::SolverInterface object used by the participant. -->
     
     <participant name="FLUID">
-      <master:mpi-single/>
+      <!--Change network to "ib0" on SuperMUC-->
+      <master:mpi-single network="lo"/>
       <!-- Makes the named mesh available to the participant. Mesh is provided by the solver directly. -->
       <use-mesh name="Fluid_Nodes" provide="yes"/>
       <use-mesh name="Structure_Nodes" from="STRUCTURE"/>
@@ -43,7 +44,8 @@
     </participant>
     
     <participant name="STRUCTURE">
-      <master:mpi-single/>
+      <!--Change network to "ib0" on SuperMUC-->
+      <master:mpi-single network="lo"/>
       <use-mesh name="Structure_Nodes" provide="yes"/>
       <use-mesh name="Fluid_Nodes" provide="FLUID"/>
       <write-data name="CrossSectionLength" mesh="Structure_Nodes"/>
@@ -51,8 +53,8 @@
       <mapping:nearest-neighbor direction="read"  from="Fluid_Nodes" to="Structure_Nodes" constraint="consistent" timing="ondemand"/>
     </participant>
 
-    <!-- Communication method, use TCP sockets -->
-    <m2n:sockets from="FLUID" to="STRUCTURE" />
+    <!-- Communication method, use TCP sockets, Change network to "ib0" on SuperMUC -->
+    <m2n:sockets from="FLUID" to="STRUCTURE" network="lo"/>
 
       <coupling-scheme:serial-implicit>
          <participants first="FLUID" second="STRUCTURE"/>
