@@ -32,7 +32,7 @@
     
     <participant name="FLUID">
       <!--Change network to "ib0" on SuperMUC-->
-      <master:mpi-single network="lo"/>
+      <master:mpi-single />
       <!-- Makes the named mesh available to the participant. Mesh is provided by the solver directly. -->
       <use-mesh name="Fluid_Nodes" provide="yes"/>
       <use-mesh name="Structure_Nodes" from="STRUCTURE"/>
@@ -45,7 +45,7 @@
     
     <participant name="STRUCTURE">
       <!--Change network to "ib0" on SuperMUC-->
-      <master:mpi-single network="lo"/>
+      <master:mpi-single />
       <use-mesh name="Structure_Nodes" provide="yes"/>
       <use-mesh name="Fluid_Nodes" provide="FLUID"/>
       <write-data name="CrossSectionLength" mesh="Structure_Nodes"/>
