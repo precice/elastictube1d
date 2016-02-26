@@ -65,8 +65,8 @@ int main (int argc, char **argv)
 
   //precice stuff
   int meshID = interface.getMeshID("Fluid_Nodes");
-  int crossSectionLengthID = interface.getDataID("Displacements", meshID);
-  int pressureID = interface.getDataID("Stresses", meshID);
+  int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
+  int pressureID = interface.getDataID("Pressure", meshID);
   int *vertexIDs;
   vertexIDs = new int[(N+1)];
   double *grid;
