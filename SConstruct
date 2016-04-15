@@ -93,16 +93,16 @@ else:
 env.Append(CCFLAGS = ["-g3", "-O3", "-Wall", "-std=c++11"])
 
 # ====== boost ======
-if not env["boost_inst"]:
-   boostRootPath = checkset_var('PRECICE_BOOST_ROOT', "./src")
-   env.AppendUnique(CXXFLAGS = ['-isystem', '-lrt', boostRootPath]) # -isystem supresses compilation warnings for boost headers
-else:
+if env["boost_inst"]:
    if env["supermuc"]:
       boostOnSupermuc = env["ENV"]["BOOST_LIBDIR"]
       env.Append(LIBPATH = [boostOnSupermuc])
    uniqueCheckLib(conf, "boost_system")
    uniqueCheckLib(conf, "boost_filesystem")
-
+else:
+   boostRootPath = checkset_var('PRECICE_BOOST_ROOT', "./src")
+   env.AppendUnique(CXXFLAGS = ['-isystem', boostRootPath]) # -isystem supresses compilation warnings for boost headers
+   
 # ====== lapack ======
 if env["supermuc"]:
    if not os.genenv("MKL_LIB"):
