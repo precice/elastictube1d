@@ -60,14 +60,17 @@
          <relative-convergence-measure data="Pressure"        mesh="Structure_Nodes" limit="1e-5"/>
          <relative-convergence-measure data="CrossSectionLength" mesh="Structure_Nodes" limit="1e-5"/>
          <extrapolation-order value="2"/>
-         <post-processing:IQN-ILS> 
-	     <!-- PostProc always done on the second participant -->
+         <post-processing:IQN-IMVJ>
+             <!-- PostProc always done on the second participant -->
             <data name="CrossSectionLength" mesh="Structure_Nodes"/>
+            <data name="Pressure"           mesh="Structure_Nodes"/>
             <initial-relaxation value="0.01"/>
-            <max-used-iterations value="50"/>
-            <timesteps-reused value="8"/>
-            <filter type="QR2" limit="1e-3"/>
-         </post-processing:IQN-ILS>
+            <max-used-iterations value="50" />
+            <timesteps-reused value="0"/>
+            <filter type="QR2" limit="1e-2"/>
+            <preconditioner type="residual-sum" freeze-after="4"/>
+            <imvj-restart-mode type="RS-SVD" chunk-size="4" truncation-threshold="1e-4" reused-timesteps-at-restart="8" />
+         </post-processing:IQN-IMVJ>
       </coupling-scheme:serial-implicit>
     
   </solver-interface>
