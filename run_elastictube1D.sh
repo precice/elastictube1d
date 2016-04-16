@@ -8,8 +8,8 @@ cd $BASE
 N=100
 
 # run paramters
-FLUIDCORES=1
-SOLIDCORES=1
+FLUIDCORES=2
+SOLIDCORES=2
 
 # coupling parameters
 PPNAME=v-imvj_RS-SVD
@@ -69,7 +69,7 @@ do
  do
     for KAPPA in 10 # 10  100   1000
     do
-        for TAU in 0.001 # 0.1 0.01 0.001
+        for TAU in 0.01 # 0.1 0.01 0.001
         do
             echo "\n ----------- \n"
             echo " run 1d elastictube with N="${N}", tau="${TAU}", kappa="${KAPPA}

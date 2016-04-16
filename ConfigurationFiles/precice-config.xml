@@ -4,6 +4,12 @@
   
   <log-filter target="debug" component="" switch="off" />
   <log-filter target="info"  component="" switch="on"/>
+  <log-filter target="debug" component="precice::cplscheme::impl::IQNILSPostProcessing" switch="on" />
+  <log-filter target="debug" component="precice::cplscheme::impl::MVQNPostProcessing" switch="on" />
+  <log-filter target="debug" component="precice::cplscheme::impl::BaseQNPostProcessing" switch="on" />
+  <log-filter target="debug" component="precice::cplscheme::impl::BroydenPostProcessing" switch="off" />
+  <log-filter target="debug" component="precice::cplscheme::ImplicitCouplingScheme" switch="off" />
+
   
   <log-output column-separator=" | " log-time-stamp="no"  
               log-time-stamp-human-readable="yes" log-machine-name="no" 
@@ -50,9 +56,9 @@
     <!-- Communication method, use TCP sockets, Change network to "ib0" on SuperMUC -->
     <m2n:sockets from="FLUID" to="STRUCTURE" network="lo"/>
 
-      <coupling-scheme:serial-implicit>
+      <coupling-scheme:parallel-implicit>
          <participants first="FLUID" second="STRUCTURE"/>
-         <max-time value="40.0"/>
+         <max-time value="1.0"/>
          <timestep-length value="1e-2" valid-digits="8"/>
          <max-iterations value="40"/>
          <exchange data="Pressure"      mesh="Structure_Nodes" from="FLUID" to="STRUCTURE" />
@@ -65,13 +71,13 @@
             <data name="CrossSectionLength" mesh="Structure_Nodes"/>
             <data name="Pressure"           mesh="Structure_Nodes"/>
             <initial-relaxation value="0.01"/>
-            <max-used-iterations value="50" />
+            <max-used-iterations value="40" />
             <timesteps-reused value="0"/>
             <filter type="QR2" limit="1e-2"/>
-            <preconditioner type="residual-sum" freeze-after="4"/>
-            <imvj-restart-mode type="RS-SVD" chunk-size="4" truncation-threshold="1e-4" reused-timesteps-at-restart="8" />
+            <preconditioner type="residual-sum" />
+<!--            <imvj-restart-mode type="RS-SVD" chunk-size="4" truncation-threshold="1e-4" reused-timesteps-at-restart="8" />-->
          </post-processing:IQN-IMVJ>
-      </coupling-scheme:serial-implicit>
+      </coupling-scheme:parallel-implicit>
     
   </solver-interface>
 </precice-configuration>
