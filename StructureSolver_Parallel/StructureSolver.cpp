@@ -1,14 +1,14 @@
-#include "precice/SolverInterface.hpp"
 #include "StructureSolver.h"
+#include "precice/SolverInterface.hpp"
 
 using namespace precice;
 using namespace precice::constants;
 
-int main(int argc, char** argv){
+int main(int argc, char** argv)
+{
 
   std::cout << "Starting Structure Solver..." << std::endl;
-  if ( argc != 3 )
-  {
+  if (argc != 3) {
     std::cout << std::endl;
     std::cout << "Structure: Usage: mpiexec -np <#procs> " << argv[0] << " <configurationFileName> <N> <tau> <kappa>" << std::endl;
     std::cout << std::endl;
@@ -19,21 +19,21 @@ int main(int argc, char** argv){
   MPI_Init(&argc, &argv);
 
   int domainSize, gridOffset, rank, size, chunkLength, *vertexIDs;
-  double *pressure, *crossSectionLength, *grid;   // Declare dataset
+  double *pressure, *crossSectionLength, *grid; // Declare dataset
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
   domainSize = atoi(argv[2]);
-  if ((domainSize+1) % size == 0) {
-    chunkLength = (domainSize+1)/size;
+  if ((domainSize + 1) % size == 0) {
+    chunkLength = (domainSize + 1) / size;
     gridOffset = rank * chunkLength;
-  } else if (rank < (domainSize+1) % size) {
-    chunkLength = (domainSize+1)/size + 1;
+  } else if (rank < (domainSize + 1) % size) {
+    chunkLength = (domainSize + 1) / size + 1;
     gridOffset = rank * chunkLength;
   } else {
-    chunkLength = (domainSize+1)/size;
-    gridOffset = ((domainSize+1) % size) * ((domainSize+1)/size + 1) + (rank - ((domainSize+1) % size)) * (domainSize+1)/size;
+    chunkLength = (domainSize + 1) / size;
+    gridOffset = ((domainSize + 1) % size) * ((domainSize + 1) / size + 1) + (rank - ((domainSize + 1) % size)) * (domainSize + 1) / size;
   }
 
   pressure = new double[chunkLength];
@@ -57,7 +57,7 @@ int main(int argc, char** argv){
     crossSectionLength[i] = 1.0;
     pressure[i] = 0.0;
     for (int j = 0; j < dimensions; j++) {
-      grid[i*dimensions + j] = j == 0 ? gridOffset + (double)i : 0.0;
+      grid[i * dimensions + j] = j == 0 ? gridOffset + (double)i : 0.0;
     }
   }
 
@@ -79,14 +79,14 @@ int main(int argc, char** argv){
     interface.readBlockScalarData(pressureID, chunkLength, vertexIDs, pressure);
   }
 
-  while (interface.isCouplingOngoing()){
-    if (interface.isActionRequired(actionWriteIterationCheckpoint())){
+  while (interface.isCouplingOngoing()) {
+    if (interface.isActionRequired(actionWriteIterationCheckpoint())) {
       interface.fulfilledAction(actionWriteIterationCheckpoint());
     }
 
-    structureComputeSolution(rank, size, chunkLength, pressure, crossSectionLength);   // Call Solver
-        //structureDataDisplay(crossSectionLength, chunkLength);
-        //structureDataDisplay(pressure, chunkLength);
+    structureComputeSolution(rank, size, chunkLength, pressure, crossSectionLength); // Call Solver
+                                                                                     //structureDataDisplay(crossSectionLength, chunkLength);
+                                                                                     //structureDataDisplay(pressure, chunkLength);
 
     interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs, crossSectionLength);
 
@@ -94,17 +94,16 @@ int main(int argc, char** argv){
 
     interface.readBlockScalarData(pressureID, chunkLength, vertexIDs, pressure);
 
-    if (interface.isActionRequired(actionReadIterationCheckpoint())){ // i.e. fluid not yet converged
+    if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. fluid not yet converged
       interface.fulfilledAction(actionReadIterationCheckpoint());
-    }
-    else {
+    } else {
       t += dt;
     }
   }
 
-  delete(pressure);
-  delete(crossSectionLength);
-  delete(grid);
+  delete (pressure);
+  delete (crossSectionLength);
+  delete (grid);
 
   MPI_Finalize();
 
