@@ -1,5 +1,7 @@
 #include "StructureSolver.h"
 
+#include <iostream>
+
 void structureDataDisplay(double* data, int length)
 {
   std::cout << "\n";

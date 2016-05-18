@@ -1,5 +1,11 @@
 #include "FluidSolver.h"
 
+#include <cmath>
+#include <mpi.h>
+
+using std::sin;
+using std::sqrt;
+
 extern "C" {
 void dgesv_(
     int* n,

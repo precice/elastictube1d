@@ -1,5 +1,7 @@
 #include "FluidSolver.h"
 
+#include <iostream>
+
 void fluidDataDisplay(double* data, int length)
 {
   std::cout << "\n";

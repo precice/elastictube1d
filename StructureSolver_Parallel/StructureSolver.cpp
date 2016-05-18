@@ -1,6 +1,9 @@
 #include "StructureSolver.h"
 #include "precice/SolverInterface.hpp"
 
+#include <iostream>
+#include <mpi.h>
+
 using namespace precice;
 using namespace precice::constants;
 
@@ -49,7 +52,7 @@ int main(int argc, char** argv)
 
   int dimensions = interface.getDimensions();
   std::vector<double> grid(dimensions * chunkLength);
-  
+
   std::vector<int> vertexIDs(chunkLength);
 
   for (int i = 0; i < chunkLength; i++) {
@@ -84,8 +87,8 @@ int main(int argc, char** argv)
     }
 
     structureComputeSolution(rank, size, chunkLength, pressure.data(), crossSectionLength.data()); // Call Solver
-                                                                                     //structureDataDisplay(crossSectionLength, chunkLength);
-                                                                                     //structureDataDisplay(pressure, chunkLength);
+                                                                                                   //structureDataDisplay(crossSectionLength, chunkLength);
+                                                                                                   //structureDataDisplay(pressure, chunkLength);
 
     interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
 

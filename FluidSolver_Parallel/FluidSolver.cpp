@@ -1,5 +1,7 @@
 #include "FluidSolver.h"
 #include "precice/SolverInterface.hpp"
+#include <iostream>
+#include <mpi.h>
 
 using namespace precice;
 using namespace precice::constants;

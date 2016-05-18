@@ -2,12 +2,6 @@
 
 const double PI = 3.14159265359;
 
-#include <cmath>
-#include <iostream>
-#include <mpi.h>
-#include <stdlib.h>
-#include <string>
-
 void fluidInit(
     int rank,
     int chunkLength,
@@ -33,4 +27,3 @@ void fluidComputeSolution(
 void fluidDataDisplay(
     double* data,
     int counterLength);
-
