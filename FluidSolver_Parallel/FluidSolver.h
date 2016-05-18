@@ -1,7 +1,6 @@
-#ifndef FLUIDSOLVER_H_
-#define FLUIDSOLVER_H_
+#pragma once
 
-#define PI 3.14159265359
+const double PI = 3.14159265359;
 
 #include <cmath>
 #include <iostream>
@@ -35,4 +34,3 @@ void fluidDataDisplay(
     double* data,
     int counterLength);
 
-#endif

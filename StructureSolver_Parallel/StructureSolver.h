@@ -1,5 +1,4 @@
-#ifndef STRUCTURESOLVER_H_
-#define STRUCTURESOLVER_H_
+#pragma once
 
 #include <iostream>
 #include <mpi.h>
@@ -12,4 +11,3 @@ void structureComputeSolution(int rank, int size, int chunkLength, double* press
 
 void structureDataDisplay(double* data, int length);
 
-#endif
