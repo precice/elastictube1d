@@ -10,7 +10,7 @@ int main(int argc, char** argv)
   std::cout << "Starting Structure Solver..." << std::endl;
   if (argc != 3) {
     std::cout << std::endl;
-    std::cout << "Structure: Usage: mpiexec -np <#procs> " << argv[0] << " <configurationFileName> <N> <tau> <kappa>" << std::endl;
+    std::cout << "Structure: Usage: mpiexec -np <#procs> " << argv[0] << " <configurationFileName> <N>" << std::endl;
     std::cout << std::endl;
     std::cout << "N:     Number of mesh elements, needs to be equal for fluid and structure solver." << std::endl;
     return -1;
