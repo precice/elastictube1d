@@ -134,7 +134,7 @@ int main(int argc, char** argv)
   delete (velocity);
   delete (velocity_n);
   delete (grid);
-
+  interface.finalize();
   MPI_Finalize();
 
   return 0;

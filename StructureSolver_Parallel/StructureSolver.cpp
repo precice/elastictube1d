@@ -103,6 +103,7 @@ int main(int argc, char** argv)
     }
   }
 
+  interface.finalize();
   MPI_Finalize();
 
   return 0;
