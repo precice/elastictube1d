@@ -4,14 +4,14 @@ BASE=$PWD
 cd $BASE
 # ---------------------------------------- PARAMETERS --------------------------------------------------------
 # 1d tube parameters
-N=1000
-NCOARSE=100
+N=100
+NCOARSE=10
 ML=1 # multi-level, i.e., manifold mapping
 
 
 # coupling parameters
-PPNAME=s-mm-iqn-ils
-CP=serial-implicit
+PPNAME=v-mm-iqn-ils
+CP=parallel-implicit
 PP=IQN-ILS
 
 EXTRAPOLATION=2
@@ -20,7 +20,7 @@ REUSED=0
 FILTER=QR1
 EPS=1e-13
 
-COPY=1
+COPY=0
 ONLY_POSTPROC=0
 POSTPROC=1
 
@@ -28,8 +28,10 @@ NOW="$(date +'%Y-%m-%d')"
 
 # ------------------------------------------------------------------------------------------------------------
 DESCRIPTION=${PPNAME}_reused-${REUSED}_extrp-${EXTRAPOLATION}
-D1=experiments/${PPNAME}/${NOW}_FSI-${N}-${NCOARSE}
-DEST_DIR=experiments/${PPNAME}/${NOW}_FSI-${N}-${NCOARSE}/convMeasure[1e-7_1e-6]-displ
+#D1=experiments/${PPNAME}/${NOW}_FSI-${N}-${NCOARSE}
+#DEST_DIR=experiments/${PPNAME}/${NOW}_FSI-${N}-${NCOARSE}/convMeasure[1e-7_1e-6]-displ
+D1=experiments/test/
+DEST_DIR=experiments/test/1
 # ------------------------------------------------------------------------------------------------------------
 
 if [ ${ML} = 0 ]; then
@@ -72,9 +74,9 @@ fi
 if [ ${ONLY_POSTPROC} = 0 ]; then
     #sed -i s/extrapolation-order\ value=\"[0-9]*\"/extrapolation-order\ value=\"${EXTRAPOLATION}\"/g ${FILE}
 
-    for KAPPA in 10  100   1000
+    for KAPPA in 10 # 100   1000
     do
-        for TAU in 0.1 0.01 0.001
+        for TAU in 0.01 # 0.1 0.01 0.001
         do
             echo "\n ############################### \n"
             echo " run 1d elastictube with N="${N}", tau="${TAU}", kappa="${KAPPA}
@@ -101,6 +103,8 @@ if [ ${ONLY_POSTPROC} = 0 ]; then
         done
     done
 fi
+
+mv debugOutput-rank--1 debugO_MM
 
 
 # POST-PROCESSING OF OUTPUT DATA

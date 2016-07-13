@@ -31,7 +31,7 @@ Tsteps = numpy.zeros(shape=(3,3))
 for l in allFiles:
     filename = os.path.join(sourceDir, l)
 
-    print l
+    print(l)
     substrings = l.split("_")
     tau = float(substrings[-2])
     lhs, rhs = substrings[-3].split("[")
@@ -86,13 +86,13 @@ for l in allFiles:
 
         
 # write info to terminal
-print "Tau" + "   " + "1000fine" + "   " + "1000coarse" + "   " + "100fine" + "   " + "100coarse" + "   " + "10fine" + "   " + "10coarse" + "\n"
-print "Table fine iterations: "
-print  table
-print "Table coarse iterations: "
-print  tableCoarse
-print "Table timesteps: "
-print  Tsteps
+print("Tau" + "   " + "1000fine" + "   " + "1000coarse" + "   " + "100fine" + "   " + "100coarse" + "   " + "10fine" + "   " + "10coarse" + "\n")
+print("Table fine iterations: ")
+print( table)
+print("Table coarse iterations: ")
+print(tableCoarse)
+print("Table timesteps: ")
+print(Tsteps)
 
 # write info to log file
 pp_log.write("\n    ### FSI-"+str(N_fine)+":"+str(N_coarse)+" ###\n\n\n")

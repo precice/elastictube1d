@@ -80,7 +80,7 @@ int main (int argc, char **argv)
   double *displ_copy_coarse;
   double *sigma_copy_coarse;
   // mappings
-  NearestNeighborMapping upMapping, downMapping;
+  LinearInterpolationMapping upMapping, downMapping;
 
   if(isMultilevelApproach)
   {
