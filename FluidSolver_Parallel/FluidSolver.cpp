@@ -23,8 +23,8 @@ int main(int argc, char** argv)
 
   MPI_Init(&argc, &argv);
 
-  int domainSize, gridOffset, rank, size, chunkLength, *vertexIDs;
-  double *velocity, *velocity_n, *grid, tau, kappa; // Declare dataset
+  int domainSize, gridOffset, rank, size, chunkLength;
+  double *grid, tau, kappa; // Declare dataset
 
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -48,8 +48,9 @@ int main(int argc, char** argv)
   std::vector<double> pressure_n(chunkLength);
   std::vector<double > crossSectionLength(chunkLength);
   std::vector<double > crossSectionLength_n(chunkLength);
-  velocity = new double[chunkLength];
-  velocity_n = new double[chunkLength];
+  std::vector<double> velocity(chunkLength);
+  std::vector<double> velocity_n(chunkLength);
+  std::vector<int> vertexIDs(chunkLength);
 
   //fluidDataDisplay(pressure, chunkLength);
 
@@ -65,8 +66,7 @@ int main(int argc, char** argv)
 
   int dimensions = interface.getDimensions();
   grid = new double[dimensions * chunkLength];
-  vertexIDs = new int[chunkLength];
-
+  
   for (int i = 0; i < chunkLength; i++) {
     pressure[i] = 0.0;
     pressure_n[i] = 0.0;
@@ -79,7 +79,7 @@ int main(int argc, char** argv)
     }
   }
 
-  interface.setMeshVertices(meshID, chunkLength, grid, vertexIDs);
+  interface.setMeshVertices(meshID, chunkLength, grid, vertexIDs.data);
 
   interface.initialize();
 
@@ -87,14 +87,14 @@ int main(int argc, char** argv)
   double dt = 0.01;
 
   if (interface.isActionRequired(actionWriteInitialData())) {
-    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs, pressure.data());
+    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs.data, pressure.data());
     interface.fulfilledAction(actionWriteInitialData());
   }
 
   interface.initializeData();
 
   if (interface.isReadDataAvailable()) {
-    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs, crossSectionLength.data());
+    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data, crossSectionLength.data());
   }
 
   while (interface.isCouplingOngoing()) {
@@ -103,16 +103,20 @@ int main(int argc, char** argv)
       interface.fulfilledAction(actionWriteIterationCheckpoint());
     }
 
-    fluidComputeSolution(rank, size, domainSize, chunkLength, kappa, tau, 1, t, pressure.data(), pressure_n.data(), pressure.data(), crossSectionLength.data(), crossSectionLength_n.data(), velocity, velocity_n); // Call "Solver"
+     // Call "Solver"
+    fluidComputeSolution(rank, size, domainSize, chunkLength, kappa, tau, 1, t,
+                         pressure.data(), pressure_n.data(), pressure.data(),
+                         crossSectionLength.data(), crossSectionLength_n.data(),
+                         velocity.data(), velocity_n.data());
 
     //fluidDataDisplay(pressure, chunkLength);
     //fluidDataDisplay(crossSectionLength, chunkLength);
 
-    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs, pressure.data());
+    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs.data, pressure.data());
 
     interface.advance(dt);
 
-    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs, crossSectionLength.data());
+    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data, crossSectionLength.data());
 
     if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. not yet converged
       interface.fulfilledAction(actionReadIterationCheckpoint());
@@ -127,8 +131,6 @@ int main(int argc, char** argv)
     }
   }
 
-  delete (velocity);
-  delete (velocity_n);
   delete (grid);
   interface.finalize();
   MPI_Finalize();
