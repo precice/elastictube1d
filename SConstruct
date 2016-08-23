@@ -90,18 +90,18 @@ if env["supermuc"]:
 else:
    env["CXX"] = 'mpic++'      # For systems offering mpic++ compiler
 
-env.Append(CCFLAGS = ["-g3", "-O3", "-Wall", "-std=c++11"])
+env.Append(CCFLAGS = ["-g3", "-O0", "-Wall", "-std=c++11"])
 
 # ====== boost ======
-if env["boost_inst"]:
-   if env["supermuc"]:
-      boostOnSupermuc = env["ENV"]["BOOST_LIBDIR"]
-      env.Append(LIBPATH = [boostOnSupermuc])
-   uniqueCheckLib(conf, "boost_system")
-   uniqueCheckLib(conf, "boost_filesystem")
-else:
-   boostRootPath = checkset_var('PRECICE_BOOST_ROOT', "./src")
-   env.AppendUnique(CXXFLAGS = ['-isystem', boostRootPath]) # -isystem supresses compilation warnings for boost headers
+if env["supermuc"]:
+   boostOnSupermuc = env["ENV"]["BOOST_LIBDIR"]
+   env.Append(LIBPATH = [boostOnSupermuc])
+uniqueCheckLib(conf, "boost_system")
+uniqueCheckLib(conf, "boost_filesystem")
+uniqueCheckLib(conf, "boost_thread")
+uniqueCheckLib(conf, "boost_log")
+uniqueCheckLib(conf, "boost_log_setup")
+uniqueCheckLib(conf, "boost_program_options")
    
 # ====== lapack ======
 if env["supermuc"]:
