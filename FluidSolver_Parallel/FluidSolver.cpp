@@ -79,7 +79,7 @@ int main(int argc, char** argv)
     }
   }
 
-  interface.setMeshVertices(meshID, chunkLength, grid, vertexIDs.data);
+  interface.setMeshVertices(meshID, chunkLength, grid, vertexIDs.data());
 
   interface.initialize();
 
@@ -87,14 +87,14 @@ int main(int argc, char** argv)
   double dt = 0.01;
 
   if (interface.isActionRequired(actionWriteInitialData())) {
-    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs.data, pressure.data());
+    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
     interface.fulfilledAction(actionWriteInitialData());
   }
 
   interface.initializeData();
 
   if (interface.isReadDataAvailable()) {
-    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data, crossSectionLength.data());
+    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
   }
 
   while (interface.isCouplingOngoing()) {
@@ -112,11 +112,11 @@ int main(int argc, char** argv)
     //fluidDataDisplay(pressure, chunkLength);
     //fluidDataDisplay(crossSectionLength, chunkLength);
 
-    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs.data, pressure.data());
+    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
 
     interface.advance(dt);
 
-    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data, crossSectionLength.data());
+    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
 
     if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. not yet converged
       interface.fulfilledAction(actionReadIterationCheckpoint());
