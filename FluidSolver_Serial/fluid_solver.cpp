@@ -107,6 +107,8 @@ int main(int argc, char** argv)
   
   n_subcycles = (int)(precice_dt/dt);
   t_steps_total = 100*n_subcycles;
+  
+  std::cout<<"n_subcycles: "<<n_subcycles<<" t_steps_total: "<<t_steps_total<<std::endl;
 
   if (interface.isActionRequired(actionWriteInitialData())) {
     interface.writeBlockScalarData(pressureID, N + 1, vertexIDs, pressure);
@@ -143,6 +145,8 @@ int main(int argc, char** argv)
 	     (t + tsub)/(double)t_steps_total,                   // scaled time for inflow condition (sample sine curve)
 	     N, kappa, tau, 0.0);                                // dimensionless parameters
     
+    std::cout<<"scaled t: "<<(t + tsub)/(double)t_steps_total<<std::endl;
+    
     // store state variables for previous subcycle
     for (i = 0; i <= N; i++) {
       velocity_subcycle_n[i] = velocity[i];
@@ -161,6 +165,7 @@ int main(int argc, char** argv)
 
     // set variables back to checkpoint
     if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. not yet converged      
+      std::cout<<" # ITERATE # "<<std::endl;
       tsub = 0;
       for (i = 0; i <= N; i++) {
         velocity_subcycle_n[i] = velocity_n[i];
@@ -168,8 +173,8 @@ int main(int argc, char** argv)
         crossSectionLength_subcycle_n[i] = crossSectionLength_n[i];
 	
 	// also reset current state variables, but keep crossSectionLength
-	velocity[i] = velocity_n[i];
-	pressure[i] = pressure[i];
+	//velocity[i] = velocity_n[i];
+	//pressure[i] = pressure[i];
       }
       
       interface.fulfilledAction(actionReadIterationCheckpoint());
@@ -181,9 +186,13 @@ int main(int argc, char** argv)
 
       // store state variables from last time step (required in fluid_nl)
       for (i = 0; i <= N; i++) {
-        velocity_n[i] = velocity[i];
-        pressure_n[i] = pressure[i];
+        velocity_n[i]           = velocity[i];
+        pressure_n[i]           = pressure[i];
         crossSectionLength_n[i] = crossSectionLength[i];
+	
+	velocity_subcycle_n[i]           = velocity[i];
+        pressure_subcycle_n[i]           = pressure[i];
+        crossSectionLength_subcycle_n[i] = crossSectionLength[i];
       }
     }
   }
