@@ -95,6 +95,13 @@ int main(int argc, char** argv)
     // When an implicit coupling scheme is used, checkpointing is required
     if (interface.isActionRequired(actionWriteIterationCheckpoint())) {
       
+      if(tstep_counter > 0){
+        cout << "Advancing in time, finished timestep: " << tstep_counter << endl;
+        t += n_subcycles;        
+        tsub = 0;
+      }
+      tstep_counter++;
+      
       // write checkpoint, save state variables (not needed here, stationary solver)       
       interface.fulfilledAction(actionWriteIterationCheckpoint());
     }
@@ -123,11 +130,6 @@ int main(int argc, char** argv)
       tsub = 0;
       
       interface.fulfilledAction(actionReadIterationCheckpoint());
-    } else if (interface.isTimestepComplete()){
-      cout << "Advancing in time, finished timestep: " << tstep_counter << endl;
-      t += n_subcycles;
-      tstep_counter++;
-      tsub = 0;
     }
   }
 
