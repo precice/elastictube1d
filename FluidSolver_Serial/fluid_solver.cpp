@@ -126,7 +126,23 @@ int main(int argc, char** argv)
     // When an implicit coupling scheme is used, checkpointing is required
     if (interface.isActionRequired(actionWriteIterationCheckpoint())) {
       
-      // save old state, save checkpoint (not needed here)
+      if(tstep_counter > 0){
+        cout << "Fluid: Advancing in time, finished timestep: " << tstep_counter << endl;
+        t += n_subcycles;        
+        tsub = 0;
+
+        // store state variables from last time step (required in fluid_nl)
+        for (i = 0; i <= N; i++) {
+          velocity_n[i]           = velocity[i];
+          pressure_n[i]           = pressure[i];
+          crossSectionLength_n[i] = crossSectionLength[i];
+	
+	  velocity_subcycle_n[i]           = velocity[i];
+          pressure_subcycle_n[i]           = pressure[i];
+          crossSectionLength_subcycle_n[i] = crossSectionLength[i];
+        }
+      }
+      tstep_counter++;
       
       interface.fulfilledAction(actionWriteIterationCheckpoint());
     }
@@ -179,22 +195,6 @@ int main(int argc, char** argv)
       }
       
       interface.fulfilledAction(actionReadIterationCheckpoint());
-    } else if (interface.isTimestepComplete()){
-      cout << "Fluid: Advancing in time, finished timestep: " << tstep_counter << endl;
-      t += n_subcycles;
-      tstep_counter++;
-      tsub = 0;
-
-      // store state variables from last time step (required in fluid_nl)
-      for (i = 0; i <= N; i++) {
-        velocity_n[i]           = velocity[i];
-        pressure_n[i]           = pressure[i];
-        crossSectionLength_n[i] = crossSectionLength[i];
-	
-	velocity_subcycle_n[i]           = velocity[i];
-        pressure_subcycle_n[i]           = pressure[i];
-        crossSectionLength_subcycle_n[i] = crossSectionLength[i];
-      }
     }
   }
 
