@@ -173,8 +173,11 @@ int main(int argc, char** argv)
         crossSectionLength_subcycle_n[i] = crossSectionLength_n[i];
 	
 	// also reset current state variables, but keep crossSectionLength
-	//velocity[i] = velocity_n[i];
-	//pressure[i] = pressure[i];
+	// (if no subcycling is enabled, coupling iterations are slightly worse if we reset
+	//  velocity and pressure. For the case (tau, kappa) = (0.01, 10) we get 6.15 its
+	//  without reset and 6.20 iterations if velocity and pressure is reset)
+	velocity[i] = velocity_n[i]; 
+	pressure[i] = pressure[i];
       }
       
       interface.fulfilledAction(actionReadIterationCheckpoint());

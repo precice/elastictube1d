@@ -60,7 +60,7 @@
     <coupling-scheme:serial-implicit>
       <participants first="FLUID" second="STRUCTURE"/>
       <max-time value="1.0"/>
-      <timestep-length value="1e-2" valid-digits="8"/>
+      <timestep-length value="2e-2" valid-digits="8"/>
       <max-iterations value="40"/>
       <exchange data="Pressure"      mesh="Structure_Nodes" from="FLUID" to="STRUCTURE" />
       <exchange data="CrossSectionLength" mesh="Structure_Nodes" from="STRUCTURE" to="FLUID" initialize="true"/>
