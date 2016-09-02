@@ -145,8 +145,6 @@ int main(int argc, char** argv)
 	     (t + tsub)/(double)t_steps_total,                   // scaled time for inflow condition (sample sine curve)
 	     N, kappa, tau, 0.0);                                // dimensionless parameters
     
-    std::cout<<"scaled t: "<<(t + tsub)/(double)t_steps_total<<std::endl;
-    
     // store state variables for previous subcycle
     for (i = 0; i <= N; i++) {
       velocity_subcycle_n[i] = velocity[i];
@@ -181,7 +179,7 @@ int main(int argc, char** argv)
       }
       
       interface.fulfilledAction(actionReadIterationCheckpoint());
-    } else {
+    } else if (interface.isTimestepComplete()){
       cout << "Fluid: Advancing in time, finished timestep: " << tstep_counter << endl;
       t += n_subcycles;
       tstep_counter++;

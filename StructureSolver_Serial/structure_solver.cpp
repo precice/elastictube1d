@@ -123,7 +123,7 @@ int main(int argc, char** argv)
       tsub = 0;
       
       interface.fulfilledAction(actionReadIterationCheckpoint());
-    } else {
+    } else if (interface.isTimestepComplete()){
       cout << "Advancing in time, finished timestep: " << tstep_counter << endl;
       t += n_subcycles;
       tstep_counter++;
