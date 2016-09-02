@@ -48,7 +48,7 @@ int main(int argc, char** argv)
   double* grid;
   grid = new double[dimensions * (N + 1)];
   
-  double dt = 0.02; // solver timestep size
+  double dt = 0.01; // solver timestep size
   double precice_dt; // maximum precice timestep size
 
   //precice stuff
