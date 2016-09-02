@@ -47,6 +47,9 @@ int main(int argc, char** argv)
   pressure = new double[N + 1];
   double* grid;
   grid = new double[dimensions * (N + 1)];
+  
+  double dt = 0.01; // solver timestep size
+  double precice_dt; // maximum precice timestep size
 
   //precice stuff
   int meshID = interface.getMeshID("Structure_Nodes");
@@ -62,11 +65,19 @@ int main(int argc, char** argv)
       grid[i * dimensions + dim] = i * (1 - dim); // Define the y-component of each grid point as zero
   }
 
-  int t = 0;
+  int tstep_counter = 0; // number of time steps (only coupling iteration time steps)
+  int t = 0;             // number of time steps (including subcycling time steps)
+  int tsub = 0;          // number of current subcycling time steps
+  int n_subcycles = 0;   // number of subcycles
+  int t_steps_total = 0; // number of total timesteps, i.e., t_steps*n_subcycles
+  
   interface.setMeshVertices(meshID, N + 1, grid, vertexIDs);
 
   cout << "Structure: init precice..." << endl;
-  interface.initialize();
+  precice_dt = interface.initialize();
+  
+  n_subcycles = (int)(precice_dt/dt);
+  t_steps_total = 100*n_subcycles;
 
   if (interface.isActionRequired(actionWriteInitialData())) {
     interface.writeBlockScalarData(crossSectionLengthID, N + 1, vertexIDs, crossSectionLength);
@@ -83,23 +94,40 @@ int main(int argc, char** argv)
   while (interface.isCouplingOngoing()) {
     // When an implicit coupling scheme is used, checkpointing is required
     if (interface.isActionRequired(actionWriteIterationCheckpoint())) {
+      
+      // write checkpoint, save state variables (not needed here, stationary solver)       
       interface.fulfilledAction(actionWriteIterationCheckpoint());
     }
 
+    // choose smalles time step (sub-cycling if dt is smaller than precice_dt)
+    dt = std::min(precice_dt, dt);
+    
+    // advance in time for subcycling
+    tsub++;
+    
     for (int i = 0; i <= N; i++) {
       crossSectionLength[i] = 4.0 / ((2.0 - pressure[i]) * (2.0 - pressure[i]));
     }
 
+    // send crossSectionLength data to precice
     interface.writeBlockScalarData(crossSectionLengthID, N + 1, vertexIDs, crossSectionLength);
-    interface.advance(0.01); // Advance by dt = 0.01
+    
+    // advance
+    precice_dt = interface.advance(dt);
+    
+    // receive pressure data from precice
     interface.readBlockScalarData(pressureID, N + 1, vertexIDs, pressure);
 
     if (interface.isActionRequired(actionReadIterationCheckpoint())) {
       cout << "Iterate" << endl;
+      tsub = 0;
+      
       interface.fulfilledAction(actionReadIterationCheckpoint());
     } else {
-      cout << "Advancing in time, finished timestep: " << t << endl;
-      t++;
+      cout << "Advancing in time, finished timestep: " << tstep_counter << endl;
+      t += n_subcycles;
+      tstep_counter++;
+      tsub = 0;
     }
   }
 

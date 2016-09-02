@@ -52,41 +52,61 @@ int main(int argc, char** argv)
   // init data
   int i;
   double *velocity, *velocity_n, *pressure, *pressure_n, *crossSectionLength, *crossSectionLength_n;
+  double *velocity_subcycle_n, *pressure_subcycle_n, *crossSectionLength_subcycle_n;
+  
   int dimensions = interface.getDimensions();
 
-  velocity = new double[N + 1]; // Speed
-  velocity_n = new double[N + 1];
-  pressure = new double[N + 1]; // Pressure
-  pressure_n = new double[N + 1];
-  crossSectionLength = new double[N + 1];
+  velocity             = new double[N + 1]; // Speed
+  velocity_n           = new double[N + 1];
+  velocity_subcycle_n  = new double[N + 1];
+  pressure             = new double[N + 1]; // Pressure
+  pressure_n           = new double[N + 1];
+  pressure_subcycle_n  = new double[N + 1];
+  crossSectionLength   = new double[N + 1];
   crossSectionLength_n = new double[N + 1];
+  crossSectionLength_subcycle_n = new double[N + 1];
+  
+  double dt = 0.01; // solver timestep size
+  double precice_dt; // maximum precice timestep size
 
   //precice stuff
-  int meshID = interface.getMeshID("Fluid_Nodes");
+  int meshID               = interface.getMeshID("Fluid_Nodes");
   int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
-  int pressureID = interface.getDataID("Pressure", meshID);
+  int pressureID           = interface.getDataID("Pressure", meshID);
+  
   int* vertexIDs;
-  vertexIDs = new int[(N + 1)];
   double* grid;
+  vertexIDs = new int[(N + 1)];
   grid = new double[dimensions * (N + 1)];
 
   for (i = 0; i <= N; i++) {
-    velocity[i] = 1.0 / (kappa * 1.0);
-    velocity_n[i] = 1.0 / (kappa * 1.0);
-    crossSectionLength[i] = 1.0;
+    velocity[i]             = 1.0 / (kappa * 1.0);
+    velocity_n[i]           = 1.0 / (kappa * 1.0);
+    velocity_subcycle_n[i]  = 1.0 / (kappa * 1.0);
+    crossSectionLength[i]   = 1.0;
     crossSectionLength_n[i] = 1.0;
-    pressure[i] = 0.0;
-    pressure_n[i] = 0.0;
+    crossSectionLength_subcycle_n[i] = 1.0;
+    pressure[i]             = 0.0;
+    pressure_n[i]           = 0.0;
+    pressure_subcycle_n[i]  = 0.0;
+    
     for (int dim = 0; dim < dimensions; dim++)
       grid[i * dimensions + dim] = i * (1 - dim);
   }
 
-  int t = 0; //number of timesteps
+  int tstep_counter = 0; // number of time steps (only coupling iteration time steps)
+  int t = 0;             // number of time steps (including subcycling time steps)
+  int tsub = 0;          // number of current subcycling time steps
+  int n_subcycles = 0;   // number of subcycles
+  int t_steps_total = 0; // number of total timesteps, i.e., t_steps*n_subcycles
 
   interface.setMeshVertices(meshID, N + 1, grid, vertexIDs);
 
   cout << "Fluid: init precice..." << endl;
-  interface.initialize();
+  precice_dt = interface.initialize();
+  
+  n_subcycles = (int)(precice_dt/dt);
+  t_steps_total = 100*n_subcycles;
 
   if (interface.isActionRequired(actionWriteInitialData())) {
     interface.writeBlockScalarData(pressureID, N + 1, vertexIDs, pressure);
@@ -99,27 +119,67 @@ int main(int argc, char** argv)
   if (interface.isReadDataAvailable()) {
     interface.readBlockScalarData(crossSectionLengthID, N + 1, vertexIDs, crossSectionLength);
   }
-
+  
   while (interface.isCouplingOngoing()) {
     // When an implicit coupling scheme is used, checkpointing is required
     if (interface.isActionRequired(actionWriteIterationCheckpoint())) {
+      
+      // save old state, save checkpoint (not needed here)
+      
       interface.fulfilledAction(actionWriteIterationCheckpoint());
     }
+    
+    // compute adaptive time step (not needed)
+    // choose smalles time step (sub-cycling if dt is smaller than precice_dt)
+    dt = std::min(precice_dt, dt);
+    
+    // advance in time for subcycling
+    tsub++;
 
-    //p_old is not used for gamma = 0.0
-    fluid_nl(crossSectionLength, crossSectionLength_n, velocity, velocity_n, pressure, pressure_n, pressure, t + 1, N, kappa, tau, 0.0);
+    // p_old is not used for gamma = 0.0
+    fluid_nl(crossSectionLength, crossSectionLength_subcycle_n,  // crossSectionLength
+	     velocity, velocity_subcycle_n,                      // velocity
+	     pressure, pressure_subcycle_n, pressure,            // pressure
+	     (t + tsub)/(double)t_steps_total,                   // scaled time for inflow condition (sample sine curve)
+	     N, kappa, tau, 0.0);                                // dimensionless parameters
+    
+    // store state variables for previous subcycle
+    for (i = 0; i <= N; i++) {
+      velocity_subcycle_n[i] = velocity[i];
+      pressure_subcycle_n[i] = pressure[i];
+      crossSectionLength_subcycle_n[i] = crossSectionLength[i];
+    }
 
+    // write pressure data to precice
     interface.writeBlockScalarData(pressureID, N + 1, vertexIDs, pressure);
-    interface.advance(0.01);
+    
+    // advance
+    precice_dt = interface.advance(dt);
+    
+    // read crossSectionLength data from precice
     interface.readBlockScalarData(crossSectionLengthID, N + 1, vertexIDs, crossSectionLength);
 
-    if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. not yet converged
-      // cout << "Iterate" << endl;
+    // set variables back to checkpoint
+    if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. not yet converged      
+      tsub = 0;
+      for (i = 0; i <= N; i++) {
+        velocity_subcycle_n[i] = velocity_n[i];
+        pressure_subcycle_n[i] = pressure_n[i];
+        crossSectionLength_subcycle_n[i] = crossSectionLength_n[i];
+	
+	// also reset current state variables, but keep crossSectionLength
+	velocity[i] = velocity_n[i];
+	pressure[i] = pressure[i];
+      }
+      
       interface.fulfilledAction(actionReadIterationCheckpoint());
     } else {
-      // cout << "Fluid: Advancing in time, finished timestep: " << t << endl;
-      t++;
+      cout << "Fluid: Advancing in time, finished timestep: " << tstep_counter << endl;
+      t += n_subcycles;
+      tstep_counter++;
+      tsub = 0;
 
+      // store state variables from last time step (required in fluid_nl)
       for (i = 0; i <= N; i++) {
         velocity_n[i] = velocity[i];
         pressure_n[i] = pressure[i];

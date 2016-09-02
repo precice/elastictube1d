@@ -30,7 +30,7 @@ int fluid_nl(
     double* pressure,
     double* pressure_n,
     double* pressure_old,
-    int t,
+    double scaled_t,
     int N,
     double kappa,
     double tau,
@@ -93,7 +93,7 @@ int fluid_nl(
     /* Boundary */
 
     /* Velocity Inlet is prescribed */
-    tmp = sin(PI * t / 100);
+    tmp = sin(PI * scaled_t);
     Res[0] = (1.0 / kappa) + (1.0 / (kappa * ampl)) * tmp * tmp - velocity[0];
 
     /* Pressure Inlet is lineary interpolated */

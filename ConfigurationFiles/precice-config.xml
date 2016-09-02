@@ -1,6 +1,20 @@
 <?xml version="1.0"?>
 
 <precice-configuration>
+
+  <log-filter component="" target="debug" switch="off" />
+  <log-filter component="" target="info" switch="on" />
+  <log-filter target="debug" component="precice::cplscheme::impl::IQNILSPostProcessing" switch="off" />
+  <log-filter target="debug" component="precice::cplscheme::BaseCouplingScheme" switch="om" />
+  <log-filter target="debug" component="precice::cplscheme::impl::BaseQNPostProcessing" switch="off" />
+  <log-filter target="debug" component="precice::cplscheme::impl::MMPostProcessing" switch="off" />
+  <log-filter target="debug" component="precice::cplscheme::ImplicitCouplingScheme" switch="on" />
+
+
+  <log-output column-separator=" | " log-time-stamp="no" 
+              log-time-stamp-human-readable="yes" log-machine-name="no" 
+              log-message-type="no" log-trace="yes" />
+
   
   <solver-interface dimensions="2">
     
@@ -45,7 +59,7 @@
 
     <coupling-scheme:serial-implicit>
       <participants first="FLUID" second="STRUCTURE"/>
-      <max-time value="40.0"/>
+      <max-time value="1.0"/>
       <timestep-length value="1e-2" valid-digits="8"/>
       <max-iterations value="40"/>
       <exchange data="Pressure"      mesh="Structure_Nodes" from="FLUID" to="STRUCTURE" />
