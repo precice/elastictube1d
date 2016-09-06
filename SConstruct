@@ -38,7 +38,6 @@ def vprint(name, value, default=True, description = None):
 ############################
 
 vars = Variables(None, ARGUMENTS)
-vars.Add(BoolVariable("boost_inst", "Enable if Boost is available compiled and installed.", False))
 vars.Add(BoolVariable("parallel", "Compile source-code for parallel version of 1D Example for preCICE", False))
 vars.Add(BoolVariable("petsc", "Enable use of the Petsc linear algebra library.", True))
 vars.Add(BoolVariable("python", "Enable use of python", False))
@@ -93,9 +92,6 @@ else:
 env.Append(CCFLAGS = ["-g3", "-O0", "-Wall", "-std=c++11"])
 
 # ====== boost ======
-if env["supermuc"]:
-   boostOnSupermuc = env["ENV"]["BOOST_LIBDIR"]
-   env.Append(LIBPATH = [boostOnSupermuc])
 uniqueCheckLib(conf, "boost_system")
 uniqueCheckLib(conf, "boost_filesystem")
 uniqueCheckLib(conf, "boost_thread")
