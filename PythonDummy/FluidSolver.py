@@ -1,6 +1,7 @@
 import os
 import sys
 import argparse
+from mpi4py import MPI
 
 # check if PRECICE_ROOT is defined
 if not os.getenv('PRECICE_ROOT'):
