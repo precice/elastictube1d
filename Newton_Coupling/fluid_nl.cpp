@@ -217,19 +217,6 @@ int fluid_nl(
     */
     
     LA::linsolve((2 * N + 2), (2 * N + 2), LHS, Res, X);
-    
-    //exit(0);
-    /*
-     for (i = 0; i <= (2 * N + 1); i++){
-      for (j = 0; j <= (2 * N + 1); j++){
-	if(std::isnan(LHS[i][j].u + LHS[i][j].v)){
-          std::cout<<"nan: ("<<LHS[i][j].u<<", "<<LHS[i][j].v<<")"<<std::endl;}
-      }
-      //if(std::isnan(X[i].u + X[i].v))
-        std::cout<<"X["<<i<<"] = ("<<X[i].u<<", "<<X[i].v<<")"<<std::endl;
-    }
-    exit(0);
-    */
 
     for (i = 0; i <= N; i++) {
       velocity[i] = velocity[i] + X[i];
@@ -237,7 +224,14 @@ int fluid_nl(
     }
 
   } // END OF WHILE
-
-
+  
+  
+  // free memory
+  free(Res);
+  free(X);
+  for (int i = 0; i < (2*N+2); ++i)
+    free(LHS[i]);
+  free(LHS);
+  
   return 0;
 }

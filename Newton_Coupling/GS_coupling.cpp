@@ -256,6 +256,14 @@ int main(int argc, char** argv)
   std::cout<<"\n average coupling iterations: "<<total/100.<<std::endl;
   std::cout<<" -----------------------------------------"<<std::endl;
   cout << "\n\nRUN FINISHED, t=100, exiting..." << endl;
+  
+  
+  delete v; 
+  delete v_prev;
+  delete p;
+  delete p_prev;
+  delete cSL;
+  delete cSL_prev;
 
   return 0;
 }

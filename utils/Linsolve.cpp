@@ -18,13 +18,15 @@ void linsolve(
     
   dualReal** Q, **R, *b;
   
-  b   = (dualReal*)calloc((m), sizeof(dualReal)); 
-  Q = (dualReal**)calloc((n), sizeof(dualReal*));
-  for (int i = 0; i < n; ++i)
-    Q[i] = (dualReal*)calloc((m), sizeof(dualReal));
-  R = (dualReal**)calloc((m), sizeof(dualReal*));
-  for (int i = 0; i < n; ++i)
-    R[i] = (dualReal*)calloc((m), sizeof(dualReal));
+  b   = (dualReal*)calloc((m), sizeof(dualReal));    if(b == NULL) exit(0);
+  Q = (dualReal**)calloc((n), sizeof(dualReal*));    if(Q == NULL) exit(0);
+  for (int i = 0; i < n; ++i){  
+    Q[i] = (dualReal*)calloc((m), sizeof(dualReal)); if(Q[i] == NULL) exit(0);
+  }
+  R = (dualReal**)calloc((m), sizeof(dualReal*));    if(R == NULL) exit(0);
+  for (int i = 0; i < m; ++i){
+    R[i] = (dualReal*)calloc((m), sizeof(dualReal)); if(R[i] == NULL) exit(0);
+  }
   
   // decompose A = QR
   modifiedGramSchmidt(n, m, mat, Q, R);
@@ -42,6 +44,14 @@ void linsolve(
   // backsubst. Rx = b
   backSubstitution(n, m, R, b, x);
   
+  // free memory
+  free(b);
+  for (int i = 0; i < n; ++i)
+    free(Q[i]);
+  free(Q);
+  for (int i = 0; i < m; ++i)
+    free(R[i]);
+  free(R);
 }
 
 void modifiedGramSchmidt (
