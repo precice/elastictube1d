@@ -126,4 +126,4 @@ if env["parallel"]:
    env.Program('FluidSolver', ['FluidSolver_Parallel/fluidDataDisplay.cpp', 'FluidSolver_Parallel/FluidSolver.cpp', 'FluidSolver_Parallel/fluidComputeSolution.cpp'])
 else:
    env.Program('StructureSolver', ['StructureSolver_Serial/structure_solver.cpp'])
-   env.Program('FluidSolver', ['FluidSolver_Serial/fluid_solver.cpp', 'FluidSolver_Serial/fluid_nl.cpp'])   
+   env.Program('FluidSolver', ['FluidSolver_Serial/fluid_solver.cpp', 'FluidSolver_Serial/fluid_nl.cpp', 'utils/AD.cpp', 'utils/Linsolve.cpp'])   

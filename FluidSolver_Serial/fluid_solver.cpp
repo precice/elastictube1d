@@ -2,12 +2,22 @@
 #include "precice/SolverInterface.hpp"
 #include <iostream>
 #include <stdlib.h>
+#include "../utils/AD.hpp"
+#include "Eigen/Dense"
+#include <assert.h>
+
 
 using std::cout;
 using std::endl;
 
+using namespace AD;
+
 using namespace precice;
 using namespace precice::constants;
+
+typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> matrixRM;
+typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> matrix;
+typedef Eigen::Matrix<double, Eigen::Dynamic, 1> vector;
 
 void printData(const std::vector<double>& data)
 {
@@ -51,20 +61,31 @@ int main(int argc, char** argv)
 
   // init data
   int i;
-  double *velocity, *velocity_n, *pressure, *pressure_n, *crossSectionLength, *crossSectionLength_n;
-  double *velocity_subcycle_n, *pressure_subcycle_n, *crossSectionLength_subcycle_n;
+  vector velocity                      = vector::Zero(N+1);
+  vector velocity_n                    = vector::Zero(N+1);
+  vector pressure                      = vector::Zero(N+1);
+  vector pressure_n                    = vector::Zero(N+1);
+  vector crossSectionLength            = vector::Zero(N+1);
+  vector crossSectionLength_n          = vector::Zero(N+1);
+  vector p_save                        = vector::Zero(N+1);
+  vector cSL_save                      = vector::Zero(N+1);
+  vector v_save                        = vector::Zero(N+1);
+  
+  vector positions                     = vector::Zero(N+1);
+  
+  matrix J_F = matrix::Zero(N+1, N+1);
+  
+  dualReal *v, *v_prev, *p, *p_prev, *cSL, *cSL_prev; 
   
   int dimensions = interface.getDimensions();
-
-  velocity             = new double[N + 1]; // Speed
-  velocity_n           = new double[N + 1];
-  velocity_subcycle_n  = new double[N + 1];
-  pressure             = new double[N + 1]; // Pressure
-  pressure_n           = new double[N + 1];
-  pressure_subcycle_n  = new double[N + 1];
-  crossSectionLength   = new double[N + 1];
-  crossSectionLength_n = new double[N + 1];
-  crossSectionLength_subcycle_n = new double[N + 1];
+  
+  v         = new dualReal[N+1];
+  v_prev    = new dualReal[N+1];
+  p         = new dualReal[N+1];
+  p_prev    = new dualReal[N+1];
+  cSL       = new dualReal[N+1];
+  cSL_prev  = new dualReal[N+1];
+  
   
   double dt = 0.01; // solver timestep size
   double precice_dt; // maximum precice timestep size
@@ -74,24 +95,22 @@ int main(int argc, char** argv)
   int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
   int pressureID           = interface.getDataID("Pressure", meshID);
   
-  int* vertexIDs;
-  double* grid;
-  vertexIDs = new int[(N + 1)];
+  Eigen::VectorXi vertexIDs = Eigen::VectorXi::Zero(N+1);
+  double *grid;
   grid = new double[dimensions * (N + 1)];
 
-  for (i = 0; i <= N; i++) {
-    velocity[i]             = 1.0 / (kappa * 1.0);
-    velocity_n[i]           = 1.0 / (kappa * 1.0);
-    velocity_subcycle_n[i]  = 1.0 / (kappa * 1.0);
-    crossSectionLength[i]   = 1.0;
-    crossSectionLength_n[i] = 1.0;
-    crossSectionLength_subcycle_n[i] = 1.0;
-    pressure[i]             = 0.0;
-    pressure_n[i]           = 0.0;
-    pressure_subcycle_n[i]  = 0.0;
+  for (i = 0; i < pressure.size(); i++) {
+    velocity(i)             = 1.0 / (kappa * 1.0);
+    velocity_n(i)           = 1.0 / (kappa * 1.0);
+    crossSectionLength(i)   = 1.0;
+    crossSectionLength_n(i) = 1.0;
+    pressure(i)             = 0.0;
+    pressure_n(i)           = 0.0;
     
     for (int dim = 0; dim < dimensions; dim++)
       grid[i * dimensions + dim] = i * (1 - dim);
+    // init positions
+    positions(i) = double(i);
   }
 
   int tstep_counter = 0; // number of time steps (only coupling iteration time steps)
@@ -100,18 +119,18 @@ int main(int argc, char** argv)
   int n_subcycles = 0;   // number of subcycles
   int t_steps_total = 0; // number of total timesteps, i.e., t_steps*n_subcycles
 
-  interface.setMeshVertices(meshID, N + 1, grid, vertexIDs);
+  interface.setMeshVertices(meshID, N + 1, grid, vertexIDs.data());
 
   cout << "Fluid: init precice..." << endl;
   precice_dt = interface.initialize();
   
   n_subcycles = (int)(precice_dt/dt);
-  t_steps_total = 100*n_subcycles;
+  assert(n_subcycles == 1);
   
-  std::cout<<"n_subcycles: "<<n_subcycles<<" t_steps_total: "<<t_steps_total<<std::endl;
-
+  t_steps_total = 100*n_subcycles;
+ 
   if (interface.isActionRequired(actionWriteInitialData())) {
-    interface.writeBlockScalarData(pressureID, N + 1, vertexIDs, pressure);
+    interface.writeBlockScalarData(pressureID, N + 1, vertexIDs.data(), pressure.data());
     //interface.initializeData();
     interface.fulfilledAction(actionWriteInitialData());
   }
@@ -119,7 +138,7 @@ int main(int argc, char** argv)
   interface.initializeData();
 
   if (interface.isReadDataAvailable()) {
-    interface.readBlockScalarData(crossSectionLengthID, N + 1, vertexIDs, crossSectionLength);
+    interface.readBlockScalarData(crossSectionLengthID, N + 1, vertexIDs.data(), crossSectionLength.data());
   }
   
   while (interface.isCouplingOngoing()) {
@@ -132,15 +151,9 @@ int main(int argc, char** argv)
         tsub = 0;
 
         // store state variables from last time step (required in fluid_nl)
-        for (i = 0; i <= N; i++) {
-          velocity_n[i]           = velocity[i];
-          pressure_n[i]           = pressure[i];
-          crossSectionLength_n[i] = crossSectionLength[i];
-	
-	  velocity_subcycle_n[i]           = velocity[i];
-          pressure_subcycle_n[i]           = pressure[i];
-          crossSectionLength_subcycle_n[i] = crossSectionLength[i];
-        }
+	velocity_n = velocity;
+	pressure_n = pressure;
+	crossSectionLength_n = crossSectionLength;        
       }
       tstep_counter++;
       
@@ -153,47 +166,75 @@ int main(int argc, char** argv)
     
     // advance in time for subcycling
     tsub++;
-
-    // p_old is not used for gamma = 0.0
-    fluid_nl(crossSectionLength, crossSectionLength_subcycle_n,  // crossSectionLength
-	     velocity, velocity_subcycle_n,                      // velocity
-	     pressure, pressure_subcycle_n, pressure,            // pressure
-	     (t + tsub)/(double)t_steps_total,                   // scaled time for inflow condition (sample sine curve)
-	     N, kappa, tau, 0.0);                                // dimensionless parameters
     
-    // store state variables for previous subcycle
-    for (i = 0; i <= N; i++) {
-      velocity_subcycle_n[i] = velocity[i];
-      pressure_subcycle_n[i] = pressure[i];
-      crossSectionLength_subcycle_n[i] = crossSectionLength[i];
+    p_save = pressure;
+    cSL_save = crossSectionLength;
+    v_save = velocity;
+    
+    // build Jacobian J_F of Fluid solver, N+1 function evaluations
+    for(int r = 0; r < crossSectionLength.size(); r++)
+    {
+      // get new dual datatypes
+      for (i = 0; i <= N; i++) {
+	double ei = (i==r) ? 1. : 0.;
+       cSL[i] = dualReal(cSL_save[i], ei); 
+       cSL_prev[i] = dualReal(crossSectionLength_n[i]);
+       p[i] = dualReal(p_save[i]);
+       p_prev[i] = dualReal(pressure_n[i]);
+       v[i] = dualReal(v_save[i]);
+       v_prev[i] = dualReal(velocity_n[i]);
+      }
+      
+      // p_old is not used for gamma = 0.0
+      fluid_nl(cSL, cSL_prev,                               // crossSectionLength
+	       v, v_prev,                                   // velocity
+	       p, p_prev, p,                                // pressure
+	       (t + tsub)/(double)t_steps_total,            // scaled time for inflow condition (sample sine curve)
+	       N, dualReal(kappa), dualReal(tau), 0.0);     // dimensionless parameters
+      
+      // write back
+      for (i = 0; i <= N; i++){
+       crossSectionLength[i] = cSL[i].u;
+       crossSectionLength_n[i] = cSL_prev[i].u;
+       pressure[i] = p[i].u;
+       pressure_n[i] = p_prev[i].u;
+       velocity[i] = v[i].u;
+       velocity_n[i] = v_prev[i].u;
+      }
+      
+      
+      // \frac{ \partial F }{ \partial xr } is rth column of Jacobian
+      for (i = 0; i <= N; i++) 
+        J_F(r,i) = p[i].v;
     }
-
+    vector ptil = pressure_n + J_F*(crossSectionLength - crossSectionLength_n);
+    vector diff = pressure - ptil;
+    Eigen::IOFormat CommaInitFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", " << ", ";");
+    
+    //std::cout<<"J_F: "<<J_F<<std::endl;
+    std::cout<<"\n norm(p-ptil): "<<diff.norm()<<"\n p := "<<pressure.format(CommaInitFmt)<<"\n ptil:= "<<ptil.format(CommaInitFmt)<<std::endl;
+    
     // write pressure data to precice
-    interface.writeBlockScalarData(pressureID, N + 1, vertexIDs, pressure);
+    interface.writeBlockScalarData(pressureID, N + 1, vertexIDs.data(), pressure.data());
     
     // advance
     precice_dt = interface.advance(dt);
     
     // read crossSectionLength data from precice
-    interface.readBlockScalarData(crossSectionLengthID, N + 1, vertexIDs, crossSectionLength);
+    interface.readBlockScalarData(crossSectionLengthID, N + 1, vertexIDs.data(), crossSectionLength.data());
 
     // set variables back to checkpoint
     if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. not yet converged      
       std::cout<<" # ITERATE # "<<std::endl;
       tsub = 0;
-      for (i = 0; i <= N; i++) {
-        velocity_subcycle_n[i] = velocity_n[i];
-        pressure_subcycle_n[i] = pressure_n[i];
-        crossSectionLength_subcycle_n[i] = crossSectionLength_n[i];
-	
-	// also reset current state variables, but keep crossSectionLength
-	// (if no subcycling is enabled, coupling iterations are slightly worse if we reset
-	//  velocity and pressure. For the case (tau, kappa) = (0.01, 10) we get 6.15 its
-	//  without reset and 6.20 iterations if velocity and pressure is reset)
-	velocity[i] = velocity_n[i]; 
-	pressure[i] = pressure[i];
-      }
-      
+ 
+      // also reset current state variables, but keep crossSectionLength
+      // (if no subcycling is enabled, coupling iterations are slightly worse if we reset
+      //  velocity and pressure. For the case (tau, kappa) = (0.01, 10) we get 6.15 its
+      //  without reset and 6.20 iterations if velocity and pressure is reset)
+      velocity = velocity_n; 
+      pressure = pressure_n;
+    
       interface.fulfilledAction(actionReadIterationCheckpoint());
     }
   }

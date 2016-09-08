@@ -1,20 +1,24 @@
+
 #ifndef FLUID_NL_H_
 #define FLUID_NL_H_
 
-#define PI 3.14159265359
+#include "../utils/AD.hpp"
 
-int fluid_nl(double* crossSectionLength,
-             double* crossSectionLength_n,
-             double* velocity,
-             double* velocity_n,
-             double* pressure,
-             double* pressure_n,
-             double* pressure_old,
+#define PI 3.14159265359
+using namespace AD;
+
+int fluid_nl(dualReal* crossSectionLength,
+             dualReal* crossSectionLength_n,
+             dualReal* velocity,
+             dualReal* velocity_n,
+             dualReal* pressure,
+             dualReal* pressure_n,
+             dualReal* pressure_old,
              double scaled_t,
              int N,
-             double kappa,
-             double tau,
-             double gamma);
+             dualReal kappa,
+             dualReal tau,
+             dualReal gamma);
 
 int linsolve(int n,
              double** A,
