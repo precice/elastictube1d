@@ -1,5 +1,4 @@
 #include "fluid_nl.h"
-#include "precice/SolverInterface.hpp"
 #include <iostream>
 #include <stdlib.h>
 #include "../utils/AD.hpp"
