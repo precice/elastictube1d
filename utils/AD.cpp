@@ -97,10 +97,11 @@ namespace AD {
     return  dReal_grad(lhs.u - rhs.u, _v);
   }
   
-  void operator-(dReal_grad& rhs){
+  dReal_grad operator-(dReal_grad rhs){
     for(std::size_t i = 0; i < rhs.v.size(); i++)
       rhs.v[i] = -rhs.v[i];
     rhs.u = -rhs.u;
+    return rhs;
   }
   
   dReal_grad operator*(const dReal_grad& lhs, const dReal_grad& rhs){
@@ -141,47 +142,54 @@ namespace AD {
     }
   }
   
-  void sin(dReal_grad& x){
+  dReal_grad sin(dReal_grad x){
     for(std::size_t i = 0; i < x.v.size(); i++)
       x.v[i] = x.v[i]*std::cos(x.u);
     x.u = std::sin(x.u);
+    return x;
   }
   
-  void cos(dReal_grad& x){
+  dReal_grad cos(dReal_grad x){
     for(std::size_t i = 0; i < x.v.size(); i++)
       x.v[i] = -x.v[i]*std::sin(x.u);
     x.u = std::cos(x.u);
+    return x;
   }
   
-  void exp(dReal_grad& x){
+  dReal_grad exp(dReal_grad x){
     for(std::size_t i = 0; i < x.v.size(); i++)
       x.v[i] = x.v[i]*std::exp(x.u);
     x.u = std::exp(x.u);
+    return x;
   }
   
-  void log(dReal_grad& x){
+  dReal_grad log(dReal_grad x){
     if(x.u != 0)
       for(std::size_t i = 0; i < x.v.size(); i++)
         x.v[i] = x.v[i]/x.u;
     x.u = std::log(x.u);
+    return x;
   }
   
-  void pow(dReal_grad& x, int e){
+  dReal_grad pow(dReal_grad x, int e){
     for(std::size_t i = 0; i < x.v.size(); i++)
       x.v[i] = e*std::pow(x.u,e-1)*x.v[i];
     x.u = std::pow(x.u, e);
+    return x;
   }
   
-  void abs(dReal_grad& x){
+  dReal_grad abs(dReal_grad x){
     for(std::size_t i = 0; i < x.v.size(); i++)
       x.v[i] = x.v[i]*(x.u/std::abs(x.u));
     x.u = std::abs(x.u);
+    return x;
   }
   
-  void sqrt(dReal_grad& x){
+  dReal_grad sqrt(dReal_grad x){
     for(std::size_t i = 0; i < x.v.size(); i++)
       x.v[i] = .5*1./std::sqrt(x.u)*x.v[i];
     x.u = std::sqrt(x.u);
+    return x;
   } 
   
 }

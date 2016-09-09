@@ -34,25 +34,25 @@ namespace AD {
   
   dReal_grad operator-(const dReal_grad& lhs, const dReal_grad& rhs);
   
-  void operator-(dReal_grad& rhs);
+  dReal_grad operator-(dReal_grad rhs);
   
   dReal_grad operator*(const dReal_grad& lhs, const dReal_grad& rhs);
   
   dReal_grad operator/(const dReal_grad& lhs, const dReal_grad& rhs);
   
-  void sin(dReal_grad& x);
+  dReal_grad sin(dReal_grad x);
   
-  void cos(dReal_grad& x);
+  dReal_grad cos(dReal_grad x);
   
-  void exp(dReal_grad& x);
+  dReal_grad exp(dReal_grad x);
   
-  void log(dReal_grad& x);
+  dReal_grad log(dReal_grad x);
   
-  void pow(dReal_grad& x, int e);
+  dReal_grad pow(dReal_grad x, int e);
   
-  void abs(dReal_grad& x);
+  dReal_grad abs(dReal_grad x);
   
-  void sqrt(dReal_grad& x);
+  dReal_grad sqrt(dReal_grad x);
   
   // dualReal methods
   
