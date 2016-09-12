@@ -1,11 +1,13 @@
 #include "fluid_nl.h"
+#include <cstdlib>
 #include <iostream>
+#include <fstream>
+#include <iomanip>
 #include <stdlib.h>
 #include "../utils/AD.hpp"
 #include "Eigen/Dense"
 #include <assert.h>
-#include <vector>
-#include <boost/config/no_tr1/complex.hpp>
+
 
 using std::cout;
 using std::endl;
@@ -18,7 +20,7 @@ typedef Eigen::Matrix<double, Eigen::Dynamic, 1> vector;
 
 int main(int argc, char** argv)
 {
-  cout << "Starting Newton Coupling of Fluid and Solid Solver, Staggered..." << endl;
+  cout << "Starting Fluid Solver..." << endl;
 
   if (argc < 4) {
     cout << endl;
@@ -35,8 +37,20 @@ int main(int argc, char** argv)
   double tau = atof(argv[2]);
   double kappa = atof(argv[3]);
   double eps = (argc > 4) ? atof(argv[4]) : 1e-6;
+  
+  // output file:
+  std::ofstream fout;
+ // fout.setf (std::ios::fixed);
+  fout.setf (std::ios::showpoint);
+  fout.precision (3);
+  fout.open("convergence-history.txt");
 
   std::cout << "N: " << N << " tau: " << tau << " kappa: " << kappa << std::endl;
+  fout<<std::left<<"\n -- 1d flexible tube, N = "<<N<<", tau = "<<tau<<", kappa = "<<kappa<<" --\n"<<std::endl;
+  fout.precision(3);
+  fout<<std::left<<std::setw(15)<<"time step"<<std::setw(15)<<"iterations"<<std::setw(10)<<"alpha"<<std::setw(10)<<"rho(a)"<<std::setw(10)<<"rho(p)";
+  fout.precision(16);
+  fout<<std::setw(30)<<"res(a)"<<std::setw(30)<<"res(p)"<<std::setw(30)<<"relative res(a)"<<std::setw(30)<<"relative res(p)"<<std::endl;
 
   // init data
   vector velocity                      = vector::Zero(N+1);
@@ -50,20 +64,19 @@ int main(int argc, char** argv)
   vector v_k                           = vector::Zero(N+1);
   
   vector positions                     = vector::Zero(N+1);
-  std::vector<double> ones(N+1);
   
   matrix J_F = matrix::Zero(N+1, N+1);
   matrix J_S = matrix::Zero(N+1, N+1);
   matrix J   = matrix::Zero(2*(N+1), 2*(N+1));
   
-  dReal_grad *v, *v_prev, *p, *p_prev, *cSL, *cSL_prev; 
+  dualReal *v, *v_prev, *p, *p_prev, *cSL, *cSL_prev; 
   
-  v         = new dReal_grad[N+1];
-  v_prev    = new dReal_grad[N+1];
-  p         = new dReal_grad[N+1];
-  p_prev    = new dReal_grad[N+1];
-  cSL       = new dReal_grad[N+1];
-  cSL_prev  = new dReal_grad[N+1];
+  v         = new dualReal[N+1];
+  v_prev    = new dualReal[N+1];
+  p         = new dualReal[N+1];
+  p_prev    = new dualReal[N+1];
+  cSL       = new dualReal[N+1];
+  cSL_prev  = new dualReal[N+1];
 
   for (int i = 0; i < pressure.size(); i++) {
     velocity(i)             = 1.0 / (kappa * 1.0);
@@ -73,14 +86,12 @@ int main(int argc, char** argv)
     crossSectionLength_n(i) = 1.0;    
     cSL_k(i)                = 1.0;
     positions(i)            = double(i);
-    ones[i]                 = 1;
   }
   
   // coupling iterations counter
   int iter = 1; 
   int max_iter = 100;
   std::vector<int> coupling_iterations;
-  
   
   vector res_d, res_p;
   double norm_res_d = 1, norm_res_p = 1, norm_d, norm_p = 1;
@@ -110,38 +121,41 @@ int main(int argc, char** argv)
       // needs N+1 calls to fluid solver with identical state variables
       // p_k, cSL_k, v_k from previous iteration
       
-     
-      // get new dual datatypes
-      for (int i = 0; i <= N; i++) {
-        cSL[i]      = dReal_grad(cSL_k[i], ones);     // direction derivatives, all at once
-        cSL_prev[i] = dReal_grad(crossSectionLength_n[i], N+1);
-        p[i]        = dReal_grad(p_k[i], N+1);
-        p_prev[i]   = dReal_grad(pressure_n[i], N+1);
-        v[i]        = dReal_grad(v_k[i], N+1);
-        v_prev[i]   = dReal_grad(velocity_n[i], N+1);
+      // build Jacobian J_F of Fluid solver, N+1 function evaluations
+      for(int r = 0; r < crossSectionLength.size(); r++)
+      {
+	// get new dual datatypes
+	for (int i = 0; i <= N; i++) {
+	  double ei = (i==r) ? 1. : 0.;
+	cSL[i] = dualReal(cSL_k[i], ei); 
+	cSL_prev[i] = dualReal(crossSectionLength_n[i]);
+	p[i] = dualReal(p_k[i]);
+	p_prev[i] = dualReal(pressure_n[i]);
+	v[i] = dualReal(v_k[i]);
+	v_prev[i] = dualReal(velocity_n[i]);
+	}
+	
+	// p_old is not used for gamma = 0.0
+	fluid_nl(cSL, cSL_prev,                               // crossSectionLength
+		v, v_prev,                                   // velocity
+		p, p_prev, p,                                // pressure
+		t/100.,                                      // scaled time for inflow condition (sample sine curve)
+		N, dualReal(kappa), dualReal(tau), 0.0);     // dimensionless parameters
+	
+	// write back
+	for (int i = 0; i <= N; i++){
+	crossSectionLength[i] = cSL[i].u;
+	crossSectionLength_n[i] = cSL_prev[i].u;
+	pressure[i] = p[i].u;
+	pressure_n[i] = p_prev[i].u;
+	velocity[i] = v[i].u;
+	velocity_n[i] = v_prev[i].u;
+	}
+	
+	// \frac{ \partial F }{ \partial xr } is rth column of Jacobian
+	for (int i = 0; i <= N; i++) 
+	  J_F(i,r) = p[i].v;
       }
-      
-      // p_old is not used for gamma = 0.0
-      fluid_nl(cSL, cSL_prev,                                         // crossSectionLength
-	      v, v_prev,                                              // velocity
-	      p, p_prev, p,                                           // pressure
-	      t/100.,                                                 // scaled time for inflow condition (sample sine curve)
-	      N, dReal_grad(kappa, N+1), dReal_grad(tau, N+1), 0.0);  // dimensionless parameters
-      
-      // write back
-      for (int i = 0; i <= N; i++){
-        crossSectionLength[i] = cSL[i].u;
-        crossSectionLength_n[i] = cSL_prev[i].u;
-        pressure[i] = p[i].u;
-        pressure_n[i] = p_prev[i].u;
-        velocity[i] = v[i].u;
-        velocity_n[i] = v_prev[i].u;
-      }
-      
-      // \frac{ \partial F }{ \partial xr } is rth column of Jacobian
-      for (int r = 0; r <= N; r++)
-        for (int i = 0; i <= N; i++) 
-          J_F(i,r) = p[i].v[r];
       
       /**
       * solid solver call
@@ -149,22 +163,27 @@ int main(int argc, char** argv)
       * ------------------------------------------------------------------------------------------
       */
       
-      // get new dual datatypes
-      for (int i = 0; i <= N; i++) {
-	cSL[i] = dReal_grad(cSL_k[i], N+1); 
-	p[i] = dReal_grad(pressure[i], ones);     // directional derivative, all at once
-      }
+      // build Jacobian J_F of Fluid solver, N+1 function evaluations
+      for(int r = 0; r < pressure.size(); r++)
+      {
+	// get new dual datatypes
+	for (int i = 0; i <= N; i++) {
+	  double ei = (i==r) ? 1. : 0.;
+	  cSL[i] = dualReal(cSL_k[i]); 
+	  p[i] = dualReal(pressure[i], ei);     // directional derivative
+	}
 	
-      // structure solver
-      for (int i = 0; i <= N; i++) {  
-	cSL[i] = dReal_grad(4.0, N+1) / ((dReal_grad(2.0, N+1) - p[i]) * (dReal_grad(2.0, N+1) - p[i]));
-      }
+	// structure solver
+	for (int i = 0; i <= N; i++) {  
+	  cSL[i] = dualReal(4.0) / ((dualReal(2.0) - p[i]) * (dualReal(2.0) - p[i]));
+	}
 	      
-      // \frac{ \partial S }{ \partial xr } is rth column of Jacobian
-      for (int r = 0; r <= N; r++)
-        for (int i = 0; i <= N; i++)
-          J_S(i,r) = cSL[i].v[r];
-       
+	// \frac{ \partial S }{ \partial xr } is rth column of Jacobian
+	for (int i = 0; i <= N; i++){ 
+	  J_S(i,r) = cSL[i].v;
+	}
+      }
+      
       // write back
       for (int i = 0; i <= N; i++){
 	crossSectionLength[i] = cSL[i].u;
@@ -186,7 +205,8 @@ int main(int argc, char** argv)
       // estimate convergence rate
       if (iter > 2){
 	alpha = std::log(std::fabs(norm_res_d/norm_res_d_n))/std::log(std::fabs(norm_res_d_n/norm_res_d_nn));	
-      }else if(iter > 1){
+      }
+      if(iter > 1){
 	rho_d   = std::pow((norm_res_d / norm_d) / norm_res_d_relative_0, 1./(double)iter); 
 	rho_p   = std::pow((norm_res_p / norm_p) / norm_res_p_relative_0, 1./(double)iter); 
       }else if(iter == 1){
@@ -198,11 +218,17 @@ int main(int argc, char** argv)
       std::cout<<"relative convergence meassure, cross-sectional area: ||res_a|| = "<<norm_res_d<<", limit = "<<eps*norm_d<<", conv: "<<(norm_res_d <= eps * norm_d)<<std::endl;
       std::cout<<"relative convergence meassure, pressure area:        ||res_p|| = "<<norm_res_p<<", limit = "<<eps*norm_p<<", conv: "<<(norm_res_p <= eps * norm_p)<<std::endl;
       std::cout<<"convergence speed, alpha = "<<alpha<<", rho(res_a) = "<<rho_d<<", rho(res_p) = "<<rho_p<<std::endl;
+      fout.precision(3);
+      fout<<std::left<<std::setw(15)<<t<<std::setw(15)<<iter<<std::setw(10)<<alpha<<std::setw(10)<<rho_d<<std::setw(10)<<rho_p;
+      fout.precision(16);
+      fout<<std::setw(30)<<norm_res_d<<std::setw(30)<<norm_res_p<<std::setw(30)<<norm_res_d/norm_d<<std::setw(30)<<norm_res_p/norm_p<<std::endl;
       if(norm_res_d <= eps * norm_d && norm_res_p <= eps * norm_p)
       {
 	// CONVERGENCE
 	std::cout<<"\n  ## time step "<<t<<" converged within "<<iter<<" iterations, advancing in time ##"<<std::endl;
 	coupling_iterations.push_back(iter);
+	fout<<"\n";
+	rho_d = 0; rho_p = 0; alpha = 0;
 	
 	break;
       }
