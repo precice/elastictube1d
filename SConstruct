@@ -121,4 +121,4 @@ else:
 
 env = conf.Finish()
    
-env.Program('GSNewtonCoupling', ['Newton_Coupling/GS_coupling_AD1.cpp', 'Newton_Coupling/fluid_nl.cpp', 'utils/AD.cpp', 'utils/Linsolve.cpp'])   
+env.Program('NewtonCoupling', ['Newton_Coupling/coupling_AD1.cpp', 'Newton_Coupling/fluid_nl.cpp', 'utils/AD.cpp', 'utils/Linsolve.cpp'])   

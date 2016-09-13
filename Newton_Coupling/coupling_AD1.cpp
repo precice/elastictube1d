@@ -36,7 +36,8 @@ int main(int argc, char** argv)
   int N = atoi(argv[1]);
   double tau = atof(argv[2]);
   double kappa = atof(argv[3]);
-  double eps = (argc > 4) ? atof(argv[4]) : 1e-6;
+  bool parallel_scheme = atoi(argv[4]);
+  double eps = (argc > 5) ? atof(argv[5]) : 1e-6;
   
   // output file:
   std::ofstream fout;
@@ -67,7 +68,12 @@ int main(int argc, char** argv)
   
   matrix J_F = matrix::Zero(N+1, N+1);
   matrix J_S = matrix::Zero(N+1, N+1);
-  matrix J   = matrix::Zero(2*(N+1), 2*(N+1));
+  matrix J;
+  
+  if(parallel_scheme)
+    J = matrix::Zero(2*(N+1), 2*(N+1));
+  else 
+    J = matrix::Zero(N+1, N+1);
   
   dualReal *v, *v_prev, *p, *p_prev, *cSL, *cSL_prev; 
   
@@ -93,7 +99,7 @@ int main(int argc, char** argv)
   int max_iter = 100;
   std::vector<int> coupling_iterations;
   
-  vector res_d, res_p;
+  vector res_d, res_p, res_x;
   double norm_res_d = 1, norm_res_p = 1, norm_d, norm_p = 1;
   double norm_res_d_n = 1, norm_res_p_n = 1;
   double norm_res_d_nn = 1, norm_res_p_nn = 1;
@@ -136,7 +142,7 @@ int main(int argc, char** argv)
 	}
 	
 	// p_old is not used for gamma = 0.0
-	fluid_nl(cSL, cSL_prev,                               // crossSectionLength
+	fluid_nl(cSL, cSL_prev,                              // crossSectionLength
 		v, v_prev,                                   // velocity
 		p, p_prev, p,                                // pressure
 		t/100.,                                      // scaled time for inflow condition (sample sine curve)
@@ -170,7 +176,11 @@ int main(int argc, char** argv)
 	for (int i = 0; i <= N; i++) {
 	  double ei = (i==r) ? 1. : 0.;
 	  cSL[i] = dualReal(cSL_k[i]); 
-	  p[i] = dualReal(pressure[i], ei);     // directional derivative
+	  
+	  if(parallel_scheme)
+	    p[i] = dualReal(p_k[i], ei);          // directional derivative
+	  else
+	    p[i] = dualReal(pressure[i], ei);     // directional derivative
 	}
 	
 	// structure solver
@@ -254,14 +264,30 @@ int main(int argc, char** argv)
       
     
       // building system Jacobian 
-      J = J_S*J_F - Eigen::MatrixXd::Identity(N+1, N+1);
+      if(parallel_scheme){
+	J.block(0,0,N+1,N+1)     = - Eigen::MatrixXd::Identity(N+1, N+1);
+	J.block(0,N+1,N+1,N+1)   = J_S;
+	J.block(N+1,0,N+1,N+1)   = J_F;
+	J.block(N+1,N+1,N+1,N+1) = - Eigen::MatrixXd::Identity(N+1, N+1);
+	res_x = Eigen::VectorXd::Zero(2*N+2);
+	res_x.segment(0,N+1)   = res_d;
+	res_x.segment(N+1,N+1) = res_p;	
+      }else{
+	J = J_S*J_F - Eigen::MatrixXd::Identity(N+1, N+1);
+	res_x = res_d;
+      }
       
       // solve linear system for Newton update: J \Delta x = rhs
       // right hand side: -( S o F (d) - d ) = -( d_til - d )
-      vector delta_x = J.fullPivHouseholderQr().solve(-res_d);
+      vector delta_x = J.fullPivHouseholderQr().solve(-res_x);
       
       // update displacements (x)
-      crossSectionLength = cSL_k + delta_x;
+      if(parallel_scheme){
+        crossSectionLength = cSL_k + delta_x.segment(0,N+1);
+	pressure           = p_k   + delta_x.segment(N+1,N+1);
+      }else{
+        crossSectionLength = cSL_k + delta_x;
+      }
       
       // update variables
       p_k = pressure;
