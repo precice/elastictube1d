@@ -188,7 +188,7 @@ int main(int argc, char** argv)
 	  cSL[i] = dualReal(4.0) / ((dualReal(2.0) - p[i]) * (dualReal(2.0) - p[i]));
 	}
 	      
-	// \frac{ \partial S }{ \partial xr } is rth column of Jacobian
+	// \frac{ \partial S }{ \partial xr } is rth column of Jacobian	
 	for (int i = 0; i <= N; i++){ 
 	  J_S(i,r) = cSL[i].v;
 	}
@@ -313,7 +313,16 @@ int main(int argc, char** argv)
     // store state variables from last time step (required in fluid_nl
     velocity_n = velocity;
     pressure_n = pressure;
-    crossSectionLength_n = crossSectionLength;       
+    crossSectionLength_n = crossSectionLength;    
+    
+        
+    Eigen::IOFormat OctaveFmt(Eigen::StreamPrecision, 0, ", ", ";\n", "", "", "[", "]");
+    std::stringstream ss;
+    ss << "Jacobian_t"<<t<<".m";
+    std::ofstream mats;
+    mats.open(ss.str());
+    mats<<"J_t"<<t<<" = ...\n"<<J.format(OctaveFmt)<<";"<<std::endl;
+    mats.close();
     
   }
   std::cout<<"\n --------------- finished ----------------"<<std::endl;
