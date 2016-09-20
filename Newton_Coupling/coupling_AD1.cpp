@@ -32,16 +32,39 @@ int main(int argc, char** argv)
     cout << "eps:   Threshold for relative convergence criterion. " << endl;
     return -1;
   }
-
-  int N = atoi(argv[1]);
-  double tau = atof(argv[2]);
-  double kappa = atof(argv[3]);
-  bool parallel_scheme = atoi(argv[4]);
-  double eps = (argc > 5) ? atof(argv[5]) : 1e-6;
   
-  // output file:
+  int N = 0;
+  double tau = 0., kappa = 0.;
+  bool parallel_scheme = false;
+  double eps = 1e-6;
+  double scaling_F = 1e-7;
+  
+  
+  for(int i = 1; i < argc; ++i){
+    if(std::string(argv[i]) == "-vectorial"){
+      parallel_scheme = true;
+    }else if(std::string(argv[i]) == "-serial"){
+      parallel_scheme = false;
+    }else if(std::string(argv[i]) == "-kappa"){
+      kappa = atof(argv[i+1]);
+      ++i;
+    }else if(std::string(argv[i]) == "-N"){
+      N = atoi(argv[i+1]);
+      ++i;
+    }else if(std::string(argv[i]) == "-tau"){
+      tau = atof(argv[i+1]);
+      ++i;
+    }else if(std::string(argv[i]) == "-eps"){
+      eps = atof(argv[i+1]);
+      ++i;
+    }else if(std::string(argv[i]) == "-lambda"){
+      scaling_F = atof(argv[i+1]);
+      ++i;
+    }        
+  }
+  
+  
   std::ofstream fout;
- // fout.setf (std::ios::fixed);
   fout.setf (std::ios::showpoint);
   fout.precision (3);
   fout.open("convergence-history.txt");
@@ -267,11 +290,11 @@ int main(int argc, char** argv)
       if(parallel_scheme){
 	J.block(0,0,N+1,N+1)     = - Eigen::MatrixXd::Identity(N+1, N+1);
 	J.block(0,N+1,N+1,N+1)   = J_S;
-	J.block(N+1,0,N+1,N+1)   = J_F;
-	J.block(N+1,N+1,N+1,N+1) = - Eigen::MatrixXd::Identity(N+1, N+1);
+	J.block(N+1,0,N+1,N+1)   = scaling_F * J_F;
+	J.block(N+1,N+1,N+1,N+1) = - scaling_F* Eigen::MatrixXd::Identity(N+1, N+1);
 	res_x = Eigen::VectorXd::Zero(2*N+2);
 	res_x.segment(0,N+1)   = res_d;
-	res_x.segment(N+1,N+1) = res_p;	
+	res_x.segment(N+1,N+1) = scaling_F * res_p;	
       }else{
 	J = J_S*J_F - Eigen::MatrixXd::Identity(N+1, N+1);
 	res_x = res_d;
@@ -284,7 +307,7 @@ int main(int argc, char** argv)
       // update displacements (x)
       if(parallel_scheme){
         crossSectionLength = cSL_k + delta_x.segment(0,N+1);
-	pressure           = p_k   + delta_x.segment(N+1,N+1);
+	pressure           = p_k   + delta_x.segment(N+1,N+1)/scaling_F;
       }else{
         crossSectionLength = cSL_k + delta_x;
       }
