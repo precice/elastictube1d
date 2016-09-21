@@ -22,16 +22,7 @@ int main(int argc, char** argv)
 {
   cout << "Starting Fluid Solver..." << endl;
 
-  if (argc < 4) {
-    cout << endl;
-    cout << "Usage: " << argv[0] << " N tau kappa" << endl;
-    cout << endl;
-    cout << "N:     Number of mesh elements, needs to be equal for fluid and structure solver." << endl;
-    cout << "tau:   Dimensionless time step size." << endl;
-    cout << "kappa: Dimensionless structural stiffness." << endl;
-    cout << "eps:   Threshold for relative convergence criterion. " << endl;
-    return -1;
-  }
+  Eigen::IOFormat OctaveFmt(Eigen::StreamPrecision, 0, ", ", ";\n", "", "", "[", "]");
   
   int N = 0;
   double tau = 0., kappa = 0.;
@@ -290,7 +281,7 @@ int main(int argc, char** argv)
       if(parallel_scheme){
 	J.block(0,0,N+1,N+1)     = - Eigen::MatrixXd::Identity(N+1, N+1);
 	J.block(0,N+1,N+1,N+1)   = J_S;
-	J.block(N+1,0,N+1,N+1)   = scaling_F * J_F;
+ 	J.block(N+1,0,N+1,N+1)   = scaling_F* Eigen::MatrixXd::Identity(N+1, N+1) * J_F;
 	J.block(N+1,N+1,N+1,N+1) = - scaling_F* Eigen::MatrixXd::Identity(N+1, N+1);
 	res_x = Eigen::VectorXd::Zero(2*N+2);
 	res_x.segment(0,N+1)   = res_d;
@@ -307,7 +298,7 @@ int main(int argc, char** argv)
       // update displacements (x)
       if(parallel_scheme){
         crossSectionLength = cSL_k + delta_x.segment(0,N+1);
-	pressure           = p_k   + delta_x.segment(N+1,N+1)/scaling_F;
+	pressure           = p_k   + delta_x.segment(N+1,N+1);
       }else{
         crossSectionLength = cSL_k + delta_x;
       }
@@ -317,13 +308,6 @@ int main(int argc, char** argv)
       v_k = velocity;
       cSL_k = crossSectionLength;
       iter++;      
-      
-      // also reset current state variables, but keep crossSectionLength
-      // (if no subcycling is enabled, coupling iterations are slightly worse if we reset
-      //  velocity and pressure. For the case (tau, kappa) = (0.01, 10) we get 6.15 its
-      //  without reset and 6.20 iterations if velocity and pressure is reset)
-      //velocity = velocity_n; 
-      //pressure = pressure_n;
     }
     
     
@@ -337,9 +321,7 @@ int main(int argc, char** argv)
     velocity_n = velocity;
     pressure_n = pressure;
     crossSectionLength_n = crossSectionLength;    
-    
         
-    Eigen::IOFormat OctaveFmt(Eigen::StreamPrecision, 0, ", ", ";\n", "", "", "[", "]");
     std::stringstream ss;
     ss << "Jacobian_t"<<t<<".m";
     std::ofstream mats;
