@@ -1,15 +1,12 @@
 <?xml version="1.0"?>
 
 <precice-configuration>
-  <log>
-    <sink type="stream" output="stdout" filter="%Severity% > trace"  />
-  </log>
   
   <solver-interface dimensions="2">
     
     <!-- Data fields that are exchanged between the solvers -->
-    <data:vector name="Pressure"/>
-    <data:vector name="CrossSectionLength"/>
+    <data:scalar name="Pressure"/>
+    <data:scalar name="CrossSectionLength"/>
 
     <!-- A common mesh that uses these data fields -->
     <mesh name="Fluid_Nodes">
@@ -52,7 +49,7 @@
 
     <coupling-scheme:serial-implicit>
       <participants first="FLUID" second="STRUCTURE"/>
-      <max-time value="40.0"/>
+      <max-time value="1.0"/>
       <timestep-length value="1e-2" valid-digits="8"/>
       <max-iterations value="40"/>
       <exchange data="Pressure"      mesh="Structure_Nodes" from="FLUID" to="STRUCTURE" />
@@ -60,13 +57,14 @@
       <relative-convergence-measure data="Pressure"        mesh="Structure_Nodes" limit="1e-5"/>
       <relative-convergence-measure data="CrossSectionLength" mesh="Structure_Nodes" limit="1e-5"/>
       <extrapolation-order value="2"/>
-      <post-processing:aitken>
-	<!-- PostProc always done on the second participant -->
+      <post-processing:IQN-ILS>
+        <!-- PostProc always done on the second participant -->
         <data name="CrossSectionLength" mesh="Structure_Nodes"/>
         <initial-relaxation value="0.01"/>
-        <!--max-used-iterations value="50"/-->
-        <!--timesteps-reused value="8"/-->
-      </post-processing:aitken>
+        <max-used-iterations value="50"/>
+        <timesteps-reused value="8"/>
+        <filter type="QR2" limit="1e-3"/>
+      </post-processing:IQN-ILS>
     </coupling-scheme:serial-implicit>
     
   </solver-interface>

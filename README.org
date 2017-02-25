@@ -1,4 +1,4 @@
-elastictube1d preCICE Fluid-Structure Coupling Example
+preCICE Fluid-Structure Coupling Example for a 1D Elastic Tube
 
 * Compile Instructions
 First, clone the repository to your computer. Porting the source-code to SuperMUC can be done via ssh. See https://www.lrz.de/services/compute/supermuc/filesystems/ for details.
@@ -8,41 +8,43 @@ First, clone the repository to your computer. Porting the source-code to SuperMU
 execute *scons --config=force* on the command line in the root directory of this tutorial. Follow the instructions on the screen to set boolean variables as required. The following boolean variables are of particular interest:
 1) *parallel*: set to "on" to compile the parallel version of the tutorial
 2) *supermuc*: set to "on" if executing on the SuperMUC
-3) *boost_inst*: set to "on" if boost has been pre-installed
+
+In case you link preCICE statically and you use Python or PETSC in preCICE, you can controll linking of these libraries here similarly to preCICE with the option *python* (default off) and *petsc* (default on).
 
 ** Execution
-1) Create a directory called output inside your working directory
-2) Start the two solvers, preferably in two seperate shells for output monitoring
+Start the two solvers, preferably in two seperate shells for output monitoring
 
    *For serial mode*:
 
-	   ./StructureSolverSerial_Exec ./ConfigurationFiles/precice-config.xml N
+	   ./StructureSolver ./ConfigurationFiles/precice-config.xml N
 	   
-	   ./FluidSolverSerial_Exec ./ConfigurationFiles/precice-config.xml N tau kappa
+	   ./FluidSolver ./ConfigurationFiles/precice-config.xml N tau kappa
 
    *For parallel mode*:
 
-	   mpiexec -np <nprocs> ./StructureSolverParallel_Exec ./ConfigurationFiles/precice-config-parallel.xml N
+	   mpiexec -np <nprocs> ./StructureSolver ./ConfigurationFiles/precice-config-parallel.xml N
 	   
-	   mpiexec -np <nprocs> ./FluidSolverParallel_Exec ./ConfigurationFiles/precice-config-parallel.xml N tau kappa
+	   mpiexec -np <nprocs> ./FluidSolver ./ConfigurationFiles/precice-config-parallel.xml N tau kappa
 	   
-Use the same directory to start from, otherwise the solvers won't find the sockets for communication.
+Use the same directory to start from to ensure that preCICE can set up the communication.
    
 * Parameters
 ** N
 Number of mesh elements, needs to be equal for fluid and structure solver
 ** tau
 The dimensionless time step size.
-tau = u0 * Delta t / L
-Try tau = 0.01..0.1 as starting value.
+Try tau = 0.01 or 0.1 as starting value.
 ** kappa
-Dimensionless structural stiffness:
-kappa = sqrt( (E*h)/(2*rho*r0-p0/2) )
+Dimensionless structural stiffness. 
 Try kappa = 10..100 as starting value.
 
-A set of values that is known to converge: N=100, tau=0.1, kappa=10
+A set of values that is known to converge: N=100, tau=0.01, kappa=100
 * Reference
-Mehl, M., Uekermann, B., Bijl, H., Blom, D., Gatzhammer, B., & van Zuijlen, A. (2014).
-Parallel coupling numerics for partitioned fluid-structure interaction simulations.
+M. Mehl, B. Uekermann, H. Bijl, D. Blom, B. Gatzhammer, and A. van Zuijlen. 
+Parallel coupling numerics for partitioned fluid-structure interaction simulations. CAMWA, 2016.
+* Scenario taken from 
+J. Degroote, P. Bruggeman, R. Haelterman, and J. Vierendeels. Stability of a coupling technique
+for partitioned solvers in FSI applications. Computers & Structures, 2008.
      
+
    

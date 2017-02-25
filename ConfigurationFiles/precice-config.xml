@@ -5,8 +5,8 @@
   <solver-interface dimensions="2">
     
     <!-- Data fields that are exchanged between the solvers -->
-    <data:vector name="Pressure"/>
-    <data:vector name="CrossSectionLength"/>
+    <data:scalar name="Pressure"/>
+    <data:scalar name="CrossSectionLength"/>
 
     <!-- A common mesh that uses these data fields -->
     <mesh name="Fluid_Nodes">
@@ -40,8 +40,8 @@
       <read-data  name="Pressure"      mesh="Structure_Nodes"/>
     </participant>
 
-    <!-- Communication method, use TCP sockets, Change network to "ib0" on SuperMUC -->
-    <m2n:sockets from="FLUID" to="STRUCTURE" network="lo"/>
+    <!-- Communication method, use TCP/IP sockets, change network to "ib0" on SuperMUC -->
+    <m2n:sockets from="FLUID" to="STRUCTURE" distribution-type="gather-scatter" network="lo"/>
 
     <coupling-scheme:serial-implicit>
       <participants first="FLUID" second="STRUCTURE"/>

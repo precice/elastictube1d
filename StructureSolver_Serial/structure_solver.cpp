@@ -69,7 +69,7 @@ int main(int argc, char** argv)
   int t = 0;             // number of time steps (including subcycling time steps)
   int tsub = 0;          // number of current subcycling time steps
   int n_subcycles = 0;   // number of subcycles
-  int t_steps_total = 0; // number of total timesteps, i.e., t_steps*n_subcycles
+  //int t_steps_total = 0; // number of total timesteps, i.e., t_steps*n_subcycles
   
   interface.setMeshVertices(meshID, N + 1, grid, vertexIDs);
 
@@ -77,7 +77,7 @@ int main(int argc, char** argv)
   precice_dt = interface.initialize();
   
   n_subcycles = (int)(precice_dt/dt);
-  t_steps_total = 100*n_subcycles;
+  //t_steps_total = 100*n_subcycles;
 
   if (interface.isActionRequired(actionWriteInitialData())) {
     interface.writeBlockScalarData(crossSectionLengthID, N + 1, vertexIDs, crossSectionLength);
