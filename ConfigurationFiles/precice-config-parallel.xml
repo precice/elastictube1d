@@ -31,21 +31,21 @@
       <!-- Define input/output of the solver.  -->
       <write-data name="Pressure" mesh="Fluid_Nodes"/>
       <read-data  name="CrossSectionLength" mesh="Fluid_Nodes"/>
-      <!--mapping:nearest-projection direction="write" from="Fluid_Nodes" to="Structure_Nodes" constraint="conservative" timing="initial"/-->
+      <mapping:nearest-neighbor direction="write" from="Fluid_Nodes" to="Structure_Nodes" constraint="conservative" timing="initial"/>
       <mapping:nearest-neighbor direction="read" from="Structure_Nodes" to="Fluid_Nodes" constraint="consistent" timing="initial"/>
     </participant>
     
     <participant name="STRUCTURE">
       <master:mpi-single />
       <use-mesh name="Structure_Nodes" provide="yes"/>
-      <use-mesh name="Fluid_Nodes" from="FLUID"/>
+      <!--<use-mesh name="Fluid_Nodes" from="FLUID"/>-->
       <write-data name="CrossSectionLength" mesh="Structure_Nodes"/>
       <read-data  name="Pressure"      mesh="Structure_Nodes"/>
-      <mapping:nearest-neighbor direction="read" from="Fluid_Nodes" to="Structure_Nodes" constraint="consistent" timing="ondemand"/>
+      <!--<mapping:nearest-neighbor direction="read" from="Fluid_Nodes" to="Structure_Nodes" constraint="consistent" timing="initial"/>-->
     </participant>
 
     <!-- Communication method, use TCP sockets, Change network to "ib0" on SuperMUC -->
-    <m2n:sockets from="FLUID" to="STRUCTURE" network="lo"/>
+    <m2n:sockets from="FLUID" to="STRUCTURE" network="lo" />
 
     <coupling-scheme:serial-implicit>
       <participants first="FLUID" second="STRUCTURE"/>
