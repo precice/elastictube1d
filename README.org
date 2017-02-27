@@ -1,6 +1,7 @@
 preCICE Fluid-Structure Coupling Example for a 1D Elastic Tube
 
-* If you want, a [https://github.com/precice/precice/wiki/1D-Example tutorial] takes you step by step through this case.  
+If you want, a tutorial takes you step by step through this case.  
+https://github.com/precice/precice/wiki/1D-Example
 
 * Compile Instructions
 First, clone the repository to your computer. Porting the source-code to SuperMUC can be done via ssh. See https://www.lrz.de/services/compute/supermuc/filesystems/ for details.
