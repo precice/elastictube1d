@@ -9,12 +9,10 @@ int fluid_nl(double* crossSectionLength,
              double* velocity_n,
              double* pressure,
              double* pressure_n,
-             double* pressure_old,
-             double scaled_t,
+             double t,
              int N,
              double kappa,
-             double tau,
-             double gamma);
+             double tau);
 
 int linsolve(int n,
              double** A,

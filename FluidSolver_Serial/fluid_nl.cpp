@@ -29,12 +29,10 @@ int fluid_nl(
     double* velocity_n,
     double* pressure,
     double* pressure_n,
-    double* pressure_old,
-    double scaled_t,
+    double t,
     int N,
     double kappa,
-    double tau,
-    double gamma)
+    double tau)
 {
   /* fluid_nl Variables */
   int i, j = 0, k, ampl;
@@ -68,8 +66,6 @@ int fluid_nl(
   ampl = 100;
 
   k = 0;
-  /* Stopping Criteria */
-  // TODO: Include the residual
   while (1) {
     for (i = 0; i < (2 * N + 2); i++)
       Res[i] = 0.0;
@@ -83,9 +79,9 @@ int fluid_nl(
       Res[i] = Res[i] + 0.25 * crossSectionLength[i - 1] * pressure[i - 1] + 0.25 * crossSectionLength[i] * pressure[i - 1] + 0.25 * crossSectionLength[i - 1] * pressure[i] - 0.25 * crossSectionLength[i + 1] * pressure[i] - 0.25 * crossSectionLength[i] * pressure[i + 1] - 0.25 * crossSectionLength[i + 1] * pressure[i + 1];
 
       /* Continuity */
-      Res[i + N + 1] = -(crossSectionLength[i] - crossSectionLength_n[i]) * dx + pressure_old[i] * gamma * dx;
+      Res[i + N + 1] = -(crossSectionLength[i] - crossSectionLength_n[i]) * dx;
       Res[i + N + 1] = Res[i + N + 1] + 0.25 * crossSectionLength[i - 1] * velocity[i - 1] + 0.25 * crossSectionLength[i] * velocity[i - 1] + 0.25 * crossSectionLength[i - 1] * velocity[i] - 0.25 * crossSectionLength[i + 1] * velocity[i] - 0.25 * crossSectionLength[i] * velocity[i + 1] - 0.25 * crossSectionLength[i + 1] * velocity[i + 1];
-      Res[i + N + 1] = Res[i + N + 1] + alpha * pressure[i - 1] - 2 * alpha * pressure[i] - gamma * pressure[i] * dx + alpha * pressure[i + 1];
+      Res[i + N + 1] = Res[i + N + 1] + alpha * pressure[i - 1] - 2 * alpha * pressure[i] + alpha * pressure[i + 1];
     }
 
     i = N - 1;
@@ -93,7 +89,7 @@ int fluid_nl(
     /* Boundary */
 
     /* Velocity Inlet is prescribed */
-    tmp = sin(PI * scaled_t);
+    tmp = sin(PI * (t+0.01)); //to not start with 0 velocity
     Res[0] = (1.0 / kappa) + (1.0 / (kappa * ampl)) * tmp * tmp - velocity[0];
 
     /* Pressure Inlet is lineary interpolated */
@@ -106,25 +102,23 @@ int fluid_nl(
     tmp2 = sqrt(1 - pressure_n[N] / 2) - (velocity[N] - velocity_n[N]) / 4;
     Res[2 * N + 1] = -pressure[N] + 2 * (1 - tmp2 * tmp2);
 
-    /* Stopping Criteria */
     k += 1; // Iteration Count
 
+    // compute norm of residual
     temp_sum = 0;
     for (i = 0; i < (2 * N + 2); i++) {
       temp_sum += Res[i] * Res[i];
     }
     norm_1 = sqrt(temp_sum);
-
     temp_sum = 0;
     for (i = 0; i < (N + 1); i++) {
       temp_sum += (pressure[i] * pressure[i]) + (velocity[i] * velocity[i]);
     }
     norm_2 = sqrt(temp_sum);
-
-    norm = norm_1 / norm_2; // Norm
+    norm = norm_1 / norm_2; 
 
     if ((norm < 1e-15 && k > 1) || k > 50) {
-      printf("Nonlinear Solver break, Its: %i, norm: %e\n", k, norm);
+      printf("Nonlinear Solver break, iterations: %i, residual norm: %e\n", k, norm);
       break;
     }
 
@@ -151,7 +145,7 @@ int fluid_nl(
 
       // Continuity, Pressure
       LHS[i + N + 1][N + 1 + i - 1] = LHS[i + N + 1][N + 1 + i - 1] - alpha;
-      LHS[i + N + 1][N + 1 + i] = LHS[i + N + 1][N + 1 + i] + 2 * alpha + gamma * dx;
+      LHS[i + N + 1][N + 1 + i] = LHS[i + N + 1][N + 1 + i] + 2 * alpha;
       LHS[i + N + 1][N + 1 + i + 1] = LHS[i + N + 1][N + 1 + i + 1] - alpha;
     }
 
@@ -171,8 +165,6 @@ int fluid_nl(
     LHS[2 * N + 1][2 * N + 1] = 1;
     LHS[2 * N + 1][N] = -(sqrt(1 - pressure_n[N] / 2) - (velocity[N] - velocity_n[N]) / 4);
 
-    // Solve Linear System using LAPACK
-
     /* LAPACK requires a 1D array 
        i.e. Linearizing 2D 
     */
@@ -180,82 +172,22 @@ int fluid_nl(
     for (i = 0; i <= (2 * N + 1); i++) {
       for (j = 0; j <= (2 * N + 1); j++) {
         A[counter] = LHS[j][i];
-        //printf("%15.10e\t",LHS[i][j]);
         counter++;
       }
-      //printf("\n");
     }
-    /*printf("\n");
-      for ( i = 0; i <= (2*N + 1); i++ ){
-      printf("%15.10e\t",Res[i]);
-      }
-      printf("\n");*/
 
     /* LAPACK Function call to solve the linear system */
     dgesv_(&nlhs, &nrhs, A, &nlhs, ipiv, Res, &nlhs, &info);
 
     if (info != 0) {
-      printf("Linear Solver not converged!!!, Info: %i\n", info);
+      printf("Linear Solver not converged!, Info: %i\n", info);
     }
 
-    /*printf("\n");
-      for ( i = 0; i <= (2*N + 1); i++ ){
-      printf("%15.10e\t",Res[i]);
-      }
-      printf("\n");*/
-
-    //printf("Linear Solver Info (0 if converged) %i\n", info);
-
-    /* LAPACK solves the result back in Res i.e. b of A*x = b */
-    /*for ( i = 0; i <=N; i++ )
-      x[i] = Res[i];
-				
-      for ( i = 0; i <= N; i++ )
-      du[i] = x[i];
-		
-      for ( i = 0; i <= N; i++ ) 
-      dp[i] = x[i+N+2];
-    		
-      for( i = 0; i <=N; ++i )
-      {
-      u[i] = u[i] + du[i];		
-      p[i] = p[i] + dp[i+N+2];
-      }*/
-
-    // i do not understand the above version
     for (i = 0; i <= N; i++) {
       velocity[i] = velocity[i] + Res[i];
       pressure[i] = pressure[i] + Res[i + N + 1];
     }
 
-  } // END OF WHILE
-
-  /* Writing (i.e. overwriting at every timestep) the file for pressure and velocity values */
-  /*FILE *fpP, *fpU;
-
-    fpP = fopen("p.csv", "w");
-    fpU = fopen("u.csv", "w");
-
-    if ( fpP == NULL )
-    {
-    printf(" Could NOT open file for Pressure \n ");
-    return -1;
-    }
-    if ( fpU == NULL )
-    {
-    printf(" Could NOT open file for Velocity \n ");
-    return -1;
-    }
-
-    for ( i = 0; i <=N; i++ )
-    {
-    fprintf(fpP, "%15.10e \n", p[i]);
-    fprintf(fpU, "%15.10e \n", u[i]);
-    }
-
-
-    fclose(fpP);
-    fclose(fpU);*/
-
+  } 
   return 0;
 }
