@@ -83,7 +83,7 @@ int main(int argc, char** argv)
 
   interface.initialize();
 
-  double t = 0;
+  double t = 0.0;
   double dt = 0.01;
 
   if (interface.isActionRequired(actionWriteInitialData())) {
@@ -104,7 +104,7 @@ int main(int argc, char** argv)
     }
 
      // Call "Solver"
-    fluidComputeSolution(rank, size, domainSize, chunkLength, kappa, tau, 1, t,
+    fluidComputeSolution(rank, size, domainSize, chunkLength, kappa, tau, 0.0, t+dt,
                          pressure.data(), pressure_n.data(), pressure.data(),
                          crossSectionLength.data(), crossSectionLength_n.data(),
                          velocity.data(), velocity_n.data());

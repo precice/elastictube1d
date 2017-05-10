@@ -26,7 +26,7 @@ void fluidComputeSolution(
     double kappa,
     double tau,
     double gamma,
-    double t,
+    double scaled_t,
     double* pressure,
     double* pressure_n,
     double* pressure_old,
@@ -144,7 +144,7 @@ void fluidComputeSolution(
       // Boundary
 
       // Velocity
-      tmp = sin(PI * t / 100.0);
+      tmp = sin(PI * scaled_t );
       Res[0] = (1.0 / kappa) + (1.0 / (kappa * ampl)) * tmp * tmp - velocity_NLS[0];
 
       // Pressure Inlet is lineary interpolated
