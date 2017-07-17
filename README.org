@@ -4,13 +4,13 @@ If you want, a tutorial takes you step by step through this case.
 https://github.com/precice/precice/wiki/1D-Example
 
 * Compile Instructions
-First, clone the repository to your computer. Porting the source-code to SuperMUC can be done via ssh. See https://www.lrz.de/services/compute/supermuc/filesystems/ for details.
+First, clone the repository to your computer. 
 ** Environment variables
 *PRECICE_ROOT*: points to the precice root directory.
 ** Compilation
-execute *scons --config=force* on the command line in the root directory of this tutorial. Follow the instructions on the screen to set boolean variables as required. The following boolean variables are of particular interest:
+execute *scons* on the command line in the root directory of this tutorial. Follow the instructions on the screen to set boolean variables as required. The following boolean variables are of particular interest:
 1) *parallel*: set to "on" to compile the parallel version of the tutorial
-2) *supermuc*: set to "on" if executing on the SuperMUC
+2) *supermuc*: set to "on" if executing on SuperMUC (www.lrz.de)
 
 In case you link preCICE statically and you use Python or PETSC in preCICE, you can controll linking of these libraries here similarly to preCICE with the option *python* (default off) and *petsc* (default on).
 
