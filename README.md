@@ -15,7 +15,7 @@ Additionally you have to take care of the following:
 
 * **preCICE** See https://github.com/precice/precice for details. Building instructions for preCICE can be found under https://github.com/precice/precice/wiki/Building. Make sure that the environment variable *PRECICE_ROOT* points to the preCICE root directory.
 
-* **LAPACK**. Use ```$ sudo apt-get install liblapack-dev``` to install lapack from the official repositories.
+* **LAPACK**. You have to install LAPACK. For linux you can simply use ```$ sudo apt-get install liblapack-dev``` to install lapack from the official repositories.
 
 ### Compilation
 
