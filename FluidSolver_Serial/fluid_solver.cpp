@@ -31,6 +31,8 @@ int main(int argc, char** argv)
   std::cout << "N: " << N << " tau: " << tau << " kappa: " << kappa << std::endl;
 
   std::string solverName = "FLUID";
+  
+  std::string outputFilePrefix = "Postproc/fluid_data/out_fluid";
 
   cout << "Configure preCICE..." << endl;
   // Create preCICE with the solver's name, the rank, and the total number of processes.
@@ -94,6 +96,7 @@ int main(int argc, char** argv)
   if (interface.isReadDataAvailable()) {
     interface.readBlockScalarData(crossSectionLengthID, N + 1, vertexIDs, crossSectionLength);
   }
+  int out_counter = 0;  
   
   while (interface.isCouplingOngoing()) {
     // for an implicit coupling, you can store an iteration checkpoint here (from the first iteration of a timestep)
@@ -117,7 +120,7 @@ int main(int argc, char** argv)
 
     // set variables back to checkpoint
     if (interface.isActionRequired(actionReadIterationCheckpoint())) { 
-    // i.e. not yet converged, you could restore a checkpoint here (not necessary for his scenario)      
+    // i.e. not yet converged, you could restore a checkpoint here (not necessary for this scenario)      
       interface.fulfilledAction(actionReadIterationCheckpoint());
     }
     else{
@@ -126,7 +129,9 @@ int main(int argc, char** argv)
         velocity_n[i]           = velocity[i];
         pressure_n[i]           = pressure[i];
         crossSectionLength_n[i] = crossSectionLength[i];
-      }
+      }      
+      write_vtk(t, out_counter, outputFilePrefix.c_str(), N, grid, velocity_n, pressure_n, crossSectionLength_n);
+      out_counter++;
     }
   }
 

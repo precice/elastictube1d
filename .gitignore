@@ -4,3 +4,5 @@ fluid_solver/FluidSolver
 structure_solver/StructureSolver
 *.o
 core
+*
+Postproc/fluid_data
