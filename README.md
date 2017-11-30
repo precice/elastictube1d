@@ -62,7 +62,7 @@ A set of values that is known to converge: N=100, tau=0.01, kappa=100
 
 ## Postprocessing / Visualization
 
-Running the program like explained above creates ```.vtk``` output data in ```elastictube1d\Postproc\fluid_data```. The array pressure, velocity and diameter hold the respective quantities of the fluid. You can use the python script ```Postproc\fluid.py``` to visualize the data. Type
+Running the program like explained above creates ```.vtk``` output data in ```elastictube1d\Postproc\fluid_data```. The array pressure, velocity and diameter hold the respective quantities of the fluid. You can use the python script ```Postproc\fluid.py``` to visualize the data. **If you want to use this script you have to install the python packages vtk and numpy**. Type
 
 ```
 $ python <quantity> Postproc\fluid_data\<prefix>
@@ -74,7 +74,7 @@ To create a plot of the quantity ```<quantity>```(insert ```pressure```, ```velo
 ```
 $ python diameter Postproc\fluid_data\out_fluid_
 ```
-Resulting output:
+Resulting output:  
 ![](docs/diameter.png)
 
 ## References
