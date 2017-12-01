@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 
   std::string solverName = "FLUID";
   
-  std::string outputFilePrefix = "Postproc/fluid_data/out_fluid";
+  std::string outputFilePrefix = "Postproc/out_fluid";
 
   cout << "Configure preCICE..." << endl;
   // Create preCICE with the solver's name, the rank, and the total number of processes.
