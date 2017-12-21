@@ -40,7 +40,7 @@ def vprint(name, value, default=True, description = None):
 vars = Variables(None, ARGUMENTS)
 vars.Add(BoolVariable("parallel", "Compile source-code for parallel version of 1D Example for preCICE", False))
 vars.Add(BoolVariable("petsc", "Enable use of the Petsc linear algebra library.", True))
-vars.Add(BoolVariable("python", "Enable use of python", False))
+vars.Add(BoolVariable("python", "Enable use of python", True))
 vars.Add(BoolVariable("supermuc", "Compile tutorial on SuperMUC", False))
 
 env = Environment(variables = vars, ENV = os.environ)
@@ -98,7 +98,10 @@ uniqueCheckLib(conf, "boost_thread")
 uniqueCheckLib(conf, "boost_log")
 uniqueCheckLib(conf, "boost_log_setup")
 uniqueCheckLib(conf, "boost_program_options")
-   
+
+# ====== boost ======
+uniqueCheckLib(conf, "xml2")
+ 
 # ====== lapack ======
 if env["supermuc"]:
    if not os.genenv("MKL_LIB"):
