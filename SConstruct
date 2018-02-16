@@ -7,7 +7,7 @@ def uniqueCheckLib(conf, lib):
       conf.env.AppendUnique(LIBS = [lib])
       return True
    else:
-      print "ERROR: Library '" + lib + "' not found!"
+      print("ERROR: Library '" + lib + "' not found!")
       Exit(1)
 
 def checkset_var(varname, default):
@@ -33,7 +33,7 @@ def vprint(name, value, default=True, description = None):
     """ Pretty prints an environment variabe with value and modified or not. """
     mod = "(default)" if default else "(modified)"
     desc = "   " + description if description else ""
-    print "{0:10} {1:25} = {2!s:8}{3}".format(mod, name, value, desc)
+    print("{0:10} {1:25} = {2!s:8}{3}".format(mod, name, value, desc))
 
 ############################
 
@@ -49,16 +49,16 @@ Help(vars.GenerateHelpText(env))
 conf = Configure(env)
 
 print
-print "Build options ..."
+print("Build options ...")
 print_options(vars)
 
 # ====== precice ======
 preciceRoot = os.getenv ('PRECICE_ROOT')
 if (preciceRoot == None):
-   print 'ERROR: Environment variable PRECICE_ROOT not defined!'
+   print('ERROR: Environment variable PRECICE_ROOT not defined!')
    sys.exit(1)
 else:
-   print 'Using environment variable PRECICE_ROOT =', preciceRoot
+   print('Using environment variable PRECICE_ROOT =', preciceRoot)
 
 env.Append(CPPPATH = [os.path.join(preciceRoot, 'src')])
 env.Append(LIBPATH = [os.path.join(preciceRoot, 'build/last')])
@@ -105,7 +105,7 @@ uniqueCheckLib(conf, "xml2")
 # ====== lapack ======
 if env["supermuc"]:
    if not os.genenv("MKL_LIB"):
-      print 'ERROR: Environment variable MKL_LIB not defined! Please load the MKL library for Lapack by executing "module load mkl".'
+      print('ERROR: Environment variable MKL_LIB not defined! Please load the MKL library for Lapack by executing "module load mkl".')
       sys.exit(1)
    env['GEN_LIB_BUILD_STATIC'] = env["ENV"]["MKL_LIB"]
    env.Append(SHLINKCOM = ' $GEN_LIB_BUILD_STATIC')

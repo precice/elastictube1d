@@ -1,12 +1,16 @@
 <?xml version="1.0"?>
 
 <precice-configuration>
+
+  <log enabled="1">
+    <sink filter="%Severity% > debug" />
+  </log>
   
   <solver-interface dimensions="2">
     
     <!-- Data fields that are exchanged between the solvers -->
-    <data:vector name="Pressure"/>
-    <data:vector name="CrossSectionLength"/>
+    <data:scalar name="Pressure"/>
+    <data:scalar name="CrossSectionLength"/>
 
     <!-- A common mesh that uses these data fields -->
     <mesh name="Fluid_Nodes">
@@ -41,28 +45,27 @@
     </participant>
 
     <!-- Communication method, use TCP sockets, Change network to "ib0" on SuperMUC -->
-    <m2n:sockets from="FLUID" to="STRUCTURE" network="lo"/>
+    <m2n:sockets distribution-type="gather-scatter" from="FLUID" to="STRUCTURE" network="lo"/>
 
-      <coupling-scheme:serial-explicit>
+      <coupling-scheme:serial-implicit>
          <participants first="FLUID" second="STRUCTURE"/>
-         <max-time value="4.0"/>
-         <timestep-length value="1e-2" valid-digits="8"/>
-         <!--max-iterations value="40"/-->
+         <max-time value="1"/>
+         <timestep-length value=".01" valid-digits="8"/>
+         <max-iterations value="100"/>
          <exchange data="Pressure"      mesh="Structure_Nodes" from="FLUID" to="STRUCTURE" />
          <exchange data="CrossSectionLength" mesh="Structure_Nodes" from="STRUCTURE" to="FLUID" initialize="true"/>
-         <!--relative-convergence-measure data="Pressure"        mesh="Structure_Nodes" limit="1e-5"/-->
-         <!--relative-convergence-measure data="CrossSectionLength" mesh="Structure_Nodes" limit="1e-5"/-->
-         <!--extrapolation-order value="2"/-->
-         <!--post-processing:IQN-ILS--> 
-	     <!-- PostProc always done on the second participant -->
-            <!--data name="CrossSectionLength" mesh="Structure_Nodes"/-->
-            <!--initial-relaxation value="0.01"/-->
-            <!--max-used-iterations value="50"/-->
-            <!--timesteps-reused value="8"/-->
-				<!--singularity-limit value="0.001"/-->
-            <!--filter type="QR2" limit="1e-3"/-->
-         <!--/post-processing:IQN-ILS-->
-      </coupling-scheme:serial-explicit>
+         <relative-convergence-measure data="Pressure"        mesh="Structure_Nodes" limit="1e-5"/>
+         <relative-convergence-measure data="CrossSectionLength" mesh="Structure_Nodes" limit="1e-5"/>
+         <extrapolation-order value="0"/>
+         <post-processing:IQN-ILS> 
+	    <!--PostProc always done on the second participant-->
+            <data name="CrossSectionLength" mesh="Structure_Nodes"/>
+            <initial-relaxation value="0.01"/>
+            <max-used-iterations value="100"/>
+            <timesteps-reused value="8"/>
+            <filter type="QR2" limit="1e-3"/>
+         </post-processing:IQN-ILS>
+      </coupling-scheme:serial-implicit>
     
   </solver-interface>
 </precice-configuration>

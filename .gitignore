@@ -3,6 +3,9 @@
 fluid_solver/FluidSolver
 structure_solver/StructureSolver
 *.o
+*.log
+*.pyc
 core
-*
 Postproc/fluid_data
+Postproc/*.vtk
+
