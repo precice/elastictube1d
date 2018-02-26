@@ -54,12 +54,14 @@ crossSectionLength = config.a0 * np.ones(N+1)
 crossSectionLength_n = config.a0 * np.ones(N+1)
 
 plotting_mode = config.PlottingModes.VIDEO
+writeVideoToFile = False
 
 if plotting_mode == config.PlottingModes.VIDEO:
     fig, ax = plt.subplots(1)
-    FFMpegWriter = manimation.writers['ffmpeg']
-    writer = FFMpegWriter(fps=15)
-    writer.setup(fig, "writer_test.mp4", 100)
+    if writeVideoToFile:
+        FFMpegWriter = manimation.writers['ffmpeg']
+        writer = FFMpegWriter(fps=15)
+        writer.setup(fig, "writer_test.mp4", 100)
 
 meshID = interface.getMeshID("Fluid_Nodes")
 crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID)
@@ -108,7 +110,8 @@ while interface.isCouplingOngoing():
         t += precice_tau
         if plotting_mode is config.PlottingModes.VIDEO:
             tubePlotting.doPlotting(ax, crossSectionLength_n, velocity_n, pressure_n, dx, t)
-            writer.grab_frame()
+            if writeVideoToFile:            
+                writer.grab_frame()
             ax.cla()
         velocity_n = np.copy(velocity)
         pressure_n = np.copy(pressure)
