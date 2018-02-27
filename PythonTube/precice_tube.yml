@@ -1,4 +1,4 @@
-name: precice
+name: precice_tube
 channels:
   - mpi4py
   - menpo
