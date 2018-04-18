@@ -34,9 +34,9 @@ int main(int argc, char** argv)
 
   std::cout << "N: " << N << std::endl;
 
-  std::string dummyName = "STRUCTURE";
+  std::string solverName = "STRUCTURE";
 
-  SolverInterface interface(dummyName, 0, 1);
+  SolverInterface interface(solverName, 0, 1);
   interface.configure(configFileName);
   cout << "preCICE configured..." << endl;
 
