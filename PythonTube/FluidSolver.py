@@ -59,8 +59,9 @@ writeVideoToFile = False
 if plotting_mode == config.PlottingModes.VIDEO:
     fig, ax = plt.subplots(1)
     if writeVideoToFile:
-        FFMpegWriter = manimation.writers['ffmpeg']
-        writer = FFMpegWriter(fps=15)
+        FFMpegWriter = manimation.writers['imagemagick']
+        metadata = dict(title='PuleTube')
+        writer = FFMpegWriter(fps=15, metadata=metadata)
         writer.setup(fig, "writer_test.mp4", 100)
 
 meshID = interface.getMeshID("Fluid_Nodes")
@@ -119,5 +120,7 @@ while interface.isCouplingOngoing():
 
 print "Exiting FluidSolver"
 
-interface.finalize()
+if plotting_mode is config.PlottingModes.VIDEO and writeVideoToFile:
+    writer.finish()
 
+interface.finalize()
