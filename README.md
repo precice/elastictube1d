@@ -2,9 +2,9 @@
 
 For more information see [1]. Scenario taken from [2].
 
-**The easy way:** For building and running instructions refer to the [this page](https://github.com/precice/precice/wiki/Running-the-coupled-1D-FSI-simulation).
+**The quick path:** For building and running instructions refer to the preCICE wiki page [Running the coupled 1D FSI simulation](https://github.com/precice/precice/wiki/Running-the-coupled-1D-FSI-simulation).
 
-**For the experts:** If you want, a tutorial takes you step by step through this case visit the [preCICE wiki](https://github.com/precice/precice/wiki/1D-Example).
+**The detailed path:** If you prefer, a tutorial can take you step by step through this case. See the preCICE wiki page [1D Example](https://github.com/precice/precice/wiki/1D-Example).
 
 
 ## References
