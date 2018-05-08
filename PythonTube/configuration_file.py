@@ -10,6 +10,10 @@ class PlottingModes(Enum):
     VIDEO = 1  # create a video
     DEBUG = 2  # provide a debug plot over time of the simulation
 
+class OutputModes(Enum):
+    OFF = 0  # no plotting over time
+    VTK = 1  # produce VTK output
+
 
 # physical properties of the tube
 r0 = 1/np.sqrt(np.pi)  # radius of the tube

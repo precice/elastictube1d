@@ -8,9 +8,10 @@ import numpy as np
 import tubePlotting
 
 import matplotlib
-#matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.animation as manimation
+
+from output import writeOutputToVTK
 
 # check if PRECICE_ROOT is defined
 if not os.getenv('PRECICE_ROOT'):
@@ -62,6 +63,7 @@ crossSectionLength = config.a0 * np.ones(N+1)
 crossSectionLength_n = config.a0 * np.ones(N+1)
 
 plotting_mode = config.PlottingModes.VIDEO
+output_mode = config.OutputModes.VTK
 writeVideoToFile = False
 
 if plotting_mode == config.PlottingModes.VIDEO:
@@ -125,6 +127,8 @@ while interface.isCouplingOngoing():
         velocity_n = np.copy(velocity)
         pressure_n = np.copy(pressure)
         crossSectionLength_n = np.copy(crossSectionLength)
+        if output_mode is config.OutputModes.VTK:
+            writeOutputToVTK(t, "fluid", dx, N+1, datanames=["velocity", "pressure", "crossSection"], data=[velocity_n, pressure_n, crossSectionLength_n])
 
 print "Exiting FluidSolver"
 
