@@ -23,7 +23,14 @@ print "Starting Structure Solver..."
 
 parser = argparse.ArgumentParser()
 parser.add_argument("configurationFileName", help="Name of the xml config file.", type=str)
-args = parser.parse_args()
+
+try:
+    args = parser.parse_args()
+except SystemExit:
+    print("")
+    print("Did you forget adding the precice configuration file as an argument?")
+    print("Try $python StructureSolver.py precice-config.xml")
+    quit()
 
 configFileName = args.configurationFileName
 N = config.n_elem

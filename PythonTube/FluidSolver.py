@@ -8,7 +8,7 @@ import numpy as np
 import tubePlotting
 
 import matplotlib
-matplotlib.use("Agg")
+#matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.animation as manimation
 
@@ -25,13 +25,21 @@ from mpi4py import MPI
 import PySolverInterface
 from PySolverInterface import *
 
+parser = argparse.ArgumentParser()
+parser.add_argument("configurationFileName", help="Name of the xml precice configuration file.", type=str)
+
+try:
+    args = parser.parse_args()
+except SystemExit:
+    print("")
+    print("Did you forget adding the precice configuration file as an argument?")
+    print("Try $python FluidSolver.py precice-config.xml")
+    quit()
+
 print "Starting Fluid Solver..."
 
-parser = argparse.ArgumentParser()
-parser.add_argument("configurationFileName", help="Name of the xml config file.", type=str)
-args = parser.parse_args()
-
 configFileName = args.configurationFileName
+
 N = config.n_elem
 dx = config.L / N  # element length
 
