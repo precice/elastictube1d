@@ -16,6 +16,10 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.animation as manimation
 
+import datetime
+
+from output import create_output, create_video
+
 
 def perform_monolithic_theta_scheme_step(velocity0, pressure0, crossSection0, dx, tau, velocity_in, theta=1):
 
@@ -337,7 +341,12 @@ def perform_partitioned_implicit_trapezoidal_rule_step(velocity0, pressure0, cro
     return perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in, custom_coupling, theta=.5)
 
 
-def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.L, velocity_in=config.velocity_in, coupling_mode=config.CouplingAlgorithm.Monolitic, time_stepping_scheme=config.TimeStepping.ImplicitEuler, plotting_mode=config.PlottingModes.OFF):
+def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.L, velocity_in=config.velocity_in, coupling_mode=config.CouplingAlgorithm.Monolitic, time_stepping_scheme=config.time_stepping_scheme):
+
+    sim_start_time = datetime.datetime.now()
+    plotting_mode = config.PlottingModes.OFF
+    output_mode = config.OutputModes.NETCDF
+
     dx = L/N  # element length
 
     fixed_point_solver = IQNILSScheme(config.underrelaxation_factor)
@@ -353,7 +362,7 @@ def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.
         metadata = dict(title='1DElasticTube', artist='BenjaminRueth',
             comment='ForPhD')
         writer = FFMpegWriter(fps=N_steps / T_max, metadata=metadata)
-        writer.setup(fig, "writer_test_" + config.coupling_mode + ".mp4", 100)
+        writer.setup(fig, "writer_test_" + coupling_mode.name + ".mp4", 100)
 
     # here we perform a few iterations towards a quasi-stationary case to obtain proper initial conditions. A stationary
     # case solution (i.e. using velocity_in(0)) does not suffice, but we have to use a linearized version.
@@ -438,17 +447,32 @@ def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.
         else:
             raise Exception("unknown coupling algorithm!")
 
-        if plotting_mode is config.PlottingModes.DEBUG:
-            tubePlotting.doPlotting(ax, crossSection0, velocity0, pressure0, dx, t)
-        elif plotting_mode is config.PlottingModes.VIDEO:
-            tubePlotting.doPlotting(ax, crossSection0, velocity0, pressure0, dx, t)
-            writer.grab_frame()
-            ax.cla()
-
-        # swap at end of timestep
+        ## swap at end of timestep
         pressure0 = pressure1
         velocity0 = velocity1
         crossSection0 = crossSection1
+
+        ## postprocessing
+        metadata = {
+            'created_on': str(sim_start_time),
+            'tau': tau,
+            'dx': dx,
+            'timestepping': time_stepping_scheme.name,
+            'coupling': coupling_mode.name,
+            'elasticity_module': config.E,
+            'length': config.L,
+            'n_elem': config.n_elem,
+            'inflow_frequency': config.frequency,
+            'inflow_amplitude': config.ampl,
+            'inflow_mean': config.u0
+        }
+
+        create_output(t, velocity0, pressure0, crossSection0, metadata, output_mode)
+
+        if plotting_mode is config.PlottingModes.VIDEO:
+            create_video(t, velocity0, pressure0, crossSection0, metadata, writer)
+
+        ## timestep end
 
     if plotting_mode is config.PlottingModes.VIDEO:
         writer.finish()

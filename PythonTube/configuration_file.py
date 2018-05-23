@@ -76,10 +76,10 @@ k_max_coupling = 1000  # maximum number of coupling iterations per timestep
 e_coupling = 10**-10  # error tolerance in coupling
 
 # discretization
-T_max = 2  # total simulation time
-tau0 = 1
+T_max = 1  # total simulation time
+tau0 = .2
 n_elem = 10  # number of elements in x direction
-time_stepping_scheme = TimeStepping.ImplicitEuler  # time stepping scheme used
+time_stepping_scheme = TimeStepping.TrapezoidalRule  # time stepping scheme used
 
 # experimental setup
 n_tau = 8

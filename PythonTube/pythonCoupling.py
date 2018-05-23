@@ -29,7 +29,7 @@ e_ee = n_tau * [None]
 experiments = [Experiments.ImplicitTrapezoidalRuleMonolithic, Experiments.ImplicitTrapezoidalRulePartitionedCustomized, Experiments.ImplicitTrapezoidalRulePartitionedImplicit, Experiments.ImplicitEulerPartitionedImplicit]
 
 print "computing reference solution"
-velocity_ref, pressure_ref, crossSectionLength_ref = solve_1DTube(tau=tau0 * (.5 ** (n_tau)), coupling_mode=conf.CouplingAlgorithm.Monolitic, time_stepping_scheme=conf.TimeStepping.TrapezoidalRule, plotting_mode=conf.PlottingModes.OFF)
+velocity_ref, pressure_ref, crossSectionLength_ref = solve_1DTube(tau=tau0 * (.5 ** (n_tau)), coupling_mode=conf.CouplingAlgorithm.Monolitic, time_stepping_scheme=conf.TimeStepping.TrapezoidalRule)
 print "done."
 
 print "computing experiments"

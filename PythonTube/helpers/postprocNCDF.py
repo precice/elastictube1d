@@ -6,17 +6,19 @@ import configuration_file as config
 i = 0
 taus = {}
 final_pressures = {}
-folder = './helpers/NCDF'
+folder = './NCDF'
 quantityOfInterest = 'pressure'
 
 for file in os.listdir(folder):
     filepath = os.path.join(folder,file)
     data = nc.Dataset(filepath,'r')
 
-    if not taus.has_key(data.timestepping):
-        taus[data.timestepping] = []
-    if not final_pressures.has_key(data.timestepping):
-        final_pressures[data.timestepping] = []
+    setup = data.timestepping + " - " + data.coupling
+
+    if not taus.has_key(setup):
+        taus[setup] = []
+    if not final_pressures.has_key(setup):
+        final_pressures[setup] = []
 
     if \
             (hasattr(data, 'elasticity_module') and abs(data.elasticity_module - config.E) < 10**-10) \
@@ -24,8 +26,8 @@ for file in os.listdir(folder):
             (hasattr(data, 'length') and abs(data.length - config.L) < 10**-5) \
             and \
             (hasattr(data, 'n_elem') and abs(data.n_elem - config.n_elem) < 10**-5):
-        final_pressures[data.timestepping].append(data.variables[quantityOfInterest][:,-1])
-        taus[data.timestepping].append(data.tau)
+        final_pressures[setup].append(data.variables[quantityOfInterest][:,-1])
+        taus[setup].append(data.tau)
     else:
         print abs(data.length - config.L) < 10**-10
         print abs(data.elasticity_module == config.E) < 10**-10
@@ -35,8 +37,8 @@ for file in os.listdir(folder):
 
 handles = []
 labels = []
-markers = ['o','<','*','^','s']
-ref_algorithm = 'ImplicitEuler'
+markers = ['o','*','s','.','1','2','3','4']
+ref_algorithm = config.TimeStepping.TrapezoidalRule.name + " - " + config.CouplingAlgorithm.Monolitic.name
 
 for setup in taus.keys():
 
@@ -60,7 +62,7 @@ for setup in taus.keys():
 
     import matplotlib.pyplot as plt
 
-    h = plt.loglog(sorted_taus[:],sorted_errors[:],markers.pop())[0]
+    h = plt.loglog(sorted_taus[:], sorted_errors[:], markers.pop())[0]
     handles.append(h)
     labels.append(setup)
 

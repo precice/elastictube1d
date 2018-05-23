@@ -12,7 +12,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as manimation
 
-from output import writeOutputToVTK, writeOutputToNetCDF
+from output import create_output, create_video
 
 # check if PRECICE_ROOT is defined
 if not os.getenv('PRECICE_ROOT'):
@@ -42,10 +42,10 @@ print "Starting Fluid Solver..."
 
 configFileName = args.configurationFileName
 
-N = config.n_elem
-dx = config.L / N  # element length
+n_elem = config.n_elem
+dx = config.L / n_elem  # element length
 
-print "N: " + str(N)
+print "N: " + str(n_elem)
 
 solverName = "FLUID"
 
@@ -57,12 +57,12 @@ print "preCICE configured..."
 dimensions = interface.getDimensions()
 
 if config.initialization_procedure is config.InitializationProcedure.FromConstants:
-    velocity = config.velocity_in(0) * np.ones(N+1)
-    velocity_n = config.velocity_in(0) * np.ones(N+1)
-    pressure = config.p0 * np.ones(N+1)
-    pressure_n = config.p0 * np.ones(N+1)
-    crossSectionLength = config.a0 * np.ones(N+1)
-    crossSectionLength_n = config.a0 * np.ones(N+1)
+    velocity = config.velocity_in(0) * np.ones(n_elem + 1)
+    velocity_n = config.velocity_in(0) * np.ones(n_elem + 1)
+    pressure = config.p0 * np.ones(n_elem + 1)
+    pressure_n = config.p0 * np.ones(n_elem + 1)
+    crossSectionLength = config.a0 * np.ones(n_elem + 1)
+    crossSectionLength_n = config.a0 * np.ones(n_elem + 1)
 elif config.initialization_procedure is config.InitializationProcedure.FromPrecomputed:
     print "has to be implemented!"
     # todo to be implemented!
@@ -77,30 +77,26 @@ else:
     print "invalid initialization procedure!"
     quit()
 
-
 plotting_mode = config.PlottingModes.OFF
 output_mode = config.OutputModes.NETCDF
-writeVideoToFile = False
 
 if plotting_mode == config.PlottingModes.VIDEO:
     fig, ax = plt.subplots(1)
-    if writeVideoToFile:
-        FFMpegWriter = manimation.writers['imagemagick']
-        metadata = dict(title='PuleTube')
-        writer = FFMpegWriter(fps=15, metadata=metadata)
-        writer.setup(fig, "writer_test.mp4", 100)
+    FFMpegWriter = manimation.writers['imagemagick']
+    writer = FFMpegWriter(fps=15)
+    writer.setup(fig, "writer_test.mp4", 100)
 
 meshID = interface.getMeshID("Fluid_Nodes")
 crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID)
 pressureID = interface.getDataID("Pressure", meshID)
 
-vertexIDs = np.zeros(N+1)
-grid = np.zeros([dimensions, N+1])
+vertexIDs = np.zeros(n_elem + 1)
+grid = np.zeros([dimensions, n_elem + 1])
 
-grid[0,:] = np.linspace(0, config.L, N+1)  # x component
+grid[0,:] = np.linspace(0, config.L, n_elem + 1)  # x component
 grid[1,:] = 0  # y component, leave blank
 
-interface.setMeshVertices(meshID, N+1, grid.flatten('F'), vertexIDs)
+interface.setMeshVertices(meshID, n_elem + 1, grid.flatten('F'), vertexIDs)
 
 t = 0
 
@@ -108,19 +104,16 @@ print "Fluid: init precice..."
 precice_tau = interface.initialize()
 
 if interface.isActionRequired(PyActionWriteInitialData()):
-    interface.writeBlockScalarData(pressureID, N+1, vertexIDs, pressure)
+    interface.writeBlockScalarData(pressureID, n_elem + 1, vertexIDs, pressure)
     interface.fulfilledAction(PyActionWriteInitialData())
 
 interface.initializeData()
 
 if interface.isReadDataAvailable():
-    interface.readBlockScalarData(crossSectionLengthID, N+1, vertexIDs, crossSectionLength)
+    interface.readBlockScalarData(crossSectionLengthID, n_elem + 1, vertexIDs, crossSectionLength)
 
 crossSectionLength_n = np.copy(crossSectionLength)
-velocity_n = config.velocity_in(0) * crossSectionLength_n[0] * np.ones(N+1) / crossSectionLength_n  # initialize such that mass conservation is fulfilled
-
-
-print crossSectionLength_n
+velocity_n = config.velocity_in(0) * crossSectionLength_n[0] * np.ones(n_elem + 1) / crossSectionLength_n  # initialize such that mass conservation is fulfilled
 
 sim_start_time = datetime.datetime.now()
 
@@ -139,45 +132,41 @@ while interface.isCouplingOngoing():
         print "invalid time stepping scheme!"
         quit()
 
-    interface.writeBlockScalarData(pressureID, N+1, vertexIDs, pressure)
+    interface.writeBlockScalarData(pressureID, n_elem + 1, vertexIDs, pressure)
     interface.advance(precice_tau)
-    interface.readBlockScalarData(crossSectionLengthID, N+1, vertexIDs, crossSectionLength)
+    interface.readBlockScalarData(crossSectionLengthID, n_elem + 1, vertexIDs, crossSectionLength)
 
     if interface.isActionRequired(PyActionReadIterationCheckpoint()): # i.e. not yet converged
         interface.fulfilledAction(PyActionReadIterationCheckpoint())
     else: # converged, timestep complete
         t += precice_tau
-        if plotting_mode is config.PlottingModes.VIDEO:
-            tubePlotting.doPlotting(ax, crossSectionLength_n, velocity_n, pressure_n, dx, t)
-            if writeVideoToFile:            
-                writer.grab_frame()
-            ax.cla()
         velocity_n = np.copy(velocity)
         pressure_n = np.copy(pressure)
         crossSectionLength_n = np.copy(crossSectionLength)
-        if output_mode is not config.OutputModes.OFF:
-            x = np.linspace(0,dx*N,N+1,endpoint=True)
-            filename = "fluid_"+str(sim_start_time)
-            metadata = {
-                'created_on': str(sim_start_time),
-                'tau': precice_tau,
-                'dx': dx,
-                'timestepping': config.time_stepping_scheme.name,
-                'elasticity_module': config.E,
-                'length': config.L,
-                'n_elem': config.n_elem,
-                'inflow_frequency': config.frequency,
-                'inflow_amplitude': config.ampl,
-                'inflow_mean': config.u0
-            }
-            if output_mode is config.OutputModes.VTK:
-                writeOutputToVTK(t, x, filename, datanames=["velocity", "pressure", "crossSection"], datasets=[velocity_n, pressure_n, crossSectionLength_n])
-            if output_mode is config.OutputModes.NETCDF:
-                writeOutputToNetCDF(t, x, filename, datanames=["velocity", "pressure", "crossSection"], datasets=[velocity_n, pressure_n, crossSectionLength_n], metadata=metadata)
+
+        metadata = {
+            'created_on': str(sim_start_time),
+            'tau': precice_tau,
+            'dx': dx,
+            'timestepping': config.time_stepping_scheme.name,
+            'coupling': config.CouplingAlgorithm.PartitionedPreCICE.name,
+            'elasticity_module': config.E,
+            'length': config.L,
+            'n_elem': config.n_elem,
+            'inflow_frequency': config.frequency,
+            'inflow_amplitude': config.ampl,
+            'inflow_mean': config.u0
+        }
+
+        create_output(t, velocity, pressure, crossSectionLength, metadata, output_mode)
+
+        if plotting_mode is config.PlottingModes.VIDEO:
+            create_video(t, velocity, pressure, crossSectionLength, metadata, writer)
+
 
 print "Exiting FluidSolver"
 
-if plotting_mode is config.PlottingModes.VIDEO and writeVideoToFile:
+if plotting_mode is config.PlottingModes.VIDEO:
     writer.finish()
 
 interface.finalize()

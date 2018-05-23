@@ -3,6 +3,11 @@ import numpy as np
 import os
 import netCDF4 as nc
 
+import configuration_file as config
+import tubePlotting
+
+import matplotlib.pyplot as plt
+
 
 def numpyDataToVTKPointData(grid, numpy_data, dataname):
 
@@ -147,3 +152,21 @@ def writeOutputToNetCDF(time, xpos, filename, datasets, datanames, metadata = di
             nc_dataset.setncattr(str(key), metadata[key])
 
     nc_dataset.close()
+
+
+def create_output(t, velocity, pressure, crossSectionLength, metadata, output_mode):
+    dx = metadata["dx"]
+    N = metadata["n_elem"]
+
+    if output_mode is not config.OutputModes.OFF:
+        x = np.linspace(0,dx*N,N+1,endpoint=True)
+        filename = "fluid_"+str(metadata["created_on"])
+        if output_mode is config.OutputModes.VTK:
+            writeOutputToVTK(t, x, filename, datanames=["velocity", "pressure", "crossSection"], datasets=[velocity, pressure, crossSectionLength])
+        if output_mode is config.OutputModes.NETCDF:
+            writeOutputToNetCDF(t, x, filename, datanames=["velocity", "pressure", "crossSection"], datasets=[velocity, pressure, crossSectionLength], metadata=metadata)
+
+def create_video(t, velocity, pressure, crossSectionLength, metadata, writer):
+    tubePlotting.doPlotting(plt.gca(), crossSectionLength, velocity, pressure, metadata['dx'], t)
+    writer.grab_frame()
+    plt.gca().cla()
