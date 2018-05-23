@@ -81,7 +81,7 @@ def perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, c
         norm_2 = np.sqrt(pressure1.dot(pressure1) + velocity1.dot(velocity1))
         norm = norm_1 / norm_2
 
-        if norm < 1e-10 and k > 1:
+        if norm < config.tol_nonlin and k > 1:
             break  # Nonlinear Solver success
         elif k > config.k_max_nonlin:
             print "Nonlinear Solver break, iterations: %i, residual norm: %e\n" % (k, norm)

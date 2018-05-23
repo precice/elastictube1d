@@ -1,1 +1,6 @@
 VTK
+.idea
+*.txt
+configs
+snapshots
+*.nc

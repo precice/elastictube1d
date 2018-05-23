@@ -3,7 +3,7 @@ from matplotlib.patches import Rectangle
 import numpy as np
 import configuration_file as conf
 
-scaling_factor = 50
+scaling_factor = 20
 
 def plotTube(ax, crossSection, velocity, pressure, dx, t):
     radius0 = np.sqrt(crossSection/np.pi)
@@ -15,7 +15,7 @@ def plotTube(ax, crossSection, velocity, pressure, dx, t):
     map = plt.get_cmap('RdBu')
     for x in np.arange(N)*dx:
         dy = (conf.r0 + (radius0[iii] - conf.r0) * scaling_factor)
-        rect = Rectangle((x-.5*dx,-dy), dx, 2 * dy, color=map((velocity[iii] + conf.u0) / conf.ampl))
+        rect = Rectangle((x-.5*dx,-dy), dx, 2 * dy, color=map((velocity[iii] - conf.u0 + conf.ampl) / conf.ampl * .5))
         ax.add_patch(rect)
         iii += 1
         rects.append(rect)
@@ -25,6 +25,8 @@ def plotTube(ax, crossSection, velocity, pressure, dx, t):
     #plt.imshow(np.vstack((velocity,velocity,velocity,velocity)),origin="lower")
     #plt.imshow(np.vstack((velocity,velocity)),origin="upper")
     ax.set_ylim([-2,2])
+    plt.savefig('snapshots/tube_%1.2f.pdf'%(t))
+    plt.savefig('snapshots/tube_%1.2f.png'%(t))
 
 
 def plotVar(ax, crossSection, dx, t):

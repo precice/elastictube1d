@@ -6,12 +6,13 @@ import configuration_file as config
 from thetaScheme import perform_partitioned_implicit_trapezoidal_rule_step, perform_partitioned_implicit_euler_step
 import numpy as np
 import tubePlotting
+import datetime
 
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as manimation
 
-from output import writeOutputToVTK
+from output import writeOutputToVTK, writeOutputToNetCDF
 
 # check if PRECICE_ROOT is defined
 if not os.getenv('PRECICE_ROOT'):
@@ -55,15 +56,30 @@ print "preCICE configured..."
 
 dimensions = interface.getDimensions()
 
-velocity = config.velocity_in(0) * np.ones(N+1)
-velocity_n = config.velocity_in(0) * np.ones(N+1)
-pressure = config.p0 * np.ones(N+1)
-pressure_n = config.p0 * np.ones(N+1)
-crossSectionLength = config.a0 * np.ones(N+1)
-crossSectionLength_n = config.a0 * np.ones(N+1)
+if config.initialization_procedure is config.InitializationProcedure.FromConstants:
+    velocity = config.velocity_in(0) * np.ones(N+1)
+    velocity_n = config.velocity_in(0) * np.ones(N+1)
+    pressure = config.p0 * np.ones(N+1)
+    pressure_n = config.p0 * np.ones(N+1)
+    crossSectionLength = config.a0 * np.ones(N+1)
+    crossSectionLength_n = config.a0 * np.ones(N+1)
+elif config.initialization_procedure is config.InitializationProcedure.FromPrecomputed:
+    print "has to be implemented!"
+    # todo to be implemented!
+    # velocity = ...
+    # velocity_n = ...
+    # pressure = ...
+    # pressure_n = ...
+    # crossSectionLength = ...
+    # crossSectionLength_n = ...
+    quit()
+else:
+    print "invalid initialization procedure!"
+    quit()
 
-plotting_mode = config.PlottingModes.VIDEO
-output_mode = config.OutputModes.VTK
+
+plotting_mode = config.PlottingModes.OFF
+output_mode = config.OutputModes.NETCDF
 writeVideoToFile = False
 
 if plotting_mode == config.PlottingModes.VIDEO:
@@ -103,14 +119,26 @@ if interface.isReadDataAvailable():
 crossSectionLength_n = np.copy(crossSectionLength)
 velocity_n = config.velocity_in(0) * crossSectionLength_n[0] * np.ones(N+1) / crossSectionLength_n  # initialize such that mass conservation is fulfilled
 
+
 print crossSectionLength_n
+
+sim_start_time = datetime.datetime.now()
 
 while interface.isCouplingOngoing():
     # When an implicit coupling scheme is used, checkpointing is required
     if interface.isActionRequired(PyActionWriteIterationCheckpoint()):
         interface.fulfilledAction(PyActionWriteIterationCheckpoint())
 
-    velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength_n, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=False)
+    if config.time_stepping_scheme is config.TimeStepping.ImplicitEuler:
+        velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=False)
+    elif config.time_stepping_scheme is config.TimeStepping.TrapezoidalRule:
+        velocity, pressure, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity_n, pressure_n, crossSectionLength, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=False)
+    elif config.time_stepping_scheme is config.TimeStepping.TrapezoidalRuleCustom:
+        velocity, pressure, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity_n, pressure_n, crossSectionLength_n, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=True)
+    else:
+        print "invalid time stepping scheme!"
+        quit()
+
     interface.writeBlockScalarData(pressureID, N+1, vertexIDs, pressure)
     interface.advance(precice_tau)
     interface.readBlockScalarData(crossSectionLengthID, N+1, vertexIDs, crossSectionLength)
@@ -127,8 +155,25 @@ while interface.isCouplingOngoing():
         velocity_n = np.copy(velocity)
         pressure_n = np.copy(pressure)
         crossSectionLength_n = np.copy(crossSectionLength)
-        if output_mode is config.OutputModes.VTK:
-            writeOutputToVTK(t, "fluid", dx, N+1, datanames=["velocity", "pressure", "crossSection"], data=[velocity_n, pressure_n, crossSectionLength_n])
+        if output_mode is not config.OutputModes.OFF:
+            x = np.linspace(0,dx*N,N+1,endpoint=True)
+            filename = "fluid_"+str(sim_start_time)
+            metadata = {
+                'created_on': str(sim_start_time),
+                'tau': precice_tau,
+                'dx': dx,
+                'timestepping': config.time_stepping_scheme.name,
+                'elasticity_module': config.E,
+                'length': config.L,
+                'n_elem': config.n_elem,
+                'inflow_frequency': config.frequency,
+                'inflow_amplitude': config.ampl,
+                'inflow_mean': config.u0
+            }
+            if output_mode is config.OutputModes.VTK:
+                writeOutputToVTK(t, x, filename, datanames=["velocity", "pressure", "crossSection"], datasets=[velocity_n, pressure_n, crossSectionLength_n])
+            if output_mode is config.OutputModes.NETCDF:
+                writeOutputToNetCDF(t, x, filename, datanames=["velocity", "pressure", "crossSection"], datasets=[velocity_n, pressure_n, crossSectionLength_n], metadata=metadata)
 
 print "Exiting FluidSolver"
 

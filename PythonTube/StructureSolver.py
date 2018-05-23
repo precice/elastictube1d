@@ -46,8 +46,18 @@ print "preCICE configured..."
 
 dimensions = interface.getDimensions()
 
-pressure = config.p0 * np.ones(N+1)
-crossSectionLength = config.a0 * np.ones(N+1)
+if config.initialization_procedure is config.InitializationProcedure.FromConstants:
+    pressure = config.p0 * np.ones(N+1)
+    crossSectionLength = config.a0 * np.ones(N+1)
+elif config.initialization_procedure is config.InitializationProcedure.FromPrecomputed:
+    print "has to be implemented!"
+    # todo to be implemented!
+    # pressure = ...
+    # crossSectionLength = ...
+    quit()
+else:
+    print "invalid initialization procedure!"
+    quit()
 
 meshID = interface.getMeshID("Structure_Nodes")
 crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID)

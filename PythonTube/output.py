@@ -1,8 +1,8 @@
 import vtk
 import numpy as np
 import os
+import netCDF4 as nc
 
-writer = vtk.vtkStructuredPointsWriter()
 
 def numpyDataToVTKPointData(grid, numpy_data, dataname):
 
@@ -40,7 +40,7 @@ def numpyDataToVTKCellData(grid, numpy_data, dataname):
         print "cannot handle shape = %i" % (numpy_data.shape)
         quit()
 
-    # add point dataset
+    # add cell dataset
     vtk_array = vtk.vtkDoubleArray()
     vtk_array.SetNumberOfComponents(1)
     vtk_array.SetNumberOfTuples(grid.GetNumberOfCells())
@@ -54,14 +54,16 @@ def numpyDataToVTKCellData(grid, numpy_data, dataname):
     return vtk_array
 
 
-def writeOutputToVTK(time, name, dx, nx, data, datanames):
+def writeOutputToVTK(time, xpos, filename, datasets, datanames, metadata = dict()):
 
-    if type(data) is not list:
-        data = list(data)
+    writer = vtk.vtkStructuredPointsWriter()
+
+    if type(datasets) is not list:
+        datasets = list(datasets)
     if type(datanames) is not list:
         datanames = list(datanames)
 
-    n_datasets = data.__len__()
+    n_datasets = datasets.__len__()
     assert n_datasets == datanames.__len__()
 
     dy = dz = 0
@@ -72,8 +74,11 @@ def writeOutputToVTK(time, name, dx, nx, data, datanames):
     if not os.path.exists(outpath):
         os.mkdir(outpath)
 
-    filename = name+"."+str(time)+".vtk"
+    filename = filename + "." + str(time) + ".vtk"
     filepath = os.path.join(outpath , filename)
+
+    dx = xpos[1] - xpos[0]
+    nx = xpos.shape[0]
 
     # initialize  vtk  grid
     grid = vtk.vtkImageData()
@@ -82,7 +87,7 @@ def writeOutputToVTK(time, name, dx, nx, data, datanames):
     grid.SetDimensions(nx+1, ny+1, nz+1)
 
     for i in range(n_datasets):
-        numpy_data = data[i]
+        numpy_data = datasets[i]
         dataname = datanames[i]
         vtk_array = numpyDataToVTKCellData(grid, numpy_data, dataname)
         grid.GetCellData().AddArray(vtk_array)
@@ -90,3 +95,55 @@ def writeOutputToVTK(time, name, dx, nx, data, datanames):
     writer.SetInputData(grid)
     writer.SetFileName(filepath)
     writer.Write()
+
+
+def writeOutputToNetCDF(time, xpos, filename, datasets, datanames, metadata = dict()):
+
+    if type(datasets) is not list:
+        datasets = list(datasets)
+    if type(datanames) is not list:
+        datanames = list(datanames)
+
+    n_datasets = datasets.__len__()
+    assert n_datasets == datanames.__len__()
+
+    outpath = os.path.join(os.getcwd(), 'NCDF')
+
+    if not os.path.exists(outpath):
+        os.mkdir(outpath)
+
+    filepath = os.path.join(outpath, filename+'.nc')
+
+    if not os.path.isfile(filepath):  # file does not exist -> create new
+        nc_dataset = nc.Dataset(filepath, 'w', format='NETCDF4_CLASSIC')
+    else:  # file already exists -> append
+        nc_dataset = nc.Dataset(filepath, 'r+', format='NETCDF4_CLASSIC')
+
+    if not nc_dataset.dimensions.has_key('X'):
+        nc_dataset.createDimension('X', xpos.shape[0])
+    if not nc_dataset.dimensions.has_key('time'):
+        nc_dataset.createDimension('time', None)
+
+    if not nc_dataset.variables.has_key('xcoords'):
+        nc_dataset.createVariable('xcoords', np.float64, ('X'))
+        nc_dataset.variables['xcoords'][:] = xpos
+
+    if not nc_dataset.variables.has_key('times'):
+        nc_dataset.createVariable('times', np.float64, ('time'))
+
+    step_id = nc_dataset.variables['times'].__len__()
+    nc_dataset.variables['times'][step_id] = time
+
+    for i_data in range(n_datasets):
+        dataname = datanames[i_data]
+        dataset = datasets[i_data]
+        if not nc_dataset.variables.has_key(dataname):
+            nc_dataset.createVariable(dataname, np.float64, ('X', 'time'))
+
+        nc_dataset.variables[dataname][:,step_id] = dataset[:]
+
+    for key in metadata.keys():
+        if not hasattr(nc_dataset, key):
+            nc_dataset.setncattr(str(key), metadata[key])
+
+    nc_dataset.close()
