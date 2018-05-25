@@ -37,7 +37,7 @@ for file in os.listdir(folder):
 
 handles = []
 labels = []
-markers = ['o','*','s','.','1','2','3','4']
+markers = ['*','|','_','.','1','2','3','4']
 ref_algorithm = config.TimeStepping.TrapezoidalRule.name + " - " + config.CouplingAlgorithm.Monolitic.name
 
 for setup in taus.keys():

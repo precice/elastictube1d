@@ -123,7 +123,7 @@ while interface.isCouplingOngoing():
         interface.fulfilledAction(PyActionWriteIterationCheckpoint())
 
     if config.time_stepping_scheme is config.TimeStepping.ImplicitEuler:
-        velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=False)
+        velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau))
     elif config.time_stepping_scheme is config.TimeStepping.TrapezoidalRule:
         velocity, pressure, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity_n, pressure_n, crossSectionLength, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=False)
     elif config.time_stepping_scheme is config.TimeStepping.TrapezoidalRuleCustom:

@@ -1,8 +1,9 @@
-from pythonCouplingHelpers.fluidSolvers import solve_1DTube
 import numpy as np
+from enum import Enum
 
 import configuration_file as conf
-from enum import Enum
+from pythonCouplingSolver import solve_1DTube
+
 
 class Experiments(Enum):
     ImplicitEulerMonolithic = 1  # solve Tube FSI problem with monolithic approach and implicit Euler timestepping

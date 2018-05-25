@@ -18,6 +18,7 @@ sys.path.insert(0, precice_python_adapter_root)
 
 import PySolverInterface
 from PySolverInterface import *
+from pythonCouplingHelpers.solid import solve_solid
 
 print "Starting Structure Solver..."
 
@@ -85,15 +86,12 @@ interface.initializeData()
 if (interface.isReadDataAvailable()):
    interface.readBlockScalarData(pressureID, N+1, vertexIDs, pressure)
 
-crossSection0 = config.crossSection0(pressure.shape[0] - 1)
-pressure0 = config.p0 * np.ones_like(pressure)
-
 while interface.isCouplingOngoing():
    # When an implicit coupling scheme is used, checkpointing is required
     if interface.isActionRequired(PyActionWriteIterationCheckpoint()):
         interface.fulfilledAction(PyActionWriteIterationCheckpoint())
 
-    crossSectionLength = crossSection0 * ((pressure0 - 2.0 * config.c_mk ** 2) ** 2 / (pressure - 2.0 * config.c_mk ** 2) ** 2)
+    crossSectionLength = solve_solid(pressure)
 
     interface.writeBlockScalarData(crossSectionLengthID, N + 1, vertexIDs, crossSectionLength)
     interface.advance(precice_tau)

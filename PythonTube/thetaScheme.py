@@ -7,6 +7,169 @@ from __future__ import division
 import numpy as np
 
 import configuration_file as config
+from pythonCouplingHelpers.solid import solve_solid, dsolve_solid
+
+
+def perform_monolithic_theta_scheme_step(velocity0, pressure0, crossSection0, dx, tau, velocity_in, theta=1):
+
+    k = 0
+
+    # initial guess for Newtons method
+    pressure1 = np.copy(pressure0)
+    velocity1 = np.copy(velocity0)
+
+    N = pressure0.shape[0]-1
+
+    alpha = 0 #pp.a0 / (pp.u0 + dx/tau)
+    success = True
+
+    while success:  # perform Newton iterations to solve nonlinear system of equations
+
+        crossSection1 = solve_solid(pressure1)
+        dcrossSection1 = dsolve_solid(pressure1)
+
+        # compute residual
+        res = np.zeros(2 * N + 2)
+
+        for i in range(1,N):
+            # Momentum
+            res[i] = (velocity0[i] * crossSection0[i] - velocity1[i] * crossSection1[i]) * dx / tau
+
+            res[i] += .25 * theta * (- crossSection1[i + 1] * velocity1[i] * velocity1[i + 1] - crossSection1[i] * velocity1[i] * velocity1[i + 1])
+            res[i] += .25 * (1-theta) * (- crossSection0[i + 1] * velocity0[i] * velocity0[i + 1] - crossSection0[i] * velocity0[i] * velocity0[i + 1])
+
+            res[i] += .25 * theta * (- crossSection1[i + 1] * velocity1[i] * velocity1[i] - crossSection1[i] * velocity1[i] * velocity1[i] + crossSection1[i] * velocity1[i - 1] * velocity1[i] + crossSection1[i - 1] * velocity1[i - 1] * velocity1[i])
+            res[i] += .25 * (1-theta) * (- crossSection0[i + 1] * velocity0[i] * velocity0[i] - crossSection0[i] * velocity0[i] * velocity0[i] + crossSection0[i] * velocity0[i - 1] * velocity0[i] + crossSection0[i - 1] * velocity0[i - 1] * velocity0[i])
+
+            res[i] += .25 * theta * (+ crossSection1[i - 1] * velocity1[i - 1] * velocity1[i - 1] + crossSection1[i] * velocity1[i - 1] * velocity1[i - 1])
+            res[i] += .25 * (1-theta) * (+ crossSection0[i - 1] * velocity0[i - 1] * velocity0[i - 1] + crossSection0[i] * velocity0[i - 1] * velocity0[i - 1])
+
+            res[i] += .25 * theta * (+ crossSection1[i - 1] * pressure1[i - 1] + crossSection1[i] * pressure1[i - 1] + crossSection1[i - 1] * pressure1[i] - crossSection1[i + 1] * pressure1[i] - crossSection1[i] * pressure1[i + 1] - crossSection1[i + 1] * pressure1[i + 1])
+            res[i] += .25 * (1-theta) * (+ crossSection0[i - 1] * pressure0[i - 1] + crossSection0[i] * pressure0[i - 1] + crossSection0[i - 1] * pressure0[i] - crossSection0[i + 1] * pressure0[i] - crossSection0[i] * pressure0[i + 1] - crossSection0[i + 1] * pressure0[i + 1])
+
+            # Continuity (we only care about values at n+1, see [2],p.737,eq.(3.16-25))
+            res[i + N + 1] = (crossSection0[i] - crossSection1[i]) * dx / tau
+            res[i + N + 1] += .25 * theta * (+ crossSection1[i - 1] * velocity1[i - 1] + crossSection1[i] * velocity1[i - 1] + crossSection1[i - 1] * velocity1[i] - crossSection1[i + 1] * velocity1[i] - crossSection1[i] * velocity1[i + 1] - crossSection1[i + 1] * velocity1[i + 1])
+            res[i + N + 1] += .25 * (1-theta) * (+ crossSection0[i - 1] * velocity0[i - 1] + crossSection0[i] * velocity0[i - 1] + crossSection0[i - 1] * velocity0[i] - crossSection0[i + 1] * velocity0[i] - crossSection0[i] * velocity0[i + 1] - crossSection0[i + 1] * velocity0[i + 1])
+            res[i + N + 1] += alpha * theta * (pressure1[i - 1] - 2 * pressure1[i] + pressure1[i + 1])
+
+        # Boundary
+
+        # Velocity Inlet is prescribed
+        res[0] = velocity_in - velocity1[0]
+
+        # Pressure Inlet is lineary interpolated
+        res[N + 1] = -pressure1[0] + 2 * pressure1[1] - pressure1[2]
+
+        # Velocity Outlet is lineary interpolated
+        res[N] = -velocity1[-1] + 2 * velocity1[-2] - velocity1[-3]
+
+        # Pressure Outlet is "non-reflecting"
+        tmp2 = np.sqrt(config.c_mk ** 2 - pressure0[-1] / 2) - (velocity1[-1] - velocity0[-1]) / 4
+        res[2 * N + 1] = -pressure1[-1] + 2 * (config.c_mk ** 2 - tmp2 * tmp2)
+
+        k += 1  # Iteration Count
+
+        # compute relative norm of residual
+        norm_1 = np.sqrt(res.dot(res))
+        norm_2 = np.sqrt(pressure1.dot(pressure1) + velocity1.dot(velocity1))
+        norm = norm_1 / norm_2
+
+        if norm < 1e-10 and k > 1:
+            break  # Nonlinear Solver success
+        elif k > config.k_max_nonlin:
+            print "Nonlinear Solver break, iterations: %i, residual norm: %e\n" % (k, norm)
+            velocity1[:] = np.nan
+            pressure1[:] = np.nan
+            crossSection1[:] = np.nan
+            success = False
+            break
+        # else:
+        # perform another iteration of newton's method
+
+        # compute Jacobian for Newton's method
+        system = np.zeros([N+N+2,N+N+2])
+
+        for i in range(1,N):
+            ### Momentum, Velocity see [1] eq. (13b) ###
+
+            # df[i]/du[i-1], f[i] = -res[i]
+            system[i][i - 1] += 0.25 * theta * (- crossSection1[i] * velocity1[i] -  crossSection1[i - 1] * velocity1[i])
+            system[i][i - 1] += 0.25 * theta * (- 2 * crossSection1[i - 1] * velocity1[i - 1] - 2 * crossSection1[i] * velocity1[i - 1])
+            # df[i]/du[i], f[i] = -res[i]
+            system[i][i] += crossSection1[i] * dx/tau
+            system[i][i] += 0.25 * theta * (+ crossSection1[i + 1] * velocity1[i + 1] + crossSection1[i] * velocity1[i + 1])
+            system[i][i] += 0.25 * theta * (+ 2 * crossSection1[i + 1] * velocity1[i] + 2 * crossSection1[i] * velocity1[i] - crossSection1[i] * velocity1[i - 1] - crossSection1[i - 1] * velocity1[i - 1])
+            # df[i]/du[i+1], f[i] = -res[i]
+            system[i][i + 1] += 0.25 * theta * (crossSection1[i + 1] * velocity1[i] + crossSection1[i] * velocity1[i])
+
+            ### Momentum, Pressure see [1] eq. (13b) ###
+
+            # df[i]/dp[i-1], f[i] = -res[i]
+            system[i][N + 1 + i - 1] += 0.25 * theta * (- dcrossSection1[i - 1] * velocity1[i - 1] * velocity1[i])
+            system[i][N + 1 + i - 1] += 0.25 * theta * (- dcrossSection1[i - 1] * velocity1[i - 1] * velocity1[i - 1])
+            system[i][N + 1 + i - 1] += 0.25 * theta * (- crossSection1[i - 1] - dcrossSection1[i - 1] * pressure1[i - 1] - crossSection1[i] - dcrossSection1[i - 1] * pressure1[i])
+            # df[i]/dp[i], f[i] = -res[i]
+            system[i][N + 1 + i] += velocity1[i] * dcrossSection1[i] * dx/tau
+            system[i][N + 1 + i] += 0.25 * theta * (+ dcrossSection1[i] * velocity1[i] * velocity1[i + 1])
+            system[i][N + 1 + i] += 0.25 * theta * (+ dcrossSection1[i] * velocity1[i] * velocity1[i] - dcrossSection1[i] * velocity1[i - 1] * velocity1[i])
+            system[i][N + 1 + i] += 0.25 * theta * (- dcrossSection1[i] * velocity1[i - 1] * velocity1[i - 1])
+            system[i][N + 1 + i] += 0.25 * theta * (- crossSection1[i - 1] + crossSection1[i + 1] - dcrossSection1[i] * pressure1[i - 1] + dcrossSection1[i] * pressure1[i + 1])
+            # df[i]/dp[i+1], f[i] = -res[i]
+            system[i][N + 1 + i + 1] += 0.25 * theta * (+ dcrossSection1[i + 1] * velocity1[i] * velocity1[i + 1])
+            system[i][N + 1 + i + 1] += 0.25 * theta * (+ dcrossSection1[i + 1] * velocity1[i] * velocity1[i])
+            system[i][N + 1 + i + 1] += 0.25 * theta * (+ dcrossSection1[i + 1] * pressure1[i] + crossSection1[i] + dcrossSection1[i + 1] * pressure1[i + 1] + crossSection1[i + 1])
+
+            ### Continuity, Velocity see [1] eq. (13a) ###
+
+            # df[i]/du[i-1], f[i] = -res[i]
+            system[i + N + 1][i - 1] += 0.25 * theta * (- crossSection1[i - 1] - crossSection1[i])
+            # df[i]/du[i], f[i] = -res[i]
+            system[i + N + 1][i] += 0.25 * theta * (- crossSection1[i - 1] + crossSection1[i + 1])
+            # df[i]/du[i+1], f[i] = -res[i]
+            system[i + N + 1][i + 1] += 0.25 * theta * (+ crossSection1[i] + crossSection1[i + 1])
+
+            # Continuity, Pressure see [1] eq. (13a)
+
+            # dg[i]/dp[i-1], g[i] = -res[i + N + 1]
+            system[i + N + 1][N + 1 + i - 1] += 0.25 * theta * (- dcrossSection1[i - 1] * velocity1[i - 1] - dcrossSection1[i - 1] * velocity1[i])
+            system[i + N + 1][N + 1 + i - 1] += - alpha * theta
+            # dg[i]/dp[i], g[i] = -res[i + N + 1]
+            system[i + N + 1][N + 1 + i] += dcrossSection1[i] * dx / tau
+            system[i + N + 1][N + 1 + i] += 0.25 * theta * (- dcrossSection1[i] * velocity1[i - 1] + dcrossSection1[i] * velocity1[i + 1])
+            system[i + N + 1][N + 1 + i] += 2 * alpha * theta
+            # dg[i]/dp[i+1], g[i] = -res[i + N + 1]
+            system[i + N + 1][N + 1 + i + 1] += 0.25 * theta * (+ dcrossSection1[i + 1] * velocity1[i] + dcrossSection1[i + 1] * velocity1[i + 1])
+            system[i + N + 1][N + 1 + i + 1] += - alpha * theta
+
+        # Velocity Inlet is prescribed
+        system[0][0] = 1
+        # Pressure Inlet is linearly interpolated [1] eq. (14a)
+        system[N + 1][N + 1] = 1
+        system[N + 1][N + 2] = -2
+        system[N + 1][N + 3] = 1
+        # Velocity Outlet is linearly interpolated [1] eq. (14b)
+        system[N][N] = 1
+        system[N][N - 1] = -2
+        system[N][N - 2] = 1
+        # Pressure Outlet is Non-Reflecting [1] eq. (15)
+        system[2 * N + 1][2 * N + 1] = 1
+        system[2 * N + 1][N] = -(np.sqrt(config.c_mk ** 2 - pressure0[-1] / 2) - (velocity1[-1] - velocity0[-1]) / 4)
+
+        try:
+            solution = np.linalg.solve(system, res)
+        except np.linalg.LinAlgError:
+            print "LINALGERROR! SINGULAR MATRIX"
+            velocity1[:] = np.nan
+            pressure1[:] = np.nan
+            crossSection1[:] = np.nan
+            success = False
+            break
+
+        velocity1 += config.relax_newton * solution[:N + 1]
+        pressure1 += config.relax_newton * solution[N + 1:]
+
+    return velocity1, pressure1, crossSection1, success
 
 
 def perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in, custom_coupling, theta=1):
@@ -147,9 +310,17 @@ def perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, c
     return velocity1, pressure1, success
 
 
-def perform_partitioned_implicit_euler_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in, custom_coupling):
+def perform_partitioned_implicit_euler_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in):
     return perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in, custom_coupling=False, theta=1)
 
 
 def perform_partitioned_implicit_trapezoidal_rule_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in, custom_coupling):
     return perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in, custom_coupling, theta=.5)
+
+
+def perform_monolithic_implicit_euler_step(velocity0, pressure0, crossSection0, dx, tau, velocity_in):
+    return perform_monolithic_theta_scheme_step(velocity0, pressure0, crossSection0, dx, tau, velocity_in, theta=1)
+
+
+def perform_monolithic_implicit_trapezoidal_rule_step(velocity0, pressure0, crossSection0, dx, tau, velocity_in):
+    return perform_monolithic_theta_scheme_step(velocity0, pressure0, crossSection0, dx, tau, velocity_in, theta=.5)
