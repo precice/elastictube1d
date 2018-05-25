@@ -22,11 +22,43 @@ import datetime
 from output import create_output, create_video
 
 
+def is_partitioned_approach(coupling_mode):
+    """
+    this is a convenience method for classification of concrete coupling algorithms into partitioned or monolithic approach
+    :param coupling_mode:
+    :return:
+    """
+    if (coupling_mode is config.CouplingAlgorithm.PartitionedPythonExplicit) or \
+                (coupling_mode is config.CouplingAlgorithm.PartitionedPythonImplicit) or \
+                (coupling_mode is config.CouplingAlgorithm.PartitionedPythonCustomized):
+        return True
+    elif (coupling_mode is config.CouplingAlgorithm.Monolitic):
+        return False
+    else:
+        raise Exception("cannot classify coupling mode [%s]", (coupling_mode.name))
+
+
+def performs_iterations(coupling_mode):
+    """
+    this is a convenience method for classification of concrete coupling algorithms into algorithms with and without iteration
+    :param coupling_mode:
+    :return:
+    """
+    if (coupling_mode is config.CouplingAlgorithm.PartitionedPythonImplicit) or \
+        (coupling_mode is config.CouplingAlgorithm.PartitionedPythonCustomized):
+        return True
+    elif coupling_mode is config.CouplingAlgorithm.PartitionedPythonExplicit:
+        return False
+    else:
+        raise Exception("cannot classify coupling mode [%s]", (coupling_mode.name))
+
+
 def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.L, velocity_in=config.velocity_in, coupling_mode=config.CouplingAlgorithm.Monolitic, time_stepping_scheme=config.time_stepping_scheme):
 
     sim_start_time = datetime.datetime.now()
     plotting_mode = config.PlottingModes.OFF
     output_mode = config.OutputModes.NETCDF
+
 
     dx = L/N  # element length
 
@@ -81,16 +113,11 @@ def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.
         t = n*tau
         fixed_point_solver.clear(config.underrelaxation_factor * tau)
 
-        if (coupling_mode is config.CouplingAlgorithm.PartitionedPythonExplicit) or \
-                (coupling_mode is config.CouplingAlgorithm.PartitionedPythonImplicit) or \
-                (coupling_mode is config.CouplingAlgorithm.PartitionedPythonCustomized):
-            if (coupling_mode is config.CouplingAlgorithm.PartitionedPythonImplicit) or \
-                    (coupling_mode is config.CouplingAlgorithm.PartitionedPythonCustomized):
+        if is_partitioned_approach(coupling_mode):
+            if performs_iterations(coupling_mode):
                 k_max = config.k_max_coupling
-            elif coupling_mode is config.CouplingAlgorithm.PartitionedPythonExplicit:
-                k_max = 1
             else:
-                raise Exception("unknown coupling algorithm!")
+                k_max = 1
 
             k = 0
             error = np.inf
@@ -101,32 +128,26 @@ def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.
                 k += 1
                 if time_stepping_scheme is config.TimeStepping.ImplicitEuler:
                     velocity1, pressure1, success = perform_partitioned_implicit_euler_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in(t+tau))
-                elif (time_stepping_scheme is config.TimeStepping.TrapezoidalRule) or (time_stepping_scheme is config.TimeStepping.TrapezoidalRuleCustom):
+                elif time_stepping_scheme is config.TimeStepping.TrapezoidalRule:
                     velocity1, pressure1, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in(t + tau), custom_coupling=coupling_mode is config.CouplingAlgorithm.PartitionedPythonCustomized)
                 else:
-                    raise Exception("unknown time stepping scheme!")
+                    raise Exception("unknown time stepping scheme [%s]!", time_stepping_scheme.name)
 
                 crossSection1_tilde = solve_solid(pressure1)  # new cross section corresponding to computed pressure
-                if (coupling_mode is config.CouplingAlgorithm.PartitionedPythonImplicit) or (coupling_mode is config.CouplingAlgorithm.PartitionedPythonCustomized):
+                if performs_iterations(coupling_mode):
                     crossSection1, error = fixed_point_solver.iterate(crossSection1, crossSection1_tilde)
-                elif coupling_mode is config.CouplingAlgorithm.PartitionedPythonExplicit:
-                    crossSection1 = crossSection1_tilde
                 else:
-                    raise Exception("unknown coupling algorithm!")
-
+                    crossSection1 = crossSection1_tilde
             if k == config.k_max_coupling:
                 raise Exception("Implicit coupling break! Error: %.4g" % error)
                 success = False
-
-        elif coupling_mode is config.CouplingAlgorithm.Monolitic:
+        else:
             if time_stepping_scheme is config.TimeStepping.ImplicitEuler:
                 velocity1, pressure1, crossSection1, success = perform_monolithic_implicit_euler_step(velocity0, pressure0, crossSection0, dx, tau, velocity_in(t+tau))
-            elif (time_stepping_scheme is config.TimeStepping.TrapezoidalRule) or (time_stepping_scheme is config.TimeStepping.TrapezoidalRuleCustom):
+            elif time_stepping_scheme is config.TimeStepping.TrapezoidalRule:
                 velocity1, pressure1, crossSection1, success = perform_monolithic_implicit_trapezoidal_rule_step(velocity0, pressure0, crossSection0, dx, tau, velocity_in(t+tau))
             else:
-                raise Exception("unknown time stepping scheme!")
-        else:
-            raise Exception("unknown coupling algorithm!")
+                raise Exception("unknown time stepping scheme [%s]!", (time_stepping_scheme.name))
 
         ## swap at end of timestep
         pressure0 = pressure1

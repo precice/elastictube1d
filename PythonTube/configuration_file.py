@@ -20,7 +20,6 @@ class OutputModes(Enum):
 class TimeStepping(Enum):
     ImplicitEuler = 0  # implicit Euler time stepping
     TrapezoidalRule = 1  # trapezoidal rule time stepping
-    TrapezoidalRuleCustom = 2  # trapezoidal rule time stepping with pseudo waveform relaxation
 
 
 class InitializationProcedure(Enum):
@@ -33,7 +32,8 @@ class CouplingAlgorithm(Enum):
     PartitionedPythonExplicit = 1
     PartitionedPythonCustomized = 2
     PartitionedPreCICE = 3
-    Monolitic = 4
+    PartitionedPreCICECustomized = 4
+    Monolitic = 5
 
 
 ## STRUCTURE SOLVER PARAMETERS
@@ -74,12 +74,13 @@ underrelaxation_factor=.0000001  # underrelaxation factor
 relax_newton = .1
 k_max_coupling = 1000  # maximum number of coupling iterations per timestep
 e_coupling = 10**-10  # error tolerance in coupling
+coupling_mode = CouplingAlgorithm.PartitionedPythonImplicit
 
 # discretization
 T_max = 1  # total simulation time
 tau0 = .2
 n_elem = 10  # number of elements in x direction
-time_stepping_scheme = TimeStepping.TrapezoidalRule  # time stepping scheme used
+time_stepping_scheme = TimeStepping.ImplicitEuler  # time stepping scheme used
 
 # experimental setup
-n_tau = 8
+n_tau = 4

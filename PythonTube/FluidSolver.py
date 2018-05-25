@@ -123,14 +123,19 @@ while interface.isCouplingOngoing():
         interface.fulfilledAction(PyActionWriteIterationCheckpoint())
 
     if config.time_stepping_scheme is config.TimeStepping.ImplicitEuler:
-        velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau))
+        if config.coupling_mode is config.CouplingAlgorithm.PartitionedPreCICE:
+            velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau))
+        else:
+            raise Exception("invalid combination of time stepping scheme [%s] and coupling mode [%s]!" % (config.coupling_mode.name, config.time_stepping_scheme.name))
     elif config.time_stepping_scheme is config.TimeStepping.TrapezoidalRule:
-        velocity, pressure, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity_n, pressure_n, crossSectionLength, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=False)
-    elif config.time_stepping_scheme is config.TimeStepping.TrapezoidalRuleCustom:
-        velocity, pressure, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity_n, pressure_n, crossSectionLength_n, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=True)
+        if config.coupling_mode is config.CouplingAlgorithm.PartitionedPreCICE:
+            velocity, pressure, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity_n, pressure_n, crossSectionLength, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=False)
+        elif config.coupling_mode is config.CouplingAlgorithm.PartitionedPreCICECustomized:
+            velocity, pressure, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity_n, pressure_n, crossSectionLength_n, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=True)
+        else:
+            raise Exception("invalid combination of time stepping scheme [%s] and coupling mode [%s]!" % (config.coupling_mode.name, config.time_stepping_scheme.name))
     else:
-        print "invalid time stepping scheme!"
-        quit()
+        raise Exception("invalid time stepping scheme [%s]!" % (config.time_stepping_scheme.name))
 
     interface.writeBlockScalarData(pressureID, n_elem + 1, vertexIDs, pressure)
     interface.advance(precice_tau)
@@ -149,7 +154,7 @@ while interface.isCouplingOngoing():
             'tau': precice_tau,
             'dx': dx,
             'timestepping': config.time_stepping_scheme.name,
-            'coupling': config.CouplingAlgorithm.PartitionedPreCICE.name,
+            'coupling': config.coupling_mode.name,
             'elasticity_module': config.E,
             'length': config.L,
             'n_elem': config.n_elem,
