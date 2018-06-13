@@ -53,18 +53,23 @@ print("Build options ...")
 print_options(vars)
 
 # ====== precice ======
+
 preciceRoot = os.getenv ('PRECICE_ROOT')
-if (preciceRoot == None):
-   print('ERROR: Environment variable PRECICE_ROOT not defined!')
-   sys.exit(1)
+
+if preciceRoot:
+    print("PRECICE_ROOT defined, preCICE was probably build from source")
+    print('Using environment variable PRECICE_ROOT = ' + preciceRoot)
+    env.Append(CPPPATH = [os.path.join(preciceRoot, 'src')])
+    env.Append(LIBPATH = [os.path.join(preciceRoot, 'build/last')]) 
+    env.Append(CPPDEFINES = ['PRECICE_USE_MPI'])
+    uniqueCheckLib(conf, "precice") 
 else:
-   print('Using environment variable PRECICE_ROOT =', preciceRoot)
-
-env.Append(CPPPATH = [os.path.join(preciceRoot, 'src')])
-env.Append(LIBPATH = [os.path.join(preciceRoot, 'build/last')])
-env.Append(CPPDEFINES = ['PRECICE_USE_MPI'])
-
-uniqueCheckLib(conf, "precice")
+    print("PRECICE_ROOT not defined. Using pkg_config to find libprecice.")
+    try:
+        uniqueCheckLib(conf, "precice")
+    except Exception():
+        print("Did you forget to define PRECICE_ROOT?")
+        Exit(-1)
 
 # ====== python ======
 if env["python"]:
