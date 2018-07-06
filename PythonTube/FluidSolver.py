@@ -77,7 +77,7 @@ else:
     print "invalid initialization procedure!"
     quit()
 
-plotting_mode = config.PlottingModes.OFF
+plotting_mode = config.PlottingModes.VIDEO
 output_mode = config.OutputModes.NETCDF
 
 if plotting_mode == config.PlottingModes.VIDEO:
@@ -126,14 +126,14 @@ while interface.isCouplingOngoing():
         if config.coupling_mode is config.CouplingAlgorithm.PartitionedPreCICE:
             velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau))
         else:
-            raise Exception("invalid combination of time stepping scheme [%s] and coupling mode [%s]!" % (config.coupling_mode.name, config.time_stepping_scheme.name))
+            raise Exception("invalid combination of time stepping scheme [%s] and coupling mode [%s]!" % (config.time_stepping_scheme.name, config.coupling_mode.name))
     elif config.time_stepping_scheme is config.TimeStepping.TrapezoidalRule:
         if config.coupling_mode is config.CouplingAlgorithm.PartitionedPreCICE:
             velocity, pressure, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity_n, pressure_n, crossSectionLength, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=False)
         elif config.coupling_mode is config.CouplingAlgorithm.PartitionedPreCICECustomized:
             velocity, pressure, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity_n, pressure_n, crossSectionLength_n, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=True)
         else:
-            raise Exception("invalid combination of time stepping scheme [%s] and coupling mode [%s]!" % (config.coupling_mode.name, config.time_stepping_scheme.name))
+            raise Exception("invalid combination of time stepping scheme [%s] and coupling mode [%s]!" % (config.time_stepping_scheme.name, config.coupling_mode.name))
     else:
         raise Exception("invalid time stepping scheme [%s]!" % (config.time_stepping_scheme.name))
 
