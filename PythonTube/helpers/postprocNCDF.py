@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 i = 0
 taus = {}
 final_pressures = {}
-folder = r'../NCDF'
+folder = r'/home/ga25zih/Programming/elastictube1d/PythonTube/NCDF_shortTime'
 quantityOfInterest = 'pressure'
 
 for file in os.listdir(folder):
@@ -43,6 +43,7 @@ ref_algorithm = config.TimeStepping.TrapezoidalRule.name + " - " + config.Coupli
 
 do_not_plot_reference_algorithm_results = False
 do_not_plot_most_accurate_solution = True
+all_plotting_data = {}
 
 for setup in taus.keys():
     if setup == ref_algorithm and do_not_plot_reference_algorithm_results:
@@ -72,9 +73,25 @@ for setup in taus.keys():
     sorted_taus = [experiment_taus[sort_ids[j]] for j in range(len(sort_ids))]
     sorted_errors = [errors[sort_ids[j]] for j in range(len(sort_ids))]
 
+    all_plotting_data['taus'] = sorted_taus
+    all_plotting_data[setup] = sorted_errors
+
     h = plt.loglog(sorted_taus[:], sorted_errors[:], markers.pop())[0]
     handles.append(h)
     labels.append(setup)
 
 plt.legend(handles, labels)
 plt.show()
+
+import csv
+
+datamatrix = []
+
+for k in all_plotting_data.keys():
+    datamatrix.append([k] + all_plotting_data[k])
+
+with open('datadump.csv', 'wb') as f:  # Just use 'w' mode in 3.x
+    w = csv.writer(f, delimiter = ',', quotechar = '"')
+
+    for l in datamatrix:
+        w.writerow(l)
