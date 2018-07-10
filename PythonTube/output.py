@@ -161,6 +161,8 @@ def create_output(t, velocity, pressure, crossSectionLength, metadata, output_mo
     if output_mode is not config.OutputModes.OFF:
         x = np.linspace(0,dx*N,N+1,endpoint=True)
         filename = "fluid_"+str(metadata["created_on"])
+        filename = filename.replace(':','_')
+        filename = filename.replace(' ','_')
         if output_mode is config.OutputModes.VTK:
             writeOutputToVTK(t, x, filename, datanames=["velocity", "pressure", "crossSection"], datasets=[velocity, pressure, crossSectionLength])
         if output_mode is config.OutputModes.NETCDF:
