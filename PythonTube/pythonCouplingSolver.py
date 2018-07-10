@@ -56,7 +56,7 @@ def performs_iterations(coupling_mode):
 def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.L, velocity_in=config.velocity_in, coupling_mode=config.CouplingAlgorithm.Monolitic, time_stepping_scheme=config.time_stepping_scheme):
 
     sim_start_time = datetime.datetime.now()
-    plotting_mode = config.PlottingModes.OFF
+    plotting_mode = config.PlottingModes.VIDEO
     output_mode = config.OutputModes.NETCDF
 
 
@@ -84,7 +84,7 @@ def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.
 
 
     pressure0 = config.p0 * np.ones(N + 1)  # initialize with equilibrium pressure
-    crossSection0 = config.crossSection0(N)
+    crossSection0 = config.a0 * np.ones(N + 1)  # initialize constant cross section
     velocity0 = config.velocity_in(0) * crossSection0[0] * np.ones(N + 1) / crossSection0  # initialize such that mass conservation is fulfilled
 
     success = True
@@ -106,11 +106,36 @@ def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.
         velocity0 = velocity1
         pressure0 = pressure1
     """
+
+    # save initial conditions
+    t = 0
+
+    metadata = {
+        'created_on': str(sim_start_time),
+        'tau': tau,
+        'dx': dx,
+        'timestepping': time_stepping_scheme.name,
+        'coupling': coupling_mode.name,
+        'elasticity_module': config.E,
+        'length': config.L,
+        'n_elem': config.n_elem,
+        'inflow_frequency': config.frequency,
+        'inflow_amplitude': config.ampl,
+        'inflow_mean': config.u0
+    }
+
+    create_output(t, velocity0, pressure0, crossSection0, metadata, output_mode)
+
+    if plotting_mode is config.PlottingModes.VIDEO:
+        create_video(t, velocity0, pressure0, crossSection0, metadata, writer)
+
     for n in range(N_steps):
         if not success:
             break
 
         t = n*tau
+        print t
+
         fixed_point_solver.clear(config.underrelaxation_factor * tau)
 
         if is_partitioned_approach(coupling_mode):
@@ -154,6 +179,7 @@ def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.
         velocity0 = velocity1
         crossSection0 = crossSection1
 
+
         ## postprocessing
         metadata = {
             'created_on': str(sim_start_time),
@@ -169,10 +195,10 @@ def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.
             'inflow_mean': config.u0
         }
 
-        create_output(t, velocity0, pressure0, crossSection0, metadata, output_mode)
+        create_output(t+tau, velocity1, pressure1, crossSection1, metadata, output_mode)
 
         if plotting_mode is config.PlottingModes.VIDEO:
-            create_video(t, velocity0, pressure0, crossSection0, metadata, writer)
+            create_video(t+tau, velocity1, pressure1, crossSection1, metadata, writer)
 
         ## timestep end
 
