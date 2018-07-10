@@ -6,12 +6,12 @@ import configuration_file as config
 i = 0
 taus = {}
 final_pressures = {}
-folder = './NCDF'
+folder = r'../NCDF'
 quantityOfInterest = 'pressure'
 
 for file in os.listdir(folder):
     filepath = os.path.join(folder,file)
-    data = nc.Dataset(filepath,'r')
+    data = nc.Dataset(filepath, 'r')
 
     setup = data.timestepping + " - " + data.coupling
 
@@ -40,7 +40,12 @@ labels = []
 markers = ['*','|','_','.','1','2','3','4']
 ref_algorithm = config.TimeStepping.TrapezoidalRule.name + " - " + config.CouplingAlgorithm.Monolitic.name
 
+do_not_plot_reference_algorithm_results = False
+do_not_plot_most_accurate_solution = True
+
 for setup in taus.keys():
+    if setup == ref_algorithm and do_not_plot_reference_algorithm_results:
+        continue  # do not plot reference algorithm
 
     taus_for_setup = np.array(taus[setup])
     i_ref = np.argmin(taus[ref_algorithm])
@@ -49,6 +54,9 @@ for setup in taus.keys():
     i = 0
     error_dict = {}
     for p in final_pressures[setup]:
+        if abs(taus[setup][i] - taus[ref_algorithm][i_ref]) < 10**-10 and do_not_plot_most_accurate_solution:
+            continue
+
         error_dict[taus[setup][i]] = np.linalg.norm(final_pressures[setup][i] - p_ref)/final_pressures[setup][i].shape[0]
         i += 1
 
