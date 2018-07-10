@@ -7,6 +7,7 @@ import configuration_file as config
 import tubePlotting
 
 import matplotlib.pyplot as plt
+import matplotlib.animation as manimation
 
 
 def numpyDataToVTKPointData(grid, numpy_data, dataname):
@@ -172,3 +173,22 @@ def create_video(t, velocity, pressure, crossSectionLength, metadata, writer):
     tubePlotting.doPlotting(plt.gca(), crossSectionLength, velocity, pressure, metadata['dx'], t)
     writer.grab_frame()
     plt.gca().cla()
+
+
+def create_video_from_netcfd(filepath, write_to):
+    data = nc.Dataset(filepath,'r')
+    FFMpegWriter = manimation.writers['ffmpeg']
+    writer = FFMpegWriter(fps=15)
+
+    fig, ax = plt.subplots(1)
+
+    with writer.saving(fig, write_to+"writer_test.mp4", 100):
+        i = 0
+        for t in data.variables['times']:
+            print "rendering frame %d of %d." % (i, data.variables['times'].shape[0])
+            tubePlotting.doPlotting(plt.gca(), data.variables['crossSection'][:,i], data.variables['velocity'][:,i], data.variables['pressure'][:,i], data.dx, t)
+            writer.grab_frame()
+            plt.gca().cla()
+            i+=1
+
+    plt.close()
