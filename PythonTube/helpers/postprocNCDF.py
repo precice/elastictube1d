@@ -2,6 +2,7 @@ import os
 import netCDF4 as nc
 import numpy as np
 import configuration_file as config
+import matplotlib.pyplot as plt
 
 i = 0
 taus = {}
@@ -32,7 +33,7 @@ for file in os.listdir(folder):
         print abs(data.length - config.L) < 10**-10
         print abs(data.elasticity_module == config.E) < 10**-10
         print "invalid!"
-    #data.close()
+    data.close()
     i+=1
 
 handles = []
@@ -53,12 +54,15 @@ for setup in taus.keys():
 
     i = 0
     error_dict = {}
+
     for p in final_pressures[setup]:
         if abs(taus[setup][i] - taus[ref_algorithm][i_ref]) < 10**-10 and do_not_plot_most_accurate_solution:
+            i += 1
             continue
 
         error_dict[taus[setup][i]] = np.linalg.norm(final_pressures[setup][i] - p_ref)/final_pressures[setup][i].shape[0]
         i += 1
+
 
     experiment_taus = error_dict.keys()
     errors = error_dict.values()
@@ -67,8 +71,6 @@ for setup in taus.keys():
 
     sorted_taus = [experiment_taus[sort_ids[j]] for j in range(len(sort_ids))]
     sorted_errors = [errors[sort_ids[j]] for j in range(len(sort_ids))]
-
-    import matplotlib.pyplot as plt
 
     h = plt.loglog(sorted_taus[:], sorted_errors[:], markers.pop())[0]
     handles.append(h)
