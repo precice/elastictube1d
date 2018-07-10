@@ -6,6 +6,8 @@ import argparse
 from mpi4py import MPI
 import numpy as np
 import configuration_file as config
+
+from input import load_precomputed
  
 # check if PRECICE_ROOT is defined
 if not os.getenv('PRECICE_ROOT'):
@@ -51,11 +53,9 @@ if config.initialization_procedure is config.InitializationProcedure.FromConstan
     pressure = config.p0 * np.ones(N+1)
     crossSectionLength = config.a0 * np.ones(N+1)
 elif config.initialization_procedure is config.InitializationProcedure.FromPrecomputed:
-    print "has to be implemented!"
-    # todo to be implemented!
-    # pressure = ...
-    # crossSectionLength = ...
-    quit()
+    velocity_of_t, pressure_of_t, crossSectionLength_of_t = load_precomputed(config.precomputed_filename)
+    pressure = pressure_of_t(0)
+    crossSectionLength = crossSectionLength_of_t(0)
 else:
     print "invalid initialization procedure!"
     quit()
