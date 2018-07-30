@@ -20,7 +20,7 @@ if not os.getenv('PRECICE_ROOT'):
    exit(1)
 
 precice_root = os.getenv('PRECICE_ROOT')
-precice_python_adapter_root = precice_root+"/src/precice/adapters/python"
+precice_python_adapter_root = precice_root+"/src/precice/bindings/python"
 sys.path.insert(0, precice_python_adapter_root)
 
 from mpi4py import MPI
