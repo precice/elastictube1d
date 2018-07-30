@@ -20,6 +20,7 @@ import matplotlib.animation as manimation
 import datetime
 
 from output import create_output, create_video
+from input import load_precomputed
 
 
 def is_partitioned_approach(coupling_mode):
@@ -82,12 +83,20 @@ def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.
     # See [2],p.739,eq.3.16-34, not only the continuity equation w.r.t to the velocity, but also w.r.t the first
     # derivative of the velocity has to be fulfilled.
 
+    if config.initialization_procedure is config.InitializationProcedure.FromConstants:
+        crossSection0 = config.a0 * np.ones(N + 1)
+        velocity0 = config.velocity_in(0) * crossSection0[0] * np.ones(N + 1) / crossSection0  # initialize such that mass conservation is fulfilled
+        pressure0 = config.p0 * np.ones(N + 1)
+    elif config.initialization_procedure is config.InitializationProcedure.FromPrecomputed:
+        velocity_of_t, pressure_of_t, crossSectionLength_of_t = load_precomputed(config.precomputed_filename)
+        velocity0 = velocity_of_t(0)
+        pressure0 = pressure_of_t(0)
+        crossSection0 = crossSectionLength_of_t(0)
+    else:
+        print "invalid initialization procedure!"
+        quit()
 
-    pressure0 = config.p0 * np.ones(N + 1)  # initialize with equilibrium pressure
-    crossSection0 = config.a0 * np.ones(N + 1)  # initialize constant cross section
-    velocity0 = config.velocity_in(0) * crossSection0[0] * np.ones(N + 1) / crossSection0  # initialize such that mass conservation is fulfilled
-
-    success = True
+    coupling_success = True
     # todo currently we do not do any presteps!
     """
     steps_pre = pp.steps_pre # perform some implicit Euler steps to create proper initial conditions
@@ -130,7 +139,7 @@ def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.
         create_video(t, velocity0, pressure0, crossSection0, metadata, writer)
 
     for n in range(N_steps):
-        if not success:
+        if not coupling_success:
             break
 
         t = n*tau
@@ -152,25 +161,29 @@ def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.
             while error > config.e_coupling and k < k_max:  # implicit coupling: iteratively improve crossSection1
                 k += 1
                 if time_stepping_scheme is config.TimeStepping.ImplicitEuler:
-                    velocity1, pressure1, success = perform_partitioned_implicit_euler_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in(t+tau))
+                    velocity1, pressure1, coupling_success = perform_partitioned_implicit_euler_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in(t + tau))
                 elif time_stepping_scheme is config.TimeStepping.TrapezoidalRule:
-                    velocity1, pressure1, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in(t + tau), custom_coupling=coupling_mode is config.CouplingAlgorithm.PartitionedPythonCustomized)
+                    velocity1, pressure1, coupling_success = perform_partitioned_implicit_trapezoidal_rule_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in(t + tau), custom_coupling=coupling_mode is config.CouplingAlgorithm.PartitionedPythonCustomized)
                 else:
                     raise Exception("unknown time stepping scheme [%s]!", time_stepping_scheme.name)
 
                 crossSection1_tilde = solve_solid(pressure1)  # new cross section corresponding to computed pressure
                 if performs_iterations(coupling_mode):
-                    crossSection1, error = fixed_point_solver.iterate(crossSection1, crossSection1_tilde)
+                    try:
+                        crossSection1, error = fixed_point_solver.iterate(crossSection1, crossSection1_tilde)
+                    except np.linalg.LinAlgError:
+                        print "linalg error!"
+                        coupling_success = False
                 else:
                     crossSection1 = crossSection1_tilde
             if k == config.k_max_coupling:
-                raise Exception("Implicit coupling break! Error: %.4g" % error)
-                success = False
+                print "reached max!"
+                coupling_success = False
         else:
             if time_stepping_scheme is config.TimeStepping.ImplicitEuler:
-                velocity1, pressure1, crossSection1, success = perform_monolithic_implicit_euler_step(velocity0, pressure0, crossSection0, dx, tau, velocity_in(t+tau))
+                velocity1, pressure1, crossSection1, coupling_success = perform_monolithic_implicit_euler_step(velocity0, pressure0, crossSection0, dx, tau, velocity_in(t + tau))
             elif time_stepping_scheme is config.TimeStepping.TrapezoidalRule:
-                velocity1, pressure1, crossSection1, success = perform_monolithic_implicit_trapezoidal_rule_step(velocity0, pressure0, crossSection0, dx, tau, velocity_in(t+tau))
+                velocity1, pressure1, crossSection1, coupling_success = perform_monolithic_implicit_trapezoidal_rule_step(velocity0, pressure0, crossSection0, dx, tau, velocity_in(t + tau))
             else:
                 raise Exception("unknown time stepping scheme [%s]!", (time_stepping_scheme.name))
 
@@ -201,6 +214,10 @@ def solve_1DTube(N=config.n_elem, tau=config.tau0, T_max=config.T_max, L=config.
             create_video(t+tau, velocity1, pressure1, crossSection1, metadata, writer)
 
         ## timestep end
+
+    if not coupling_success:
+        raise Exception("coupling broke!")
+
 
     if plotting_mode is config.PlottingModes.VIDEO:
         writer.finish()

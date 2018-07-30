@@ -2,7 +2,6 @@ from __future__ import division
 from enum import Enum
 
 import numpy as np
-import sympy as sp
 
 
 class PlottingModes(Enum):
@@ -117,10 +116,10 @@ def dvelocity_in(t, type=default_velocity_type):
         print("unknown type!")
         quit()
 
-
 p0 = 0  # pressure at outlet
 
 initialization_procedure = InitializationProcedure.FromConstants
+precomputed_filename = "ENTER FILENAME HERE!"
 
 # numerical properties for non-linear fluid solver
 k_max_nonlin = 1000  # maximum number of non-linear solver iterations

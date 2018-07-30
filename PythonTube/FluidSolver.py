@@ -5,14 +5,16 @@ import argparse
 import configuration_file as config
 from thetaScheme import perform_partitioned_implicit_trapezoidal_rule_step, perform_partitioned_implicit_euler_step
 import numpy as np
-import tubePlotting
 import datetime
 
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as manimation
 
 from output import create_output, create_video
+from input import load_precomputed
+
+def linear_interpolation(x0, x1, t0, dt):
+    return lambda t: x1 * (t-t0)/dt + x0 * (t0+dt-t)/dt
 
 # check if PRECICE_ROOT is defined
 if not os.getenv('PRECICE_ROOT'):
@@ -57,27 +59,19 @@ print "preCICE configured..."
 dimensions = interface.getDimensions()
 
 if config.initialization_procedure is config.InitializationProcedure.FromConstants:
-    velocity = config.velocity_in(0) * np.ones(n_elem + 1)
-    velocity_n = config.velocity_in(0) * np.ones(n_elem + 1)
-    pressure = config.p0 * np.ones(n_elem + 1)
-    pressure_n = config.p0 * np.ones(n_elem + 1)
     crossSectionLength = config.a0 * np.ones(n_elem + 1)
-    crossSectionLength_n = config.a0 * np.ones(n_elem + 1)
+    velocity = config.velocity_in(0) * crossSectionLength[0] * np.ones(n_elem + 1) / crossSectionLength  # initialize such that mass conservation is fulfilled
+    pressure = config.p0 * np.ones(n_elem + 1)
 elif config.initialization_procedure is config.InitializationProcedure.FromPrecomputed:
-    print "has to be implemented!"
-    # todo to be implemented!
-    # velocity = ...
-    # velocity_n = ...
-    # pressure = ...
-    # pressure_n = ...
-    # crossSectionLength = ...
-    # crossSectionLength_n = ...
-    quit()
+    velocity_of_t, pressure_of_t, crossSectionLength_of_t = load_precomputed(config.precomputed_filename)
+    velocity = velocity_of_t(0)
+    pressure = pressure_of_t(0)
+    crossSectionLength = crossSectionLength_of_t(0)
 else:
     print "invalid initialization procedure!"
     quit()
 
-plotting_mode = config.PlottingModes.VIDEO
+plotting_mode = config.PlottingModes.OFF
 output_mode = config.OutputModes.NETCDF
 
 if plotting_mode == config.PlottingModes.VIDEO:
@@ -112,8 +106,9 @@ interface.initializeData()
 if interface.isReadDataAvailable():
     interface.readBlockScalarData(crossSectionLengthID, n_elem + 1, vertexIDs, crossSectionLength)
 
+velocity_n = np.copy(velocity)
+pressure_n = np.copy(pressure)
 crossSectionLength_n = np.copy(crossSectionLength)
-velocity_n = config.velocity_in(0) * crossSectionLength_n[0] * np.ones(n_elem + 1) / crossSectionLength_n  # initialize such that mass conservation is fulfilled
 
 sim_start_time = datetime.datetime.now()
 
@@ -124,14 +119,18 @@ while interface.isCouplingOngoing():
 
     if config.time_stepping_scheme is config.TimeStepping.ImplicitEuler:
         if config.coupling_mode is config.CouplingAlgorithm.PartitionedPreCICE:
-            velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau))
+            velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength_n, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau))
+        elif config.coupling_mode is config.CouplingAlgorithm.PartitionedPreCICECustomized:
+            crossSectionLength_of_t = linear_interpolation(crossSectionLength_n, crossSectionLength, t, precice_tau)
+            velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength_of_t(t), crossSectionLength_of_t(t+precice_tau), dx, precice_tau, config.velocity_in(t + precice_tau))
         else:
             raise Exception("invalid combination of time stepping scheme [%s] and coupling mode [%s]!" % (config.time_stepping_scheme.name, config.coupling_mode.name))
     elif config.time_stepping_scheme is config.TimeStepping.TrapezoidalRule:
         if config.coupling_mode is config.CouplingAlgorithm.PartitionedPreCICE:
-            velocity, pressure, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity_n, pressure_n, crossSectionLength, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=False)
+            velocity, pressure, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity_n, pressure_n, crossSectionLength_n, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=False)
         elif config.coupling_mode is config.CouplingAlgorithm.PartitionedPreCICECustomized:
-            velocity, pressure, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity_n, pressure_n, crossSectionLength_n, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=True)
+            crossSectionLength_of_t = linear_interpolation(crossSectionLength_n, crossSectionLength, t, precice_tau)
+            velocity, pressure, success = perform_partitioned_implicit_trapezoidal_rule_step(velocity_n, pressure_n, crossSectionLength_of_t(t), crossSectionLength_of_t(t+precice_tau), dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=True)
         else:
             raise Exception("invalid combination of time stepping scheme [%s] and coupling mode [%s]!" % (config.time_stepping_scheme.name, config.coupling_mode.name))
     else:
