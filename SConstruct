@@ -1,4 +1,5 @@
 import os, sys
+from os.path import join
 
 ######### FUNCTIONS ########
 def uniqueCheckLib(conf, lib):
@@ -40,7 +41,8 @@ def vprint(name, value, default=True, description = None):
 vars = Variables(None, ARGUMENTS)
 vars.Add(BoolVariable("parallel", "Compile source-code for parallel version of 1D Example for preCICE", False))
 vars.Add(BoolVariable("petsc", "Enable use of the Petsc linear algebra library.", True))
-vars.Add(BoolVariable("python", "Enable use of python", True))
+vars.Add(BoolVariable("python", "Enable use of python", False))
+vars.Add(PathVariable("libprefix", "Path prefix for libraries", "/usr", PathVariable.PathIsDir))
 vars.Add(BoolVariable("supermuc", "Compile tutorial on SuperMUC", False))
 
 env = Environment(variables = vars, ENV = os.environ)
@@ -51,6 +53,12 @@ conf = Configure(env)
 print
 print("Build options ...")
 print_options(vars)
+
+prefix = env["libprefix"]
+
+if prefix is not "/usr":  # explicitely add standard search paths
+    env.Append(CPPPATH = join( prefix, 'include'))
+    env.Append(LIBPATH = join( prefix, 'lib'))
 
 # ====== precice ======
 
@@ -81,9 +89,13 @@ else:
 if env["petsc"]:
    PETSC_DIR = env["ENV"]["PETSC_DIR"]
    PETSC_ARCH = env["ENV"]["PETSC_ARCH"]
-   env.Append(CPPPATH = [os.path.join( PETSC_DIR, "include"),
-                         os.path.join( PETSC_DIR, PETSC_ARCH, "include")])
-   env.Append(LIBPATH = [os.path.join( PETSC_DIR, PETSC_ARCH, "lib")])
+   if not env["mpi"]:
+       print("PETSc requires MPI to be enabled.")
+       Exit(1)
+   env.Append(CPPPATH = [join(prefix, PETSC_DIR, "include"),
+                         join(prefix, PETSC_DIR, PETSC_ARCH, "include")])
+   env.Append(LIBPATH = [join(prefix, PETSC_DIR, PETSC_ARCH, "lib"),
+                         join(prefix, PETSC_DIR, "lib")])
    conf.CheckLib("petsc")
 else:
    env.Append(CPPDEFINES = ['PRECICE_NO_PETSC'])
