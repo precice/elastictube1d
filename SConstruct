@@ -39,6 +39,7 @@ def vprint(name, value, default=True, description = None):
 ############################
 
 vars = Variables(None, ARGUMENTS)
+vars.Add("compiler", "Compiler to use.", "mpicxx")
 vars.Add(BoolVariable("parallel", "Compile source-code for parallel version of 1D Example for preCICE", False))
 vars.Add(BoolVariable("petsc", "Enable use of the Petsc linear algebra library.", True))
 vars.Add(BoolVariable("python", "Enable use of python", False))
@@ -89,9 +90,7 @@ else:
 if env["petsc"]:
    PETSC_DIR = env["ENV"]["PETSC_DIR"]
    PETSC_ARCH = env["ENV"]["PETSC_ARCH"]
-   if not env["mpi"]:
-       print("PETSc requires MPI to be enabled.")
-       Exit(1)
+
    env.Append(CPPPATH = [join(prefix, PETSC_DIR, "include"),
                          join(prefix, PETSC_DIR, PETSC_ARCH, "include")])
    env.Append(LIBPATH = [join(prefix, PETSC_DIR, PETSC_ARCH, "lib"),
@@ -101,11 +100,8 @@ else:
    env.Append(CPPDEFINES = ['PRECICE_NO_PETSC'])
 
 # ======= compiler ======
-if env["supermuc"]:
-   env["CXX"] = 'mpicc'      # For SuperMUC
-else:
-   env["CXX"] = 'mpic++'      # For systems offering mpic++ compiler
-
+env.Replace(CXX = env["compiler"])
+env.Replace(CC = env["compiler"])
 env.Append(CCFLAGS = ["-g3", "-O0", "-Wall", "-std=c++11"])
 
 # ====== boost ======

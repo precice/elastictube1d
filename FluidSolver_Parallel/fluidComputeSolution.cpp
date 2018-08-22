@@ -1,5 +1,6 @@
 #include "FluidSolver.h"
 
+#include <iostream>
 #include <cmath>
 #include <mpi.h>
 
