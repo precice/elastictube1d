@@ -7,15 +7,6 @@ from mpi4py import MPI
 import numpy as np
 import configuration_file as config
  
-# check if PRECICE_ROOT is defined
-if not os.getenv('PRECICE_ROOT'):
-   print "ERROR: PRECICE_ROOT not defined!"
-   exit(1)
-
-precice_root = os.getenv('PRECICE_ROOT')
-precice_python_adapter_root = precice_root+"/src/precice/bindings/python"
-sys.path.insert(0, precice_python_adapter_root)
-
 import PySolverInterface
 from PySolverInterface import *
 
