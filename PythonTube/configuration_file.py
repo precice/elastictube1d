@@ -2,7 +2,6 @@ from __future__ import division
 from enum import Enum
 
 import numpy as np
-import sympy as sp
 
 
 class PlottingModes(Enum):
