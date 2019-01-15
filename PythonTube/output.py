@@ -1,3 +1,4 @@
+from __future__ import print_function
 import vtk
 import numpy as np
 import os
@@ -12,7 +13,7 @@ def numpyDataToVTKPointData(grid, numpy_data, dataname):
         new_data[:,0,0] = numpy_data[:]
         numpy_data = new_data
     elif numpy_data != 3:
-        print "cannot handle shape = %i" % (numpy_data.shape)
+        print("cannot handle shape = %i" % (numpy_data.shape))
         quit()
 
     # add point dataset
@@ -37,7 +38,7 @@ def numpyDataToVTKCellData(grid, numpy_data, dataname):
         new_data[:,0,0] = numpy_data[:]
         numpy_data = new_data
     elif numpy_data != 3:
-        print "cannot handle shape = %i" % (numpy_data.shape)
+        print("cannot handle shape = %i" % (numpy_data.shape))
         quit()
 
     # add point dataset
