@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import division, print_function
 import os
 import sys
 import argparse
@@ -28,21 +28,21 @@ except SystemExit:
     print("Try $python FluidSolver.py precice-config.xml")
     quit()
 
-print "Starting Fluid Solver..."
+print("Starting Fluid Solver...")
 
 configFileName = args.configurationFileName
 
 N = config.n_elem
 dx = config.L / N  # element length
 
-print "N: " + str(N)
+print("N: " + str(N))
 
 solverName = "FLUID"
 
-print "Configure preCICE..."
+print("Configure preCICE...")
 interface = PySolverInterface(solverName, 0, 1)
 interface.configure(configFileName)
-print "preCICE configured..."
+print("preCICE configured...")
 
 dimensions = interface.getDimensions()
 
@@ -79,7 +79,7 @@ interface.setMeshVertices(meshID, N+1, grid.flatten('F'), vertexIDs)
 
 t = 0
 
-print "Fluid: init precice..."
+print("Fluid: init precice...")
 precice_tau = interface.initialize()
 
 if interface.isActionRequired(PyActionWriteInitialData()):
@@ -94,7 +94,7 @@ if interface.isReadDataAvailable():
 crossSectionLength_n = np.copy(crossSectionLength)
 velocity_n = config.velocity_in(0) * crossSectionLength_n[0] * np.ones(N+1) / crossSectionLength_n  # initialize such that mass conservation is fulfilled
 
-print crossSectionLength_n
+print(crossSectionLength_n)
 
 while interface.isCouplingOngoing():
     # When an implicit coupling scheme is used, checkpointing is required
@@ -121,7 +121,7 @@ while interface.isCouplingOngoing():
         if output_mode is config.OutputModes.VTK:
             writeOutputToVTK(t, "fluid", dx, N+1, datanames=["velocity", "pressure", "crossSection"], data=[velocity_n, pressure_n, crossSectionLength_n])
 
-print "Exiting FluidSolver"
+print("Exiting FluidSolver")
 
 if plotting_mode is config.PlottingModes.VIDEO and writeVideoToFile:
     writer.finish()

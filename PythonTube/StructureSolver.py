@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import division, print_function
 
 import os
 import sys
@@ -10,7 +10,7 @@ import configuration_file as config
 import PySolverInterface
 from PySolverInterface import *
 
-print "Starting Structure Solver..."
+print("Starting Structure Solver...")
 
 parser = argparse.ArgumentParser()
 parser.add_argument("configurationFileName", help="Name of the xml config file.", type=str)
@@ -26,14 +26,14 @@ except SystemExit:
 configFileName = args.configurationFileName
 N = config.n_elem
 
-print "N: " + str(N)
+print("N: " + str(N))
 
 solverName = "STRUCTURE"
 
-print "Configure preCICE..."
+print("Configure preCICE...")
 interface = PySolverInterface(solverName, 0, 1)
 interface.configure(configFileName)
-print "preCICE configured..."
+print("preCICE configured...")
 
 dimensions = interface.getDimensions()
 
@@ -54,7 +54,7 @@ interface.setMeshVertices(meshID, N+1, grid.flatten('F'), vertexIDs)
 
 t = 0
 
-print "Structure: init precice..."
+print("Structure: init precice...")
 precice_tau = interface.initialize()
 
 if (interface.isActionRequired(PyActionWriteInitialData())):
@@ -85,7 +85,7 @@ while interface.isCouplingOngoing():
     else:
         t += precice_tau
 
-print "Exiting StructureSolver"
+print("Exiting StructureSolver")
 
 interface.finalize()
 

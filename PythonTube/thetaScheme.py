@@ -3,7 +3,7 @@
 # for time integration details see
 # [2] Gresho, P. M., & Sani, R. L. (2000). Incompressible Flow and the Finite Element Method, Isothermal Laminar Flow. John Wiley & Sons. Retrieved from http://books.google.de/books?id=m_tQAAAAMAAJ
 
-from __future__ import division
+from __future__ import division, print_function
 import numpy as np
 
 import configuration_file as config
@@ -84,7 +84,7 @@ def perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, c
         if norm < 1e-10 and k > 1:
             break  # Nonlinear Solver success
         elif k > config.k_max_nonlin:
-            print "Nonlinear Solver break, iterations: %i, residual norm: %e\n" % (k, norm)
+            print("Nonlinear Solver break, iterations: %i, residual norm: %e\n" % (k, norm))
             velocity1[:] = np.nan
             pressure1[:] = np.nan
             success = False
@@ -135,7 +135,7 @@ def perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, c
         try:
             solution = np.linalg.solve(system, res)
         except np.linalg.LinAlgError:
-            print "LINALGERROR! SINGULAR MATRIX"
+            print("LINALGERROR! SINGULAR MATRIX")
             velocity1[:] = np.nan
             pressure1[:] = np.nan
             success = False
