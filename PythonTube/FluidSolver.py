@@ -14,8 +14,8 @@ import matplotlib.animation as manimation
 from output import writeOutputToVTK
 
 from mpi4py import MPI
-import PySolverInterface
-from PySolverInterface import *
+import precice
+from precice import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("configurationFileName", help="Name of the xml precice configuration file.", type=str)
@@ -40,11 +40,11 @@ print("N: " + str(N))
 solverName = "FLUID"
 
 print("Configure preCICE...")
-interface = PySolverInterface(solverName, 0, 1)
+interface = precice.Interface(solverName, 0, 1)
 interface.configure(configFileName)
 print("preCICE configured...")
 
-dimensions = interface.getDimensions()
+dimensions = interface.get_dimensions()
 
 velocity = config.velocity_in(0) * np.ones(N+1)
 velocity_n = config.velocity_in(0) * np.ones(N+1)
@@ -65,9 +65,9 @@ if plotting_mode == config.PlottingModes.VIDEO:
         writer = FFMpegWriter(fps=15, metadata=metadata)
         writer.setup(fig, "writer_test.mp4", 100)
 
-meshID = interface.getMeshID("Fluid_Nodes")
-crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID)
-pressureID = interface.getDataID("Pressure", meshID)
+meshID = interface.get_mesh_id("Fluid_Nodes")
+crossSectionLengthID = interface.get_data_id("CrossSectionLength", meshID)
+pressureID = interface.get_data_id("Pressure", meshID)
 
 vertexIDs = np.zeros(N+1)
 grid = np.zeros([dimensions, N+1])
@@ -75,39 +75,39 @@ grid = np.zeros([dimensions, N+1])
 grid[0,:] = np.linspace(0, config.L, N+1)  # x component
 grid[1,:] = 0  # y component, leave blank
 
-interface.setMeshVertices(meshID, N+1, grid.flatten('F'), vertexIDs)
+interface.set_mesh_vertices(meshID, N+1, grid.flatten('F'), vertexIDs)
 
 t = 0
 
 print("Fluid: init precice...")
 precice_tau = interface.initialize()
 
-if interface.isActionRequired(PyActionWriteInitialData()):
-    interface.writeBlockScalarData(pressureID, N+1, vertexIDs, pressure)
-    interface.fulfilledAction(PyActionWriteInitialData())
+if interface.is_action_required(action_write_initial_data()):
+    interface.write_block_scalar_data(pressureID, N+1, vertexIDs, pressure)
+    interface.fulfilled_action(action_write_initial_data())
 
-interface.initializeData()
+interface.initialize_data()
 
-if interface.isReadDataAvailable():
-    interface.readBlockScalarData(crossSectionLengthID, N+1, vertexIDs, crossSectionLength)
+if interface.is_read_data_available():
+    interface.read_block_scalar_data(crossSectionLengthID, N+1, vertexIDs, crossSectionLength)
 
 crossSectionLength_n = np.copy(crossSectionLength)
 velocity_n = config.velocity_in(0) * crossSectionLength_n[0] * np.ones(N+1) / crossSectionLength_n  # initialize such that mass conservation is fulfilled
 
 print(crossSectionLength_n)
 
-while interface.isCouplingOngoing():
+while interface.is_coupling_ongoing():
     # When an implicit coupling scheme is used, checkpointing is required
-    if interface.isActionRequired(PyActionWriteIterationCheckpoint()):
-        interface.fulfilledAction(PyActionWriteIterationCheckpoint())
+    if interface.is_action_required(action_write_iteration_checkpoint()):
+        interface.fulfilled_action(action_write_iteration_checkpoint())
 
     velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength_n, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=False)
-    interface.writeBlockScalarData(pressureID, N+1, vertexIDs, pressure)
+    interface.write_block_scalar_data(pressureID, N+1, vertexIDs, pressure)
     interface.advance(precice_tau)
-    interface.readBlockScalarData(crossSectionLengthID, N+1, vertexIDs, crossSectionLength)
+    interface.read_block_scalar_data(crossSectionLengthID, N+1, vertexIDs, crossSectionLength)
 
-    if interface.isActionRequired(PyActionReadIterationCheckpoint()): # i.e. not yet converged
-        interface.fulfilledAction(PyActionReadIterationCheckpoint())
+    if interface.is_action_required(action_read_iteration_checkpoint()): # i.e. not yet converged
+        interface.fulfilled_action(action_read_iteration_checkpoint())
     else: # converged, timestep complete
         t += precice_tau
         if plotting_mode is config.PlottingModes.VIDEO:
