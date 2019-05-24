@@ -16,10 +16,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STRE
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter")
 endif()
 
-find_library(PRECICE_LIBRARY precice
-  PATH "$ENV{PRECICE_ROOT}/build/last")
-include_directories($ENV{PRECICE_ROOT}/src)
-
+find_package(precice REQUIRED CONFIG)
 
 find_package(MPI REQUIRED
   COMPONENTS CXX)
@@ -40,9 +37,8 @@ add_executable(StructureSolverParallel
   "StructureSolver_Parallel/StructureSolver.cpp"
   "StructureSolver_Parallel/structureComputeSolution.cpp")
 
-target_link_libraries(StructureSolverParallel PUBLIC ${PRECICE_LIBRARY})
+target_link_libraries(StructureSolverParallel PRIVATE precice::precice)
 target_link_libraries(StructureSolverParallel PUBLIC ${MPI_CXX_LIBRARIES})
-
 
 
 add_executable(FluidSolverParallel
@@ -50,7 +46,7 @@ add_executable(FluidSolverParallel
   "FluidSolver_Parallel/FluidSolver.cpp"
   "FluidSolver_Parallel/fluidComputeSolution.cpp")
 
-target_link_libraries(FluidSolverParallel PUBLIC ${PRECICE_LIBRARY})
+target_link_libraries(FluidSolverParallel PRIVATE precice::precice)
 target_link_libraries(FluidSolverParallel PUBLIC ${MPI_CXX_LIBRARIES})
 target_link_libraries(FluidSolverParallel PUBLIC ${LAPACK_LIBRARIES})
 
@@ -58,13 +54,13 @@ target_link_libraries(FluidSolverParallel PUBLIC ${LAPACK_LIBRARIES})
 add_executable(StructureSolver
   "StructureSolver_Serial/structure_solver.cpp")
 
-target_link_libraries(StructureSolver PUBLIC ${PRECICE_LIBRARY})
+target_link_libraries(StructureSolver PRIVATE precice::precice)
 
 
 add_executable(FluidSolver
   "FluidSolver_Serial/fluid_solver.cpp"
   "FluidSolver_Serial/fluid_nl.cpp")
 
-target_link_libraries(FluidSolver PUBLIC ${PRECICE_LIBRARY})
+target_link_libraries(FluidSolver PRIVATE precice::precice)
 target_link_libraries(FluidSolver PUBLIC ${LAPACK_LIBRARIES})
 
