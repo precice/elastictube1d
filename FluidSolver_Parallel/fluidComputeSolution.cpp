@@ -284,15 +284,16 @@ void fluidComputeSolution(
       MPI_Send(velocity_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 6, MPI_COMM_WORLD);
     }
 
-    delete (pressure_NLS);
-    delete (pressure_n_NLS);
-    delete (pressure_old_NLS);
-    delete (crossSectionLength_NLS);
-    delete (crossSectionLength_n_NLS);
-    delete (velocity_NLS);
-    delete (velocity_n_NLS);
-    delete (Res);
-    delete (LHS);
-    delete (ipiv);
+    delete [] pressure_NLS;
+    delete [] pressure_n_NLS;
+    delete [] pressure_old_NLS;
+    delete [] crossSectionLength_NLS;
+    delete [] crossSectionLength_n_NLS;
+    delete [] velocity_NLS;
+    delete [] velocity_n_NLS;
+    delete [] Res;
+    delete [] LHS;
+    delete [] A;
+    delete [] ipiv;
   }
 }

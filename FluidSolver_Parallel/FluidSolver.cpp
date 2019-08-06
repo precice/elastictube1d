@@ -131,7 +131,7 @@ int main(int argc, char** argv)
     }
   }
 
-  delete (grid);
+  delete [] grid;
   interface.finalize();
   MPI_Finalize();
 

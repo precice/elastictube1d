@@ -134,6 +134,12 @@ int main(int argc, char** argv)
   }
 
   interface.finalize();
+
+  delete [] crossSectionLength;
+  delete [] pressure;
+  delete [] grid;
+  delete [] vertexIDs;
+
   cout << "Exiting StructureSolver" << endl;
 
   return 0;

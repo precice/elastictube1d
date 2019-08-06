@@ -137,5 +137,14 @@ int main(int argc, char** argv)
 
   interface.finalize();
 
+  delete [] velocity;
+  delete [] velocity_n;
+  delete [] pressure;
+  delete [] pressure_n;
+  delete [] crossSectionLength;
+  delete [] crossSectionLength_n;
+  delete [] vertexIDs;
+  delete [] grid;
+
   return 0;
 }
