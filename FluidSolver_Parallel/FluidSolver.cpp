@@ -23,25 +23,41 @@ int main(int argc, char** argv)
 
   MPI_Init(&argc, &argv);
 
-  int domainSize, gridOffset, rank, size, chunkLength;
+  int domainSize, gridOffset, rankWorld, sizeWorld, chunkLength;
   double *grid, tau, kappa; // Declare dataset
 
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &size);
+  MPI_Comm myComm = nullptr;
 
+  MPI_Comm_rank(MPI_COMM_WORLD, &rankWorld);
+  MPI_Comm_size(MPI_COMM_WORLD, &sizeWorld);
+
+  int color = rankWorld / 2;
+
+  MPI_Comm_split(MPI_COMM_WORLD, color, rankWorld, &myComm);
+  
+  int rankGroup, sizeGroup;
+  MPI_Comm_rank(myComm, &rankGroup);
+  MPI_Comm_size(myComm, &sizeGroup);
+
+  std::cout << "Hi from local rank " << rankGroup << " or global rank " << rankWorld << " of color " << color << std::endl;
+
+
+if (color == 0)
+{
+    
   domainSize = atoi(argv[2]);
   tau = atof(argv[3]);
   kappa = atof(argv[4]);
 
-  if ((domainSize + 1) % size == 0) {
-    chunkLength = (domainSize + 1) / size;
-    gridOffset = rank * chunkLength;
-  } else if (rank < (domainSize + 1) % size) {
-    chunkLength = (domainSize + 1) / size + 1;
-    gridOffset = rank * chunkLength;
+  if ((domainSize + 1) % sizeGroup == 0) {
+    chunkLength = (domainSize + 1) / sizeGroup;
+    gridOffset = rankGroup * chunkLength;
+  } else if (rankGroup < (domainSize + 1) % sizeGroup) {
+    chunkLength = (domainSize + 1) / sizeGroup + 1;
+    gridOffset = rankGroup * chunkLength;
   } else {
-    chunkLength = (domainSize + 1) / size;
-    gridOffset = ((domainSize + 1) % size) * ((domainSize + 1) / size + 1) + (rank - ((domainSize + 1) % size)) * (domainSize + 1) / size;
+    chunkLength = (domainSize + 1) / sizeGroup;
+    gridOffset = ((domainSize + 1) % sizeGroup) * ((domainSize + 1) / sizeGroup + 1) + (rankGroup - ((domainSize + 1) % sizeGroup)) * (domainSize + 1) / sizeGroup;
   }
 
   std::vector<double> pressure(chunkLength);
@@ -57,7 +73,7 @@ int main(int argc, char** argv)
   std::string configFileName(argv[1]);
   std::string solverName = "FLUID";
 
-  SolverInterface interface(solverName, rank, size);
+  SolverInterface interface(solverName, rankGroup, sizeGroup, &myComm);
   interface.configure(configFileName);
 
   int meshID = interface.getMeshID("Fluid_Nodes");
@@ -104,7 +120,7 @@ int main(int argc, char** argv)
     }
 
      // Call "Solver"
-    fluidComputeSolution(rank, size, domainSize, chunkLength, kappa, tau, 0.0, t+dt,
+    fluidComputeSolution(rankGroup, sizeGroup, domainSize, chunkLength, kappa, tau, 0.0, t+dt,
                          pressure.data(), pressure_n.data(), pressure.data(),
                          crossSectionLength.data(), crossSectionLength_n.data(),
                          velocity.data(), velocity_n.data());
@@ -133,6 +149,8 @@ int main(int argc, char** argv)
 
   delete (grid);
   interface.finalize();
+
+} // if color
   MPI_Finalize();
 
   return 0;
