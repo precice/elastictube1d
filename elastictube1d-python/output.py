@@ -1,9 +1,9 @@
 from __future__ import print_function
-import vtk
+from vtk import vtkStructuredPointsWriter, vtkDoubleArray, vtkImageData
 import numpy as np
 import os
 
-writer = vtk.vtkStructuredPointsWriter()
+writer = vtkStructuredPointsWriter()
 
 def numpyDataToVTKPointData(grid, numpy_data, dataname):
 
@@ -17,7 +17,7 @@ def numpyDataToVTKPointData(grid, numpy_data, dataname):
         quit()
 
     # add point dataset
-    vtk_array = vtk.vtkDoubleArray()
+    vtk_array = vtkDoubleArray()
     vtk_array.SetNumberOfComponents(1)
     vtk_array.SetNumberOfTuples(grid.GetNumberOfPoints())
     vtk_array.SetName(dataname)
@@ -42,7 +42,7 @@ def numpyDataToVTKCellData(grid, numpy_data, dataname):
         quit()
 
     # add point dataset
-    vtk_array = vtk.vtkDoubleArray()
+    vtk_array = vtkDoubleArray()
     vtk_array.SetNumberOfComponents(1)
     vtk_array.SetNumberOfTuples(grid.GetNumberOfCells())
     vtk_array.SetName(dataname)
@@ -73,11 +73,12 @@ def writeOutputToVTK(time, name, dx, nx, data, datanames):
     if not os.path.exists(outpath):
         os.mkdir(outpath)
 
-    filename = name+"."+str(time)+".vtk"
+    filename = "{name}.{time:.2f}.vtk".format(name=name,time=time)
+    # filename = name+"."+str(time)+".vtk"
     filepath = os.path.join(outpath , filename)
 
     # initialize  vtk  grid
-    grid = vtk.vtkImageData()
+    grid = vtkImageData()
     grid.SetOrigin(0, 0, 0)
     grid.SetSpacing(dx, dy, dz)
     grid.SetDimensions(nx+1, ny+1, nz+1)

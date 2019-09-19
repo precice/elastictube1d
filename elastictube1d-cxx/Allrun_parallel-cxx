@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# This script runs the PARALLEL VERSIONS of FluidSolver and StructureSolver binaries.
+#
+# Terminal output of both processes is redirected into two separate log files.
+#
+# Raises error if either solver returns nonzero exit code or the .log files
+#   that capture output contain an error message.
+
+
+# target directory in which the solvers are located
+solverroot="./"
+configfile="ConfigurationFiles/precice-config-parallel.xml"
+
+# parameter values
+N=100
+tau=0.01
+kappa=100
+
+
+echo "Starting Fluid participant..."
+mpiexec ${solverroot}FluidSolverParallel ${solverroot}${configfile} $N $tau $kappa > Fluid.log 2>&1 &
+pid1=$!
+
+echo "Starting Structure participant..."
+mpiexec ${solverroot}StructureSolverParallel ${solverroot}${configfile} $N > Structure.log 2>&1 &
+pid2=$!
+
+echo ""
+echo "Waiting for participants to finish..."
+echo "(you may run 'tail -f Fluid.log' in another terminal to check the progress)"
+wait $pid1
+exitcode1=$?
+echo "Fluid participant finished. Waiting for Structure participant..."
+wait $pid2
+exitcode2=$?
+echo "Structure participant finished."
+
+if [ $exitcode1 -ne 0 ] || [ $exitcode2 -ne 0 ] || [ "$(grep -c -E "error:" Fluid.log)" -ne 0 ] || [ "$(grep -c -E "error:" Structure.log)" -ne 0 ]; then
+  echo ""
+  echo "Something went wrong. See the Fluid.log and Structure.log files for more info."
+  exit 1
+else
+  echo ""
+  echo "Simulation completed successfully! Output files of the simulation were written to 'Postproc/out_fluid_*.vtk'."
+fi
+
+exit 0
