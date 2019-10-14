@@ -12,8 +12,8 @@ iterations-*
 .scon*
 *.o
 *.log
+*.json
 *.pyc
 core
 Postproc/fluid_data
 Postproc/*.vtk
-

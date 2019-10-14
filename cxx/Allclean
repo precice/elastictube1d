@@ -1,0 +1,15 @@
+#!/bin/bash
+
+
+echo "Cleaning logs and output files from previous runs..."
+
+rm -f precice-FLUID-events.json \
+      precice-STRUCTURE-events.json \
+      precice-FLUID-iterations.log \
+      precice-STRUCTURE-convergence.log \
+      precice-STRUCTURE-iterations.log \
+      Postproc/*.vtk \
+      Fluid.log \
+      Structure.log
+
+echo "Cleaning successful!"

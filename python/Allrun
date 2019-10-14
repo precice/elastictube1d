@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# This script runs the FluidSolver.py and StructureSolver.py scripts with
+# vtk output ENABLED
+# plot at runtime DISABLED
+# save video to file DISABLED
+#
+# Terminal output of both processes is redirected into two separate log files.
+#
+# Raises error if either solver returns nonzero exit code or the .log files
+#   that capture solver output contain an error message.
+
+solverroot="./"
+participant1="Fluid"
+participant2="Structure"
+configfile="precice-config.xml"
+
+echo "Starting ${participant1} participant..."
+python3 ${solverroot}${participant1}Solver.py ${solverroot}${configfile} --write_vtk > ${participant1}.log 2>&1 &
+pid1=$!
+
+echo "Starting ${participant2} participant..."
+python3 ${solverroot}${participant2}Solver.py ${solverroot}${configfile} > ${participant2}.log 2>&1 &
+pid2=$!
+
+echo ""
+echo "Waiting for participants to finish..."
+echo "(you may run 'tail -f ${participant1}.log' in another terminal to check the progress)"
+wait $pid1
+exitcode1=$?
+echo "${participant1} participant finished. Waiting for ${participant2} participant..."
+wait $pid2
+exitcode2=$?
+echo "${participant2} participant finished."
+
+if [ $exitcode1 -ne 0 ] || [ $exitcode2 -ne 0 ] || [ "$(grep -c -E "error:" ${participant1}.log)" -ne 0 ] || [ "$(grep -c -E "error:" ${participant2}.log)" -ne 0 ]; then
+  echo ""
+  echo "Something went wrong. See the ${participant1}.log and ${participant2}.log files for more info."
+  exit 1
+else
+  echo ""
+  echo "Simulation completed successfully! Output files of the simulation were written to 'VTK/fluid.*.vtk'."
+fi
+
+exit 0
