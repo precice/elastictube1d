@@ -18,15 +18,28 @@ import precice
 from precice import *
 
 parser = argparse.ArgumentParser()
-parser.add_argument("configurationFileName", help="Name of the xml precice configuration file.", type=str)
+parser.add_argument("configurationFileName", help="Name of the xml precice configuration file.", nargs='?', type=str, default="precice-config.xml")
+parser.add_argument("--write_vtk", help="Save vtk files of each timestep in the 'VTK' folder.", action='store_true')
+parser.add_argument("--enable_plot", help="Show a continuously updated plot of the tube while simulating.", action='store_true')
+parser.add_argument("--write_video", help="Save a video of the simulation as 'writer_test.mp4'. \
+                    NOTE: This requires 'enable_plot' to be active!", action='store_true')
 
 try:
     args = parser.parse_args()
 except SystemExit:
     print("")
     print("Did you forget adding the precice configuration file as an argument?")
-    print("Try $python FluidSolver.py precice-config.xml")
+    print("Try '$ python FluidSolver.py precice-config.xml'")
     quit()
+
+output_mode = config.OutputModes.VTK if args.write_vtk else config.OutputModes.OFF
+plotting_mode = config.PlottingModes.VIDEO if args.enable_plot else config.PlottingModes.OFF
+if args.write_video and not args.enable_plot:
+    print("")
+    print("To create a video it is required to enable plotting for this run.")
+    print("Please supply both the '--enable_plot' and '--write_video' flags.")
+    quit()
+writeVideoToFile = True if args.write_video else False
 
 print("Starting Fluid Solver...")
 
@@ -53,9 +66,6 @@ pressure_n = config.p0 * np.ones(N+1)
 crossSectionLength = config.a0 * np.ones(N+1)
 crossSectionLength_n = config.a0 * np.ones(N+1)
 
-plotting_mode = config.PlottingModes.VIDEO
-output_mode = config.OutputModes.VTK
-writeVideoToFile = False
 
 if plotting_mode == config.PlottingModes.VIDEO:
     fig, ax = plt.subplots(1)
@@ -112,7 +122,7 @@ while interface.is_coupling_ongoing():
         t += precice_tau
         if plotting_mode is config.PlottingModes.VIDEO:
             tubePlotting.doPlotting(ax, crossSectionLength_n, velocity_n, pressure_n, dx, t)
-            if writeVideoToFile:            
+            if writeVideoToFile:
                 writer.grab_frame()
             ax.cla()
         velocity_n = np.copy(velocity)
