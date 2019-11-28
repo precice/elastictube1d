@@ -63,7 +63,7 @@ Check [this preCICE wiki page](https://github.com/precice/precice/wiki/Example-f
   ```bash
   $ cd cxx/ && cmake .
   ```
-  *Note* if `cmake` cannot find `libprecice.so`, please make sure that you are [linking to preCICE correctly](https://github.com/precice/precice/wiki/Linking-to-preCICE#linking-from-cmake).
+  **Note:** if `cmake` cannot find `libprecice.so`, please make sure that you are [linking to preCICE correctly](https://github.com/precice/precice/wiki/Linking-to-preCICE#linking-from-cmake).
 
 2. Make the tutorial:
   ```bash
