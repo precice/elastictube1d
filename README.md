@@ -4,7 +4,7 @@
 
 This tutorial comes in two distinct versions, one written in C++ and one in Python. The code for each are located in the folders `cxx` and `python` respectively.
 
-Choose a version, then navigate down to the corresponding sections for [Python](#python-version) and [C++](#c++-version) instructions.
+Choose a version, then navigate down to the corresponding sections for [Python](#python-version) and [C++](#c-version) instructions.
 
 ---
 ## Python version
@@ -17,7 +17,7 @@ This version is realized using the Python API for preCICE. Check [this entry in 
 
 - [preCICE Python Bindings](https://github.com/precice/precice/blob/develop/src/precice/bindings/python/README.md).
 
-**Note:** these requirements are specific to the Python variant of the code. If you wish to run the C++ version, you require different packages (see [this section](#c++-version)).
+**Note:** these requirements are specific to the Python variant of the code. If you wish to run the C++ version, you require different packages (see [this section](#c-version)).
 
 ### How to run
 
