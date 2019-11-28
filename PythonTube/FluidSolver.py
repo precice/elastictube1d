@@ -19,9 +19,9 @@ from precice import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("configurationFileName", help="Name of the xml precice configuration file.", nargs='?', type=str, default="precice-config.xml")
-parser.add_argument("--write_vtk", help="Save vtk files of each timestep in the 'VTK' folder.", action='store_true')
-parser.add_argument("--enable_plot", help="Show a continuously updated plot of the tube while simulating.", action='store_true')
-parser.add_argument("--write_video", help="Save a video of the simulation as 'writer_test.mp4'. \
+parser.add_argument("--write-vtk", help="Save vtk files of each timestep in the 'VTK' folder.", action='store_true')
+parser.add_argument("--enable-plot", help="Show a continuously updated plot of the tube while simulating.", action='store_true')
+parser.add_argument("--write-video", help="Save a video of the simulation as 'writer_test.mp4'. \
                     NOTE: This requires 'enable_plot' to be active!", action='store_true')
 
 try:
@@ -37,7 +37,7 @@ plotting_mode = config.PlottingModes.VIDEO if args.enable_plot else config.Plott
 if args.write_video and not args.enable_plot:
     print("")
     print("To create a video it is required to enable plotting for this run.")
-    print("Please supply both the '--enable_plot' and '--write_video' flags.")
+    print("Please supply both the '--enable-plot' and '--write-video' flags.")
     quit()
 writeVideoToFile = True if args.write_video else False
 
