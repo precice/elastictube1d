@@ -6,21 +6,21 @@ import argparse
 from mpi4py import MPI
 import numpy as np
 import configuration_file as config
- 
+
 import precice
 from precice import *
 
 print("Starting Structure Solver...")
 
 parser = argparse.ArgumentParser()
-parser.add_argument("configurationFileName", help="Name of the xml config file.", type=str)
+parser.add_argument("configurationFileName", help="Name of the xml config file.", nargs='?', type=str, default="precice-config.xml")
 
 try:
     args = parser.parse_args()
 except SystemExit:
     print("")
     print("Did you forget adding the precice configuration file as an argument?")
-    print("Try $python StructureSolver.py precice-config.xml")
+    print("Try '$ python StructureSolver.py precice-config.xml'")
     quit()
 
 configFileName = args.configurationFileName
@@ -88,4 +88,3 @@ while interface.is_coupling_ongoing():
 print("Exiting StructureSolver")
 
 interface.finalize()
-
