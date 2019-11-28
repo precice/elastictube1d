@@ -16,7 +16,7 @@ participant2="Structure"
 configfile="precice-config.xml"
 
 echo "Starting ${participant1} participant..."
-python3 ${solverroot}${participant1}Solver.py ${solverroot}${configfile} --write_vtk > ${participant1}.log 2>&1 &
+python3 ${solverroot}${participant1}Solver.py ${solverroot}${configfile} --write-vtk ${ENABLE_PLOT+"--enable-plot"} ${WRITE_VIDEO+"--write-video"} > ${participant1}.log 2>&1 &
 pid1=$!
 
 echo "Starting ${participant2} participant..."
