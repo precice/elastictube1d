@@ -37,6 +37,11 @@ This version is realized using the Python API for preCICE. Check [this entry in 
     ```bash
     $ ./Allclean
     ```
+    
+**Optional:** Visualization and video output can be triggered via the options `--enable-plot` and `--write-video` of `FluidSolver.py`. If you want to use `Allrun`, you can set these options via environment variables:
+
+* `$ ENABLE_PLOT=1 ./Allrun`: plots the simulation over time
+* `$ ENABLE_PLOT=1 WRITE_VIDEO=1 ./Allrun`: plots the simulation over time and creates a video.
 
 ---
 ## C++ version
