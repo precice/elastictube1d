@@ -71,7 +71,7 @@ if plotting_mode == config.PlottingModes.VIDEO:
     fig, ax = plt.subplots(1)
     if writeVideoToFile:
         FFMpegWriter = manimation.writers['imagemagick']
-        metadata = dict(title='PuleTube')
+        metadata = dict(title='PulseTube')
         writer = FFMpegWriter(fps=15, metadata=metadata)
         writer.setup(fig, "writer_test.mp4", 100)
 
