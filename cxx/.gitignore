@@ -17,4 +17,3 @@ iterations-*
 core
 Postproc/fluid_data
 Postproc/*.vtk
-
