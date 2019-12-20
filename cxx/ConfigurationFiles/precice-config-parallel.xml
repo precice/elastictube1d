@@ -24,7 +24,6 @@
          precice::SolverInterface object used by the participant. -->
     
     <participant name="FLUID">
-      <master:mpi-single />
       <!-- Makes the named mesh available to the participant. Mesh is provided by the solver directly. -->
       <use-mesh name="Fluid_Nodes" provide="yes"/>
       <use-mesh name="Structure_Nodes" from="STRUCTURE"/>
@@ -36,7 +35,6 @@
     </participant>
     
     <participant name="STRUCTURE">
-      <master:mpi-single />
       <use-mesh name="Structure_Nodes" provide="yes"/>
       <use-mesh name="Fluid_Nodes" from="FLUID"/>
       <write-data name="CrossSectionLength" mesh="Structure_Nodes"/>
