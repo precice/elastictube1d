@@ -3,7 +3,6 @@ from __future__ import division, print_function
 import os
 import sys
 import argparse
-from mpi4py import MPI
 import numpy as np
 import configuration_file as config
 

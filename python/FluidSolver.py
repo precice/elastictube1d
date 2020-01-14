@@ -13,7 +13,6 @@ import matplotlib.animation as manimation
 
 from output import writeOutputToVTK
 
-from mpi4py import MPI
 import precice
 from precice import *
 
