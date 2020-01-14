@@ -1,0 +1,4 @@
+VTK
+*.log
+*.json
+*.pyc

@@ -24,7 +24,6 @@
          precice::SolverInterface object used by the participant. -->
     
     <participant name="FLUID">
-      <master:mpi-single />
       <!-- Makes the named mesh available to the participant. Mesh is provided by the solver directly. -->
       <use-mesh name="Fluid_Nodes" provide="yes"/>
       <use-mesh name="Structure_Nodes" from="STRUCTURE"/>
@@ -36,7 +35,6 @@
     </participant>
     
     <participant name="STRUCTURE">
-      <master:mpi-single />
       <use-mesh name="Structure_Nodes" provide="yes"/>
       <use-mesh name="Fluid_Nodes" from="FLUID"/>
       <write-data name="CrossSectionLength" mesh="Structure_Nodes"/>
@@ -57,14 +55,14 @@
       <relative-convergence-measure data="Pressure"        mesh="Fluid_Nodes" limit="1e-5"/>
       <relative-convergence-measure data="CrossSectionLength" mesh="Structure_Nodes" limit="1e-5"/>
       <extrapolation-order value="2"/>
-      <post-processing:IQN-ILS>
+      <acceleration:IQN-ILS>
         <!-- PostProc always done on the second participant -->
         <data name="CrossSectionLength" mesh="Structure_Nodes"/>
         <initial-relaxation value="0.01"/>
         <max-used-iterations value="50"/>
         <timesteps-reused value="8"/>
         <filter type="QR2" limit="1e-3"/>
-      </post-processing:IQN-ILS>
+      </acceleration:IQN-ILS>
     </coupling-scheme:serial-implicit>
     
   </solver-interface>
