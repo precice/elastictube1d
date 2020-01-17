@@ -3,6 +3,8 @@
 
 echo "Cleaning logs and output files from previous runs..."
 
+rm -r precice-run/
+
 rm -f precice-FLUID-events.json \
       precice-STRUCTURE-events.json \
       precice-FLUID-iterations.log \
