@@ -54,6 +54,7 @@ vertexIDs = interface.set_mesh_vertices(meshID, grid)
 t = 0
 
 print("Structure: init precice...")
+# preCICE defines timestep size of solver via precice-config.xml
 precice_dt = interface.initialize()
 
 if interface.is_action_required(action_write_initial_data()):
@@ -77,8 +78,7 @@ while interface.is_coupling_ongoing():
                 (pressure0 - 2.0 * config.c_mk ** 2) ** 2 / (pressure - 2.0 * config.c_mk ** 2) ** 2)
 
     interface.write_block_scalar_data(crossSectionLengthID, vertexIDs, crossSectionLength)
-    dt = interface.advance(precice_dt)
-    precice_dt = min(precice_dt, dt)
+    precice_dt = interface.advance(precice_dt)
     pressure = interface.read_block_scalar_data(pressureID, vertexIDs)
 
     if interface.is_action_required(action_read_iteration_checkpoint()):  # i.e. not yet converged

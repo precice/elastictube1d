@@ -88,6 +88,7 @@ vertexIDs = interface.set_mesh_vertices(meshID, grid)
 t = 0
 
 print("Fluid: init precice...")
+# preCICE defines timestep size of solver via precice-config.xml
 precice_dt = interface.initialize()
 
 if interface.is_action_required(action_write_initial_data()):
@@ -112,8 +113,7 @@ while interface.is_coupling_ongoing():
     velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength_n,
                                                                           crossSectionLength, dx, precice_dt, config.velocity_in(t + precice_dt), custom_coupling=False)
     interface.write_block_scalar_data(pressureID, vertexIDs, pressure)
-    dt = interface.advance(precice_dt)
-    precice_dt = min(precice_dt, dt)
+    precice_dt = interface.advance(precice_dt)
     crossSectionLength = interface.read_block_scalar_data(crossSectionLengthID, vertexIDs)
 
     if interface.is_action_required(action_read_iteration_checkpoint()): # i.e. not yet converged
