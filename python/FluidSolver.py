@@ -97,7 +97,7 @@ if interface.is_action_required(action_write_initial_data()):
 interface.initialize_data()
 
 if interface.is_read_data_available():
-    interface.read_block_scalar_data(crossSectionLengthID, crossSectionLength)
+    crossSectionLength = interface.read_block_scalar_data(crossSectionLengthID, vertexIDs)
 
 crossSectionLength_n = np.copy(crossSectionLength)
 velocity_n = config.velocity_in(0) * crossSectionLength_n[0] * np.ones(N+1) / crossSectionLength_n  # initialize such that mass conservation is fulfilled
@@ -112,7 +112,7 @@ while interface.is_coupling_ongoing():
     velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength_n, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=False)
     interface.write_block_scalar_data(pressureID, vertexIDs, pressure)
     precice_tau = interface.advance(precice_tau)
-    interface.read_block_scalar_data(crossSectionLengthID, crossSectionLength)
+    crossSectionLength = interface.read_block_scalar_data(crossSectionLengthID, vertexIDs)
 
     if interface.is_action_required(action_read_iteration_checkpoint()): # i.e. not yet converged
         interface.fulfilled_action(action_read_iteration_checkpoint())

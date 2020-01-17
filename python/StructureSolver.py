@@ -63,7 +63,7 @@ if interface.is_action_required(action_write_initial_data()):
 interface.initialize_data()
 
 if interface.is_read_data_available():
-    interface.read_block_scalar_data(pressureID, pressure)
+    pressure = interface.read_block_scalar_data(pressureID, vertexIDs)
 
 crossSection0 = config.crossSection0(pressure.shape[0] - 1)
 pressure0 = config.p0 * np.ones_like(pressure)
@@ -78,7 +78,7 @@ while interface.is_coupling_ongoing():
 
     interface.write_block_scalar_data(crossSectionLengthID, vertexIDs, crossSectionLength)
     precice_tau = interface.advance(precice_tau)
-    interface.read_block_scalar_data(pressureID, pressure)
+    pressure = interface.read_block_scalar_data(pressureID, vertexIDs)
 
     if interface.is_action_required(action_read_iteration_checkpoint()):  # i.e. not yet converged
         interface.fulfilled_action(action_read_iteration_checkpoint())
