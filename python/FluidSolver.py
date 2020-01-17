@@ -88,7 +88,7 @@ vertexIDs = interface.set_mesh_vertices(meshID, grid)
 t = 0
 
 print("Fluid: init precice...")
-precice_tau = interface.initialize()
+precice_dt = interface.initialize()
 
 if interface.is_action_required(action_write_initial_data()):
     interface.write_block_scalar_data(pressureID, vertexIDs, pressure)
@@ -109,15 +109,17 @@ while interface.is_coupling_ongoing():
     if interface.is_action_required(action_write_iteration_checkpoint()):
         interface.fulfilled_action(action_write_iteration_checkpoint())
 
-    velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength_n, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=False)
+    velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength_n,
+                                                                          crossSectionLength, dx, precice_dt, config.velocity_in(t + precice_dt), custom_coupling=False)
     interface.write_block_scalar_data(pressureID, vertexIDs, pressure)
-    precice_tau = interface.advance(precice_tau)
+    dt = interface.advance(precice_dt)
+    precice_dt = min(precice_dt, dt)
     crossSectionLength = interface.read_block_scalar_data(crossSectionLengthID, vertexIDs)
 
     if interface.is_action_required(action_read_iteration_checkpoint()): # i.e. not yet converged
         interface.fulfilled_action(action_read_iteration_checkpoint())
     else:  # converged, timestep complete
-        t += precice_tau
+        t += precice_dt
         if plotting_mode is config.PlottingModes.VIDEO:
             tubePlotting.doPlotting(ax, crossSectionLength_n, velocity_n, pressure_n, dx, t)
             if writeVideoToFile:

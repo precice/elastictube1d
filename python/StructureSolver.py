@@ -54,7 +54,7 @@ vertexIDs = interface.set_mesh_vertices(meshID, grid)
 t = 0
 
 print("Structure: init precice...")
-precice_tau = interface.initialize()
+precice_dt = interface.initialize()
 
 if interface.is_action_required(action_write_initial_data()):
     interface.write_block_scalar_data(crossSectionLengthID, vertexIDs, crossSectionLength)
@@ -77,13 +77,14 @@ while interface.is_coupling_ongoing():
                 (pressure0 - 2.0 * config.c_mk ** 2) ** 2 / (pressure - 2.0 * config.c_mk ** 2) ** 2)
 
     interface.write_block_scalar_data(crossSectionLengthID, vertexIDs, crossSectionLength)
-    precice_tau = interface.advance(precice_tau)
+    dt = interface.advance(precice_dt)
+    precice_dt = min(precice_dt, dt)
     pressure = interface.read_block_scalar_data(pressureID, vertexIDs)
 
     if interface.is_action_required(action_read_iteration_checkpoint()):  # i.e. not yet converged
         interface.fulfilled_action(action_read_iteration_checkpoint())
     else:
-        t += precice_tau
+        t += precice_dt
 
 print("Exiting StructureSolver")
 
