@@ -15,7 +15,7 @@ This version is realized using the Python API for preCICE. Check [this entry in 
 
 - [preCICE](https://github.com/precice/precice/wiki/Get-preCICE)
 
-- [preCICE Python Bindings](https://github.com/precice/precice/blob/develop/src/precice/bindings/python/README.md).
+- [preCICE Python Bindings](https://github.com/precice/python-bindings).
 
 **Note:** these requirements are specific to the Python variant of the code. If you wish to run the C++ version, you require different packages (see [this section](#c-version)).
 
