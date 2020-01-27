@@ -43,8 +43,7 @@ int main(int argc, char** argv)
   std::string configFileName(argv[1]);
   std::string solverName = "STRUCTURE";
 
-  SolverInterface interface(solverName, rank, size);
-  interface.configure(configFileName);
+  SolverInterface interface(solverName, configFileName, rank, size);
 
   int meshID = interface.getMeshID("Structure_Nodes");
   int pressureID = interface.getDataID("Pressure", meshID);
