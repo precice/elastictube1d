@@ -36,8 +36,7 @@ int main(int argc, char** argv)
 
   std::string solverName = "STRUCTURE";
 
-  SolverInterface interface(solverName, 0, 1);
-  interface.configure(configFileName);
+  SolverInterface interface(solverName, configFileName, 0, 1);
   cout << "preCICE configured..." << endl;
 
   //init data

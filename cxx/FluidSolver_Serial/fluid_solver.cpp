@@ -36,8 +36,7 @@ int main(int argc, char** argv)
 
   cout << "Configure preCICE..." << endl;
   // Create preCICE with the solver's name, the rank, and the total number of processes.
-  SolverInterface interface(solverName, 0, 1);
-  interface.configure(configFileName);
+  SolverInterface interface(solverName, configFileName, 0, 1);
 
   int i;
   double *velocity, *velocity_n, *pressure, *pressure_n, *crossSectionLength, *crossSectionLength_n;
