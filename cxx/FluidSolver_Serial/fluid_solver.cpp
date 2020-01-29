@@ -85,7 +85,7 @@ int main(int argc, char** argv)
   // write initial data if required
   if (interface.isActionRequired(actionWriteInitialData())) {
     interface.writeBlockScalarData(pressureID, N + 1, vertexIDs, pressure);
-    interface.fulfilledAction(actionWriteInitialData());
+    interface.markActionFulfilled(actionWriteInitialData());
   }
 
   // initial data is sent or received if necessary
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
     // for an implicit coupling, you can store an iteration checkpoint here (from the first iteration of a timestep)
     // this is, however, not necessary for this scenario
     if (interface.isActionRequired(actionWriteIterationCheckpoint())) {
-      interface.fulfilledAction(actionWriteIterationCheckpoint());
+      interface.markActionFulfilled(actionWriteIterationCheckpoint());
     }
     
     fluid_nl(crossSectionLength, crossSectionLength_n,  
@@ -120,7 +120,7 @@ int main(int argc, char** argv)
     // set variables back to checkpoint
     if (interface.isActionRequired(actionReadIterationCheckpoint())) { 
     // i.e. not yet converged, you could restore a checkpoint here (not necessary for this scenario)      
-      interface.fulfilledAction(actionReadIterationCheckpoint());
+      interface.markActionFulfilled(actionReadIterationCheckpoint());
     }
     else{
       t += dt;

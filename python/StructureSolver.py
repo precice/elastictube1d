@@ -59,7 +59,7 @@ precice_dt = interface.initialize()
 
 if interface.is_action_required(action_write_initial_data()):
     interface.write_block_scalar_data(crossSectionLengthID, vertexIDs, crossSectionLength)
-    interface.fulfilled_action(action_write_initial_data())
+    interface.mark_action_fulfilled(action_write_initial_data())
 
 interface.initialize_data()
 
@@ -72,7 +72,7 @@ pressure0 = config.p0 * np.ones_like(pressure)
 while interface.is_coupling_ongoing():
     # When an implicit coupling scheme is used, checkpointing is required
     if interface.is_action_required(action_write_iteration_checkpoint()):
-        interface.fulfilled_action(action_write_iteration_checkpoint())
+        interface.mark_action_fulfilled(action_write_iteration_checkpoint())
 
     crossSectionLength = crossSection0 * (
                 (pressure0 - 2.0 * config.c_mk ** 2) ** 2 / (pressure - 2.0 * config.c_mk ** 2) ** 2)
@@ -82,7 +82,7 @@ while interface.is_coupling_ongoing():
     pressure = interface.read_block_scalar_data(pressureID, vertexIDs)
 
     if interface.is_action_required(action_read_iteration_checkpoint()):  # i.e. not yet converged
-        interface.fulfilled_action(action_read_iteration_checkpoint())
+        interface.mark_action_fulfilled(action_read_iteration_checkpoint())
     else:
         t += precice_dt
 
