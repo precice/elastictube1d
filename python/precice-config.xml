@@ -49,8 +49,8 @@
 
       <coupling-scheme:serial-implicit>
          <participants first="FLUID" second="STRUCTURE"/>
-         <max-time value="1"/>
-         <timestep-length value=".01" valid-digits="8"/>
+         <max-time-windows value="1"/>
+         <time-window-size value=".01" valid-digits="8"/>
          <max-iterations value="100"/>
          <exchange data="Pressure" mesh="Structure_Nodes" from="FLUID" to="STRUCTURE" />
          <exchange data="CrossSectionLength" mesh="Structure_Nodes" from="STRUCTURE" to="FLUID" initialize="true"/>
@@ -62,7 +62,7 @@
             <data name="CrossSectionLength" mesh="Structure_Nodes"/>
             <initial-relaxation value="0.01"/>
             <max-used-iterations value="100"/>
-            <timesteps-reused value="8"/>
+            <time-windows-reused value="8"/>
             <filter type="QR2" limit="1e-3"/>
          </acceleration:IQN-ILS>
       </coupling-scheme:serial-implicit>

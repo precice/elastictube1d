@@ -10,6 +10,12 @@ rm -f precice-FLUID-events.json \
       precice-STRUCTURE-iterations.log \
       Postproc/*.vtk \
       Fluid.log \
-      Structure.log
+      Structure.log \
+      FluidSolver
+      FluidSolverParallel
+      StructureSolver
+      StructureSolverParallel
+
+rm -r precice-run/
 
 echo "Cleaning successful!"
