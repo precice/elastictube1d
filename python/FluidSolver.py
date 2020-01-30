@@ -93,7 +93,7 @@ precice_dt = interface.initialize()
 
 if interface.is_action_required(action_write_initial_data()):
     interface.write_block_scalar_data(pressureID, vertexIDs, pressure)
-    interface.fulfilled_action(action_write_initial_data())
+    interface.mark_action_fulfilled(action_write_initial_data())
 
 interface.initialize_data()
 
@@ -108,7 +108,7 @@ print(crossSectionLength_n)
 while interface.is_coupling_ongoing():
     # When an implicit coupling scheme is used, checkpointing is required
     if interface.is_action_required(action_write_iteration_checkpoint()):
-        interface.fulfilled_action(action_write_iteration_checkpoint())
+        interface.mark_action_fulfilled(action_write_iteration_checkpoint())
 
     velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength_n,
                                                                           crossSectionLength, dx, precice_dt, config.velocity_in(t + precice_dt), custom_coupling=False)
@@ -117,7 +117,7 @@ while interface.is_coupling_ongoing():
     crossSectionLength = interface.read_block_scalar_data(crossSectionLengthID, vertexIDs)
 
     if interface.is_action_required(action_read_iteration_checkpoint()): # i.e. not yet converged
-        interface.fulfilled_action(action_read_iteration_checkpoint())
+        interface.mark_action_fulfilled(action_read_iteration_checkpoint())
     else:  # converged, timestep complete
         t += precice_dt
         if plotting_mode is config.PlottingModes.VIDEO:

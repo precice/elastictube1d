@@ -81,7 +81,7 @@ int main(int argc, char** argv)
   if (interface.isActionRequired(actionWriteInitialData())) {
     interface.writeBlockScalarData(crossSectionLengthID, N + 1, vertexIDs, crossSectionLength);
     //interface.initializeData();
-    interface.fulfilledAction(actionWriteInitialData());
+    interface.markActionFulfilled(actionWriteInitialData());
   }
 
   interface.initializeData();
@@ -102,7 +102,7 @@ int main(int argc, char** argv)
       tstep_counter++;
       
       // write checkpoint, save state variables (not needed here, stationary solver)       
-      interface.fulfilledAction(actionWriteIterationCheckpoint());
+      interface.markActionFulfilled(actionWriteIterationCheckpoint());
     }
 
     // choose smalles time step (sub-cycling if dt is smaller than precice_dt)
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
       cout << "Iterate" << endl;
       tsub = 0;
       
-      interface.fulfilledAction(actionReadIterationCheckpoint());
+      interface.markActionFulfilled(actionReadIterationCheckpoint());
     }
   }
 
