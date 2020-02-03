@@ -11,9 +11,9 @@ rm -f precice-FLUID-events.json \
       Postproc/*.vtk \
       Fluid.log \
       Structure.log \
-      FluidSolver
-      FluidSolverParallel
-      StructureSolver
+      FluidSolver \
+      FluidSolverParallel \
+      StructureSolver \
       StructureSolverParallel
 
 rm -r precice-run/
