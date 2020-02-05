@@ -10,7 +10,7 @@
 
 # target directory in which the solvers are located
 solverroot="./"
-configfile="ConfigurationFiles/precice-config.xml"
+configfile="precice-config.xml"
 
 # parameter values
 N=100
