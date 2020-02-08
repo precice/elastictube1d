@@ -54,6 +54,7 @@ vertexIDs = interface.set_mesh_vertices(meshID, grid)
 t = 0
 
 print("Structure: init precice...")
+
 # preCICE defines timestep size of solver via precice-config.xml
 precice_dt = interface.initialize()
 
