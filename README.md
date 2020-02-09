@@ -17,6 +17,8 @@ This version is realized using the Python API for preCICE. Check [this entry in 
 
 - [preCICE Python Bindings](https://github.com/precice/python-bindings).
 
+- `matplotlib` and `vtk` for plotting and output
+
 **Note:** these requirements are specific to the Python variant of the code. If you wish to run the C++ version, you require different packages (see [this section](#c-version)).
 
 ### How to run
