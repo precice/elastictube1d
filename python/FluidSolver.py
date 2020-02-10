@@ -13,7 +13,6 @@ import matplotlib.animation as manimation
 
 from output import writeOutputToVTK
 
-from mpi4py import MPI
 import precice
 from precice import *
 
@@ -53,8 +52,7 @@ print("N: " + str(N))
 solverName = "FLUID"
 
 print("Configure preCICE...")
-interface = precice.Interface(solverName, 0, 1)
-interface.configure(configFileName)
+interface = precice.Interface(solverName, configFileName, 0, 1)
 print("preCICE configured...")
 
 dimensions = interface.get_dimensions()
@@ -80,26 +78,27 @@ crossSectionLengthID = interface.get_data_id("CrossSectionLength", meshID)
 pressureID = interface.get_data_id("Pressure", meshID)
 
 vertexIDs = np.zeros(N+1)
-grid = np.zeros([dimensions, N+1])
+grid = np.zeros([N+1, dimensions])
 
-grid[0,:] = np.linspace(0, config.L, N+1)  # x component
-grid[1,:] = 0  # y component, leave blank
+grid[:, 0] = np.linspace(0, config.L, N+1)  # x component
+grid[:, 1] = 0  # y component, leave blank
 
-interface.set_mesh_vertices(meshID, N+1, grid.flatten('F'), vertexIDs)
+vertexIDs = interface.set_mesh_vertices(meshID, grid)
 
 t = 0
 
 print("Fluid: init precice...")
-precice_tau = interface.initialize()
+# preCICE defines timestep size of solver via precice-config.xml
+precice_dt = interface.initialize()
 
 if interface.is_action_required(action_write_initial_data()):
-    interface.write_block_scalar_data(pressureID, N+1, vertexIDs, pressure)
-    interface.fulfilled_action(action_write_initial_data())
+    interface.write_block_scalar_data(pressureID, vertexIDs, pressure)
+    interface.mark_action_fulfilled(action_write_initial_data())
 
 interface.initialize_data()
 
 if interface.is_read_data_available():
-    interface.read_block_scalar_data(crossSectionLengthID, N+1, vertexIDs, crossSectionLength)
+    crossSectionLength = interface.read_block_scalar_data(crossSectionLengthID, vertexIDs)
 
 crossSectionLength_n = np.copy(crossSectionLength)
 velocity_n = config.velocity_in(0) * crossSectionLength_n[0] * np.ones(N+1) / crossSectionLength_n  # initialize such that mass conservation is fulfilled
@@ -109,17 +108,18 @@ print(crossSectionLength_n)
 while interface.is_coupling_ongoing():
     # When an implicit coupling scheme is used, checkpointing is required
     if interface.is_action_required(action_write_iteration_checkpoint()):
-        interface.fulfilled_action(action_write_iteration_checkpoint())
+        interface.mark_action_fulfilled(action_write_iteration_checkpoint())
 
-    velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength_n, crossSectionLength, dx, precice_tau, config.velocity_in(t + precice_tau), custom_coupling=False)
-    interface.write_block_scalar_data(pressureID, N+1, vertexIDs, pressure)
-    interface.advance(precice_tau)
-    interface.read_block_scalar_data(crossSectionLengthID, N+1, vertexIDs, crossSectionLength)
+    velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength_n,
+                                                                          crossSectionLength, dx, precice_dt, config.velocity_in(t + precice_dt), custom_coupling=False)
+    interface.write_block_scalar_data(pressureID, vertexIDs, pressure)
+    precice_dt = interface.advance(precice_dt)
+    crossSectionLength = interface.read_block_scalar_data(crossSectionLengthID, vertexIDs)
 
     if interface.is_action_required(action_read_iteration_checkpoint()): # i.e. not yet converged
-        interface.fulfilled_action(action_read_iteration_checkpoint())
-    else: # converged, timestep complete
-        t += precice_tau
+        interface.mark_action_fulfilled(action_read_iteration_checkpoint())
+    else:  # converged, timestep complete
+        t += precice_dt
         if plotting_mode is config.PlottingModes.VIDEO:
             tubePlotting.doPlotting(ax, crossSectionLength_n, velocity_n, pressure_n, dx, t)
             if writeVideoToFile:

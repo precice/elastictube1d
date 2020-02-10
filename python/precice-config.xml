@@ -45,16 +45,16 @@
     </participant>
 
     <!-- Communication method, use TCP sockets, Change network to "ib0" on SuperMUC -->
-    <m2n:sockets from="FLUID" to="STRUCTURE" network="lo"/>
+    <m2n:sockets from="FLUID" to="STRUCTURE"/>
 
       <coupling-scheme:serial-implicit>
          <participants first="FLUID" second="STRUCTURE"/>
-         <max-time value="1"/>
-         <timestep-length value=".01" valid-digits="8"/>
+         <max-time value="1.0"/>
+         <time-window-size value=".01" valid-digits="8"/>
          <max-iterations value="100"/>
-         <exchange data="Pressure"      mesh="Structure_Nodes" from="FLUID" to="STRUCTURE" />
+         <exchange data="Pressure" mesh="Structure_Nodes" from="FLUID" to="STRUCTURE" />
          <exchange data="CrossSectionLength" mesh="Structure_Nodes" from="STRUCTURE" to="FLUID" initialize="true"/>
-         <relative-convergence-measure data="Pressure"        mesh="Structure_Nodes" limit="1e-5"/>
+         <relative-convergence-measure data="Pressure" mesh="Structure_Nodes" limit="1e-5"/>
          <relative-convergence-measure data="CrossSectionLength" mesh="Structure_Nodes" limit="1e-5"/>
          <extrapolation-order value="0"/>
          <acceleration:IQN-ILS>
@@ -62,7 +62,7 @@
             <data name="CrossSectionLength" mesh="Structure_Nodes"/>
             <initial-relaxation value="0.01"/>
             <max-used-iterations value="100"/>
-            <timesteps-reused value="8"/>
+            <time-windows-reused value="8"/>
             <filter type="QR2" limit="1e-3"/>
          </acceleration:IQN-ILS>
       </coupling-scheme:serial-implicit>

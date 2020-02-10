@@ -42,9 +42,8 @@ int main(int argc, char** argv)
 
   std::string configFileName(argv[1]);
   std::string solverName = "STRUCTURE";
-
-  SolverInterface interface(solverName, rank, size);
-  interface.configure(configFileName);
+  
+  SolverInterface interface(solverName, configFileName, rank, size);
 
   int meshID = interface.getMeshID("Structure_Nodes");
   int pressureID = interface.getDataID("Pressure", meshID);
@@ -72,7 +71,7 @@ int main(int argc, char** argv)
 
   if (interface.isActionRequired(actionWriteInitialData())) {
     interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
-    interface.fulfilledAction(actionWriteInitialData());
+    interface.markActionFulfilled(actionWriteInitialData());
   }
 
   interface.initializeData();
@@ -83,7 +82,7 @@ int main(int argc, char** argv)
 
   while (interface.isCouplingOngoing()) {
     if (interface.isActionRequired(actionWriteIterationCheckpoint())) {
-      interface.fulfilledAction(actionWriteIterationCheckpoint());
+      interface.markActionFulfilled(actionWriteIterationCheckpoint());
     }
 
     structureComputeSolution(rank, size, chunkLength, pressure.data(), crossSectionLength.data()); // Call Solver
@@ -97,7 +96,7 @@ int main(int argc, char** argv)
     interface.readBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
 
     if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. fluid not yet converged
-      interface.fulfilledAction(actionReadIterationCheckpoint());
+      interface.markActionFulfilled(actionReadIterationCheckpoint());
     } else {
       t += dt;
     }

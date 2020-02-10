@@ -12,4 +12,6 @@ rm -f precice-FLUID-events.json \
       Fluid.log \
       Structure.log
 
+rm -r precice-run/
+
 echo "Cleaning successful!"

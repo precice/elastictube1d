@@ -15,7 +15,9 @@ This version is realized using the Python API for preCICE. Check [this entry in 
 
 - [preCICE](https://github.com/precice/precice/wiki/Get-preCICE)
 
-- [preCICE Python Bindings](https://github.com/precice/precice/blob/develop/src/precice/bindings/python/README.md).
+- [preCICE Python Bindings](https://github.com/precice/python-bindings).
+
+- `matplotlib` and `vtk` for plotting and output
 
 **Note:** these requirements are specific to the Python variant of the code. If you wish to run the C++ version, you require different packages (see [this section](#c-version)).
 
@@ -65,40 +67,39 @@ Check [this preCICE wiki page](https://github.com/precice/precice/wiki/Example-f
     ```
 
 1. Navigate into the `cxx` directory and build the Makefiles:
-  ```bash
-  $ cd cxx/ && cmake .
-  ```
-  **Note:** if `cmake` cannot find `libprecice.so`, please make sure that you are [linking to preCICE correctly](https://github.com/precice/precice/wiki/Linking-to-preCICE#linking-from-cmake).
+   ```bash
+   $ cd cxx/ && cmake .
+   ```
+   **Note:** if `cmake` cannot find `libprecice.so`, please make sure that you are [linking to preCICE correctly](https://github.com/precice/precice/wiki/Linking-to-preCICE#linking-from-cmake).
 
 2. Make the tutorial:
-  ```bash
-  $ make all
-  ```
+   ```bash
+   $ make all
+   ```
 
 3. After successful compilation, you can now launch preset configuration by calling the `Allrun` script located in the current folder:
-  ```bash
-  $ ./Allrun
-  ```
-  Results will be stored as .vtk files in the `cxx/Postproc` folder.
+   ```bash
+   $ ./Allrun
+   ```
+   Results will be stored as .vtk files in the `cxx/Postproc` folder.
 
-  **Optional:** You can visualize the results with the `Postproc/fluid.py` script:
-  ```bash
-  $ python Postproc/fluid.py <quantity> Postproc/<prefix>
-  ```
-  Note the required arguments specifying which quantity to plot (`pressure`, `velocity` or `diameter`) and a name prefix for the target vtk files.
-  For example, to plot the diameter using the default prefix for vtk files, we execute:
-  ```bash
-  $ python Postproc/fluid.py diameter Postproc/out_fluid_
-  ```
-  An image of this diameter plot can be found in the `cxx/example` folder.
+4. To quickly clean the folder of log files and results from previous runs, execute `Allclean`:
+   ```bash
+   $ ./Allclean
+   ```
+   
+**Optional:** You can visualize the results with the `Postproc/fluid.py` script:
+```bash
+$ python Postproc/fluid.py <quantity> Postproc/<prefix>
+```
+Note the required arguments specifying which quantity to plot (`pressure`, `velocity` or `diameter`) and a name prefix for the target vtk files.
+For example, to plot the diameter using the default prefix for vtk files, we execute:
+```bash
+$ python Postproc/fluid.py diameter Postproc/out_fluid_
+```
+An image of this diameter plot can be found in the `cxx/example` folder.
 
-  **Alternative:**: If you wish to run the parallel versions of each solver, run the `Allrun_parallel` script instead. Note that no vtk output is generated for this solver configuration!
-
-5. To quickly clean the folder of log files and results from previous runs, execute `Allclean`:
-  ```bash
-  $ ./Allclean
-  ```
-
+**Alternative:**: If you wish to run the parallel versions of each solver, run the `Allrun_parallel` script instead. Note that no vtk output is generated for this solver configuration!
 
 **Note:** The tutorial can also be run manually by launching both participants by hand. See [this preCICE wiki page](https://github.com/precice/precice/wiki/Running-the-1D-elastic-tube-example) for instructions.
 
