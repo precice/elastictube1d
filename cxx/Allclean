@@ -9,7 +9,7 @@ rm -f precice-FLUID-events.json \
       precice-STRUCTURE-convergence.log \
       precice-STRUCTURE-iterations.log \
       precice-FLUID-events-summary.log \
-      precice-STRUCTUR-events-summary.log
+      precice-STRUCTUR-events-summary.log \
       Postproc/*.vtk \
       Fluid.log \
       Structure.log
