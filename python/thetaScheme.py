@@ -50,8 +50,8 @@ def perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, c
             res[i] += .25 * theta * (+ crossSection_couple[1][i - 1] * velocity1[i - 1] * velocity1[i - 1] + crossSection_couple[1][i] * velocity1[i - 1] * velocity1[i - 1])
             res[i] += .25 * (1-theta) * (+ crossSection_couple[0][i - 1] * velocity0[i - 1] * velocity0[i - 1] + crossSection_couple[0][i] * velocity0[i - 1] * velocity0[i - 1])
 
-            res[i] += .25 * theta * (+ crossSection_couple[1][i - 1] * pressure1[i - 1] + crossSection_couple[1][i] * pressure1[i - 1] + crossSection_couple[1][i - 1] * pressure1[i] - crossSection_couple[1][i + 1] * pressure1[i] - crossSection_couple[1][i] * pressure1[i + 1] - crossSection_couple[1][i + 1] * pressure1[i + 1])
-            res[i] += .25 * (1-theta) * (+ crossSection_couple[0][i - 1] * pressure0[i - 1] + crossSection_couple[0][i] * pressure0[i - 1] + crossSection_couple[0][i - 1] * pressure0[i] - crossSection_couple[0][i + 1] * pressure0[i] - crossSection_couple[0][i] * pressure0[i + 1] - crossSection_couple[0][i + 1] * pressure0[i + 1])
+            res[i] += .25 * theta * (+ crossSection_couple[1][i - 1] * pressure1[i - 1] + crossSection_couple[1][i] * pressure1[i - 1] - crossSection_couple[1][i - 1] * pressure1[i] + crossSection_couple[1][i + 1] * pressure1[i] - crossSection_couple[1][i] * pressure1[i + 1] - crossSection_couple[1][i + 1] * pressure1[i + 1])
+            res[i] += .25 * (1-theta) * (+ crossSection_couple[0][i - 1] * pressure0[i - 1] + crossSection_couple[0][i] * pressure0[i - 1] - crossSection_couple[0][i - 1] * pressure0[i] + crossSection_couple[0][i + 1] * pressure0[i] - crossSection_couple[0][i] * pressure0[i + 1] - crossSection_couple[0][i + 1] * pressure0[i + 1])
 
             # Continuity (we only care about values at n+1, see [2],p.737,eq.(3.16-25))
             res[i + N + 1] = (crossSection0[i] - crossSection1[i]) * dx / tau
@@ -97,7 +97,7 @@ def perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, c
 
         for i in range(1,N):
             # Momentum, Velocity see [1] eq. (13b)
-            system[i][i - 1] += .25 * theta * (- 2 * crossSection_couple[1][i - 1] * velocity1[i - 1] - 2 * crossSection_couple[1][i] * velocity1[i - 1] - crossSection_couple[1][i] * velocity1[i] + crossSection_couple[1][i - 1] * velocity1[i])
+            system[i][i - 1] += .25 * theta * (- 2 * crossSection_couple[1][i - 1] * velocity1[i - 1] - 2 * crossSection_couple[1][i] * velocity1[i - 1] - crossSection_couple[1][i] * velocity1[i] - crossSection_couple[1][i - 1] * velocity1[i])
             system[i][i] += crossSection1[i] * dx/tau
             system[i][i] += .25 * theta * (+ crossSection_couple[1][i + 1] * velocity1[i + 1] + crossSection_couple[1][i] * velocity1[i + 1] + crossSection_couple[1][i + 1] * velocity1[i] * 2 + crossSection_couple[1][i] * velocity1[i] * 2 - crossSection_couple[1][i] * velocity1[i - 1] - crossSection_couple[1][i - 1] * velocity1[i - 1])
             system[i][i + 1] += .25 * theta * (crossSection_couple[1][i + 1] * velocity1[i] + crossSection_couple[1][i] * velocity1[i])
