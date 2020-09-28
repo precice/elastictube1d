@@ -189,7 +189,7 @@ void fluidComputeSolution(
 
       for (int i = 1; i < N; i++) {
         // Momentum, Velocity
-        LHS[i][i - 1] = LHS[i][i - 1] - 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i - 1] * 2 - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i - 1] * 2 - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i] + 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i];
+        LHS[i][i - 1] = LHS[i][i - 1] - 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i - 1] * 2 - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i - 1] * 2 - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i] - 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i];
         LHS[i][i] = LHS[i][i] + 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i + 1] + 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i + 1] + crossSectionLength_NLS[i] * dx + 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i] * 2 + 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i] * 2 - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i - 1] - 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i - 1];
         LHS[i][i + 1] = LHS[i][i + 1] + 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i] + 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i];
 
