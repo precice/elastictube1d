@@ -81,7 +81,7 @@ int fluid_nl(
       Res[i] = Res[i] - 0.25 * crossSectionLength[i + 1] * velocity[i] * velocity[i + 1] - 0.25 * crossSectionLength[i] * velocity[i] * velocity[i + 1];
       Res[i] = Res[i] - crossSectionLength[i] * dx * velocity[i] - 0.25 * crossSectionLength[i + 1] * velocity[i] * velocity[i] - 0.25 * crossSectionLength[i] * velocity[i] * velocity[i] + 0.25 * crossSectionLength[i] * velocity[i - 1] * velocity[i] + 0.25 * crossSectionLength[i - 1] * velocity[i - 1] * velocity[i];
       Res[i] = Res[i] + 0.25 * crossSectionLength[i - 1] * velocity[i - 1] * velocity[i - 1] + 0.25 * crossSectionLength[i] * velocity[i - 1] * velocity[i - 1];
-      Res[i] = Res[i] + 0.25 * crossSectionLength[i - 1] * pressure[i - 1] + 0.25 * crossSectionLength[i] * pressure[i - 1] + 0.25 * crossSectionLength[i - 1] * pressure[i] - 0.25 * crossSectionLength[i + 1] * pressure[i] - 0.25 * crossSectionLength[i] * pressure[i + 1] - 0.25 * crossSectionLength[i + 1] * pressure[i + 1];
+      Res[i] = Res[i] + 0.25 * crossSectionLength[i - 1] * pressure[i - 1] + 0.25 * crossSectionLength[i] * pressure[i - 1] - 0.25 * crossSectionLength[i - 1] * pressure[i] + 0.25 * crossSectionLength[i + 1] * pressure[i] - 0.25 * crossSectionLength[i] * pressure[i + 1] - 0.25 * crossSectionLength[i + 1] * pressure[i + 1];
 
       /* Continuity */
       Res[i + N + 1] = -(crossSectionLength[i] - crossSectionLength_n[i]) * dx;
@@ -134,7 +134,7 @@ int fluid_nl(
 
     for (i = 1; i < N; i++) {
       // Momentum, Velocity
-      LHS[i][i - 1] = LHS[i][i - 1] - 0.25 * crossSectionLength[i - 1] * velocity[i - 1] * 2 - 0.25 * crossSectionLength[i] * velocity[i - 1] * 2 - 0.25 * crossSectionLength[i] * velocity[i] + 0.25 * crossSectionLength[i - 1] * velocity[i];
+      LHS[i][i - 1] = LHS[i][i - 1] - 0.25 * crossSectionLength[i - 1] * velocity[i - 1] * 2 - 0.25 * crossSectionLength[i] * velocity[i - 1] * 2 - 0.25 * crossSectionLength[i] * velocity[i] - 0.25 * crossSectionLength[i - 1] * velocity[i];
       LHS[i][i] = LHS[i][i] + 0.25 * crossSectionLength[i + 1] * velocity[i + 1] + 0.25 * crossSectionLength[i] * velocity[i + 1] + crossSectionLength[i] * dx + 0.25 * crossSectionLength[i + 1] * velocity[i] * 2 + 0.25 * crossSectionLength[i] * velocity[i] * 2 - 0.25 * crossSectionLength[i] * velocity[i - 1] - 0.25 * crossSectionLength[i - 1] * velocity[i - 1];
       LHS[i][i + 1] = LHS[i][i + 1] + 0.25 * crossSectionLength[i + 1] * velocity[i] + 0.25 * crossSectionLength[i] * velocity[i];
 
