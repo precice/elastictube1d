@@ -134,7 +134,7 @@ void fluidComputeSolution(
         Res[i] = Res[i] - 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i] * velocity_NLS[i + 1] - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i] * velocity_NLS[i + 1];
         Res[i] = Res[i] - crossSectionLength_NLS[i] * dx * velocity_NLS[i] - 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i] * velocity_NLS[i] - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i] * velocity_NLS[i] + 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i - 1] * velocity_NLS[i] + 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i - 1] * velocity_NLS[i];
         Res[i] = Res[i] + 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i - 1] * velocity_NLS[i - 1] + 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i - 1] * velocity_NLS[i - 1];
-        Res[i] = Res[i] + 0.25 * crossSectionLength_NLS[i - 1] * pressure_NLS[i - 1] + 0.25 * crossSectionLength_NLS[i] * pressure_NLS[i - 1] + 0.25 * crossSectionLength_NLS[i - 1] * pressure_NLS[i] - 0.25 * crossSectionLength_NLS[i + 1] * pressure_NLS[i] - 0.25 * crossSectionLength_NLS[i] * pressure_NLS[i + 1] - 0.25 * crossSectionLength_NLS[i + 1] * pressure_NLS[i + 1];
+        Res[i] = Res[i] + 0.25 * crossSectionLength_NLS[i - 1] * pressure_NLS[i - 1] + 0.25 * crossSectionLength_NLS[i] * pressure_NLS[i - 1] - 0.25 * crossSectionLength_NLS[i - 1] * pressure_NLS[i] + 0.25 * crossSectionLength_NLS[i + 1] * pressure_NLS[i] - 0.25 * crossSectionLength_NLS[i] * pressure_NLS[i + 1] - 0.25 * crossSectionLength_NLS[i + 1] * pressure_NLS[i + 1];
 
         /* Continuity */
         Res[i + N + 1] = -(crossSectionLength_NLS[i] - crossSectionLength_n_NLS[i]) * dx + pressure_old_NLS[i] * gamma * dx;
@@ -189,7 +189,7 @@ void fluidComputeSolution(
 
       for (int i = 1; i < N; i++) {
         // Momentum, Velocity
-        LHS[i][i - 1] = LHS[i][i - 1] - 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i - 1] * 2 - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i - 1] * 2 - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i] + 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i];
+        LHS[i][i - 1] = LHS[i][i - 1] - 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i - 1] * 2 - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i - 1] * 2 - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i] - 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i];
         LHS[i][i] = LHS[i][i] + 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i + 1] + 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i + 1] + crossSectionLength_NLS[i] * dx + 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i] * 2 + 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i] * 2 - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i - 1] - 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i - 1];
         LHS[i][i + 1] = LHS[i][i + 1] + 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i] + 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i];
 
