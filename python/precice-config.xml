@@ -34,14 +34,16 @@
       <!-- Define input/output of the solver.  -->
       <write-data name="Pressure" mesh="Fluid_Nodes"/>
       <read-data  name="CrossSectionLength" mesh="Fluid_Nodes"/>
-      <mapping:nearest-projection direction="write" from="Fluid_Nodes" to="Structure_Nodes" constraint="consistent" timing="initial"/>
-      <mapping:nearest-projection direction="read"  from="Structure_Nodes" to="Fluid_Nodes" constraint="consistent" timing="initial"/>
+      <!--<mapping:nearest-neighbor direction="write" from="Fluid_Nodes" to="Structure_Nodes" constraint="consistent" timing="initial"/>-->
+      <mapping:nearest-neighbor direction="read" from="Structure_Nodes" to="Fluid_Nodes" constraint="consistent" timing="initial"/>
     </participant>
     
     <participant name="STRUCTURE">
       <use-mesh name="Structure_Nodes" provide="yes"/>
+      <use-mesh name="Fluid_Nodes" from="FLUID"/>
       <write-data name="CrossSectionLength" mesh="Structure_Nodes"/>
       <read-data  name="Pressure"      mesh="Structure_Nodes"/>
+      <mapping:nearest-neighbor direction="read" from="Fluid_Nodes" to="Structure_Nodes" constraint="consistent" timing="initial"/>
     </participant>
 
     <!-- Communication method, use TCP sockets, Change network to "ib0" on SuperMUC -->
@@ -52,9 +54,9 @@
          <max-time value="1.0"/>
          <time-window-size value=".01" valid-digits="8"/>
          <max-iterations value="100"/>
-         <exchange data="Pressure" mesh="Structure_Nodes" from="FLUID" to="STRUCTURE" />
+         <exchange data="Pressure" mesh="Fluid_Nodes" from="FLUID" to="STRUCTURE" />
          <exchange data="CrossSectionLength" mesh="Structure_Nodes" from="STRUCTURE" to="FLUID" initialize="true"/>
-         <relative-convergence-measure data="Pressure" mesh="Structure_Nodes" limit="1e-5"/>
+         <relative-convergence-measure data="Pressure" mesh="Fluid_Nodes" limit="1e-5"/>
          <relative-convergence-measure data="CrossSectionLength" mesh="Structure_Nodes" limit="1e-5"/>
          <extrapolation-order value="0"/>
          <acceleration:IQN-ILS>
