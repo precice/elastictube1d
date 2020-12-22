@@ -17,7 +17,7 @@ import precice
 from precice import *
 
 parser = argparse.ArgumentParser()
-parser.add_argument("configurationFileName", help="Name of the xml precice configuration file.", nargs='?', type=str, default="precice-config.xml")
+parser.add_argument("configurationFileName", help="Name of the xml precice configuration file.", nargs='?', type=str, default="../precice-config.xml")
 parser.add_argument("--write-vtk", help="Save vtk files of each timestep in the 'VTK' folder.", action='store_true')
 parser.add_argument("--enable-plot", help="Show a continuously updated plot of the tube while simulating.", action='store_true')
 parser.add_argument("--write-video", help="Save a video of the simulation as 'writer_test.mp4'. \
