@@ -4,7 +4,7 @@ import os
 import sys
 import argparse
 import numpy as np
-import configuration_file as config
+import tools.configuration_file as config
 
 import precice
 from precice import *

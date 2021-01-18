@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import numpy as np
-import configuration_file as conf
+import tools.configuration_file as conf
 
 scaling_factor = 50
 

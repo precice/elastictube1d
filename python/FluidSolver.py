@@ -2,10 +2,10 @@ from __future__ import division, print_function
 import os
 import sys
 import argparse
-import configuration_file as config
-from thetaScheme import perform_partitioned_implicit_trapezoidal_rule_step, perform_partitioned_implicit_euler_step
+import tools.configuration_file as config
+from tools.thetaScheme import perform_partitioned_implicit_trapezoidal_rule_step, perform_partitioned_implicit_euler_step
 import numpy as np
-import tubePlotting
+import tools.tubePlotting as tubePlotting
 
 import matplotlib
 import matplotlib.pyplot as plt
