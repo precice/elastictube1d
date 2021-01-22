@@ -36,6 +36,8 @@
       <read-data  name="CrossSectionLength" mesh="Fluid_Nodes"/>
       <!--<mapping:nearest-neighbor direction="write" from="Fluid_Nodes" to="Structure_Nodes" constraint="consistent" timing="initial"/>-->
       <mapping:nearest-neighbor direction="read" from="Structure_Nodes" to="Fluid_Nodes" constraint="consistent" timing="initial"/>
+      <export:vtk directory="vtk"/>
+
     </participant>
     
     <participant name="STRUCTURE">
@@ -44,6 +46,7 @@
       <write-data name="CrossSectionLength" mesh="Structure_Nodes"/>
       <read-data  name="Pressure"      mesh="Structure_Nodes"/>
       <mapping:nearest-neighbor direction="read" from="Fluid_Nodes" to="Structure_Nodes" constraint="consistent" timing="initial"/>
+      <export:vtk directory="vtk"/>
     </participant>
 
     <!-- Communication method, use TCP sockets, Change network to "ib0" on SuperMUC -->

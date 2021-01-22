@@ -52,15 +52,22 @@ target_link_libraries(FluidSolverParallel PUBLIC ${LAPACK_LIBRARIES})
 
 
 add_executable(StructureSolver
-  "StructureSolver_Serial/structure_solver.cpp")
+  "StructureSolver_Serial/structure_solver.cpp"
+  "StructureSolver_Serial/structureDataDisplay.cpp"
+  "StructureSolver_Serial/structureComputeSolution.cpp")
 
 target_link_libraries(StructureSolver PRIVATE precice::precice)
+target_link_libraries(StructureSolver PUBLIC ${MPI_CXX_LIBRARIES})
 
 
 add_executable(FluidSolver
   "FluidSolver_Serial/fluid_solver.cpp"
-  "FluidSolver_Serial/fluid_nl.cpp")
+  "FluidSolver_Serial/fluid_nl.cpp"
+  "FluidSolver_Serial/fluidDataDisplay.cpp"
+  "FluidSolver_Serial/fluidComputeSolution.cpp")
 
 target_link_libraries(FluidSolver PRIVATE precice::precice)
 target_link_libraries(FluidSolver PUBLIC ${LAPACK_LIBRARIES})
+target_link_libraries(FluidSolver PUBLIC ${MPI_CXX_LIBRARIES})
+
 

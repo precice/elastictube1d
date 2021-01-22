@@ -1,149 +1,180 @@
+#include "FluidSolver.h"
 #include "fluid_nl.h"
+
 #include "precice/SolverInterface.hpp"
 #include <iostream>
-#include <stdlib.h>
-
-using std::cout;
-using std::endl;
+#include <mpi.h>
 
 using namespace precice;
 using namespace precice::constants;
 
 int main(int argc, char** argv)
 {
-  cout << "Starting Fluid Solver..." << endl;
 
-  if (argc != 5) {
-    cout << endl;
-    cout << "Usage: " << argv[0] << " configurationFileName N tau kappa" << endl;
-    cout << endl;
-    cout << "N:     Number of mesh elements." << endl;
-    cout << "tau:   Dimensionless time step size." << endl;
-    cout << "kappa: Dimensionless structural stiffness." << endl;
+  std::cout << "Starting Fluid Solver..." << std::endl;
+  if (argc != 5 && argc != 6) {
+    std::cout << std::endl;
+    std::cout << "Fluid: Usage: mpiexec -np <#procs> " << argv[0] << " <configurationFileName> <N> <tau> <kappa> -parallel" << std::endl;
+    std::cout << "or" << std::endl;
+    std::cout << "Usage: " << argv[0] << " configurationFileName> <N> <tau> <kappa>" << std::endl;
+    std::cout << std::endl;
+    std::cout << "N:     Number of mesh elements, needs to be equal for fluid and structure solver." << std::endl;
+    std::cout << "tau:   Dimensionless time step size." << std::endl;
+    std::cout << "kappa: Dimensionless structural stiffness." << std::endl;
+
     return -1;
   }
 
   std::string configFileName(argv[1]);
-  int N = atoi(argv[2]);
+  int domainSize = atoi(argv[2]); //N
+  int chunkLength = domainSize + 1; //serial run
   double tau = atof(argv[3]);
   double kappa = atof(argv[4]);
 
-  std::cout << "N: " << N << " tau: " << tau << " kappa: " << kappa << std::endl;
-
   std::string solverName = "FLUID";
-  
-  std::string outputFilePrefix = "Postproc/out_fluid";
 
-  cout << "Configure preCICE..." << endl;
-  // Create preCICE with the solver's name, the rank, and the total number of processes.
-  SolverInterface interface(solverName, configFileName, 0, 1);
+  std::string outputFilePrefix = "Postproc/out_fluid"; //extra
 
-  int i;
-  double *velocity, *velocity_n, *pressure, *pressure_n, *crossSectionLength, *crossSectionLength_n;
-  
-  int dimensions = interface.getDimensions();
-
-  velocity             = new double[N + 1];
-  velocity_n           = new double[N + 1];
-  pressure             = new double[N + 1]; 
-  pressure_n           = new double[N + 1];
-  crossSectionLength   = new double[N + 1];
-  crossSectionLength_n = new double[N + 1];
-
-  // get IDs from preCICE
-  int meshID               = interface.getMeshID("Fluid_Nodes");
-  int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
-  int pressureID           = interface.getDataID("Pressure", meshID);
-  
-  int* vertexIDs;
-  double* grid;
-  vertexIDs = new int[(N + 1)];
-  grid = new double[dimensions * (N + 1)];
-
-  // init data values and mesh
-  for (i = 0; i <= N; i++) {
-    velocity[i]             = 1.0 / (kappa * 1.0);
-    velocity_n[i]           = 1.0 / (kappa * 1.0);
-    crossSectionLength[i]   = 1.0;
-    crossSectionLength_n[i] = 1.0;
-    pressure[i]             = 0.0;
-    pressure_n[i]           = 0.0;
     
-    for (int dim = 0; dim < dimensions; dim++)
-      grid[i * dimensions + dim] = i * (1 - dim);
+  int gridOffset, rank = 0, size = 1;
+
+
+  if (argc == 6){
+	  MPI_Init(&argc, &argv);
+  	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  	MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    if ((domainSize + 1) % size == 0) {
+        chunkLength = (domainSize + 1) / size;
+        gridOffset = rank * chunkLength;
+    } else if (rank < (domainSize + 1) % size) {
+        chunkLength = (domainSize + 1) / size + 1;
+        gridOffset = rank * chunkLength;
+      } else {
+        chunkLength = (domainSize + 1) / size;
+        gridOffset = ((domainSize + 1) % size) * ((domainSize + 1) / size + 1) + (rank - ((domainSize + 1) % size)) * (domainSize + 1) / size;
+      }
   }
 
-  double t = 0.0; // time
-  double dt = 0.01; // solver timestep size
+  SolverInterface interface(solverName, configFileName, rank , size);
+  std::vector<double> pressure(chunkLength);
+  std::vector<double> pressure_n(chunkLength);
+  std::vector<double > crossSectionLength(chunkLength);
+  std::vector<double > crossSectionLength_n(chunkLength);
+  std::vector<double> velocity(chunkLength);
+  std::vector<double> velocity_n(chunkLength);
+  std::vector<int> vertexIDs(chunkLength);
 
-  // tell preCICE about your coupling interface mesh
-  interface.setMeshVertices(meshID, N + 1, grid, vertexIDs);
+  int dimensions = interface.getDimensions();
+  int meshID = interface.getMeshID("Fluid_Nodes");
+  int pressureID = interface.getDataID("Pressure", meshID);
+  int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
 
-  cout << "Initialize preCICE..." << endl;
-  interface.initialize();
   
-  // write initial data if required
+  double* grid;
+  grid = new double[dimensions * chunkLength];
+  
+  for (int i = 0; i < chunkLength; i++) {
+    pressure[i] = 0.0;
+    pressure_n[i] = 0.0;
+    crossSectionLength[i] = 1.0;
+    crossSectionLength_n[i] = 1.0;
+    velocity[i] = 1.0 / kappa;
+    velocity_n[i] = 1.0 / kappa;
+  }
+
+  if (argc==6){
+    for (int i = 0; i < chunkLength; i++) {
+      for (int j = 0; j < dimensions; j++) {
+          grid[i * dimensions + j] = j == 0 ? gridOffset + (double)i : 0.0;
+      }
+    
+    }
+  } else {
+    for (int i = 0; i < chunkLength; i++) {
+      for (int j = 0; j < dimensions; j++) {
+          grid[i * dimensions + j] = i * (1 - j);
+      }
+    }
+  }
+
+
+  interface.setMeshVertices(meshID, chunkLength, grid, vertexIDs.data());
+
+  std::cout << "Initialize preCICE..." << std::endl;
+  interface.initialize();
+
+  double t = 0.0;
+  double dt = 0.01;
+
   if (interface.isActionRequired(actionWriteInitialData())) {
-    interface.writeBlockScalarData(pressureID, N + 1, vertexIDs, pressure);
+    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
     interface.markActionFulfilled(actionWriteInitialData());
   }
 
-  // initial data is sent or received if necessary
   interface.initializeData();
 
-  // read data if available
   if (interface.isReadDataAvailable()) {
-    interface.readBlockScalarData(crossSectionLengthID, N + 1, vertexIDs, crossSectionLength);
+    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
   }
-  int out_counter = 0;  
-  
+
+  int out_counter = 0;
+
   while (interface.isCouplingOngoing()) {
-    // for an implicit coupling, you can store an iteration checkpoint here (from the first iteration of a timestep)
-    // this is, however, not necessary for this scenario
+    int convergenceCounter = 0;
     if (interface.isActionRequired(actionWriteIterationCheckpoint())) {
       interface.markActionFulfilled(actionWriteIterationCheckpoint());
     }
-    
-    fluid_nl(crossSectionLength, crossSectionLength_n,  
-	     velocity, velocity_n,                      
-	     pressure, pressure_n,            
-	     t, N, kappa, tau); 
-    
-    // write pressure data to precice
-    interface.writeBlockScalarData(pressureID, N + 1, vertexIDs, pressure);
-    
-    interface.advance(dt);
-    
-    // read crossSectionLength data from precice
-    interface.readBlockScalarData(crossSectionLengthID, N + 1, vertexIDs, crossSectionLength);
 
-    // set variables back to checkpoint
-    if (interface.isActionRequired(actionReadIterationCheckpoint())) { 
-    // i.e. not yet converged, you could restore a checkpoint here (not necessary for this scenario)      
-      interface.markActionFulfilled(actionReadIterationCheckpoint());
+    if (argc == 6){
+	    fluidComputeSolution(rank, size, domainSize, chunkLength, kappa, tau, 0.0, t+dt,
+      pressure.data(), pressure_n.data(), pressure.data(),
+      crossSectionLength.data(), crossSectionLength_n.data(),
+      velocity.data(), velocity_n.data());
+    } else {
+      fluid_nl(crossSectionLength, crossSectionLength_n,  
+	    velocity, velocity_n,                      
+	    pressure, pressure_n,            
+	    t, domainSize, kappa, tau); 
     }
-    else{
+    
+
+    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
+
+    interface.advance(dt);
+
+    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
+
+    if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. not yet converged
+      interface.markActionFulfilled(actionReadIterationCheckpoint());
+      convergenceCounter++;
+    } else {
       t += dt;
-      for (i = 0; i <= N; i++) {
-        velocity_n[i]           = velocity[i];
-        pressure_n[i]           = pressure[i];
+      for (int i = 0; i < chunkLength; i++) {
+        pressure_n[i] = pressure[i];
+        velocity_n[i] = velocity[i];
         crossSectionLength_n[i] = crossSectionLength[i];
-      }      
-      write_vtk(t, out_counter, outputFilePrefix.c_str(), N, grid, velocity_n, pressure_n, crossSectionLength_n);
+      }
+      write_vtk(t, out_counter, outputFilePrefix.c_str(), domainSize, grid, velocity_n, pressure_n, crossSectionLength_n);
       out_counter++;
     }
   }
 
-  interface.finalize();
-
-  delete [] velocity;
-  delete [] velocity_n;
-  delete [] pressure;
-  delete [] pressure_n;
-  delete [] crossSectionLength;
-  delete [] crossSectionLength_n;
-  delete [] vertexIDs;
+  //delete [] velocity;
+  //delete [] velocity_n;
+  //delete [] pressure;
+  //delete [] pressure_n;
+  //delete [] crossSectionLength;
+  //delete [] crossSectionLength_n;
+  //delete [] vertexIDs;
   delete [] grid;
+  interface.finalize();
+  if (argc == 6){
+    MPI_Finalize();
+
+  }
+
+  std::cout << argc << "hello";
 
   return 0;
 }

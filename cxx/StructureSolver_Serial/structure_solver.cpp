@@ -1,145 +1,139 @@
 #include "precice/SolverInterface.hpp"
 #include <iostream>
 #include <stdlib.h>
-//#include "mpi.h"
+#include "mpi.h"
+#include "StructureSolver.h"
 
-using std::cout;
-using std::endl;
+
 
 void printData(const std::vector<double>& data)
 {
-  cout << "Received data = " << data[0];
+  std::cout << "Received data = " << data[0];
   for (size_t i = 1; i < data.size(); i++) {
-    cout << ", " << data[i];
+    std::cout << ", " << data[i];
   }
-  cout << endl;
+  std::cout << std::endl;
 }
 
 int main(int argc, char** argv)
 {
-  cout << "Starting Structure Solver..." << endl;
+  std::cout << "Starting Structure Solver..." << std::endl;
   using namespace precice;
   using namespace precice::constants;
 
-  if (argc != 3) {
-    cout << endl;
-    cout << "Usage: " << argv[0] << " configurationFileName N" << endl;
-    cout << endl;
-    cout << "N:     Number of mesh elements, needs to be equal for fluid and structure solver." << endl;
+  if (argc != 3 && argc != 4) {
+    std::cout << "Fluid: Usage: mpiexec -np <#procs> " << argv[0] << " <configurationFileName> <N> -parallel" << std::endl;
+    std::cout << "or" << std::endl;
+    std::cout << "Usage: " << argv[0] << " configurationFileName> <N>" << std::endl;
+    std::cout << std::endl;
+    std::cout << "N:     Number of mesh elements, needs to be equal for fluid and structure solver." << std::endl;
+    
     return -1;
   }
 
   std::string configFileName(argv[1]);
-  int N = atoi(argv[2]);
+  int domainSize = atoi(argv[2]); // N
+  int chunkLength = domainSize +1;
 
-  std::cout << "N: " << N << std::endl;
+  std::cout << "N: " << domainSize << std::endl;
 
   std::string solverName = "STRUCTURE";
 
-  SolverInterface interface(solverName, configFileName, 0, 1);
-  cout << "preCICE configured..." << endl;
+  int gridOffset, rank = 0, size = 1;
+  if (argc == 4){
+	  MPI_Init(&argc, &argv);
+  	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  	MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    if ((domainSize + 1) % size == 0) {
+        chunkLength = (domainSize + 1) / size;
+        gridOffset = rank * chunkLength;
+    } else if (rank < (domainSize + 1) % size) {
+        chunkLength = (domainSize + 1) / size + 1;
+        gridOffset = rank * chunkLength;
+      } else {
+        chunkLength = (domainSize + 1) / size;
+        gridOffset = ((domainSize + 1) % size) * ((domainSize + 1) / size + 1) + (rank - ((domainSize + 1) % size)) * (domainSize + 1) / size;
+      }
+  }
+
+  SolverInterface interface(solverName, configFileName, rank, size);
+  std::cout << "preCICE configured..." << std::endl;
 
   //init data
-  double *crossSectionLength, *pressure;
-  int dimensions = interface.getDimensions();
-  crossSectionLength = new double[N + 1]; // Second dimension (only one cell deep) stored right after the first dimension: see SolverInterfaceImpl::setMeshVertices
-  pressure = new double[N + 1];
-  double* grid;
-  grid = new double[dimensions * (N + 1)];
+  std::vector<double> pressure(chunkLength);
+  std::vector<double > crossSectionLength(chunkLength);
+  std::vector<int> vertexIDs(chunkLength);
   
-  double dt = 0.01; // solver timestep size
-  double precice_dt; // maximum precice timestep size
-
-  //precice stuff
+  int dimensions = interface.getDimensions();
   int meshID = interface.getMeshID("Structure_Nodes");
   int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
   int pressureID = interface.getDataID("Pressure", meshID);
-  int* vertexIDs;
-  vertexIDs = new int[N + 1];
 
-  for (int i = 0; i <= N; i++) {
-    crossSectionLength[i] = 1.0;
-    pressure[i] = 0.0;
-    for (int dim = 0; dim < dimensions; dim++)
-      grid[i * dimensions + dim] = i * (1 - dim); // Define the y-component of each grid point as zero
+  double* grid;
+  grid = new double[dimensions * chunkLength];
+  
+
+  if (argc==4){
+    for (int i = 0; i < chunkLength; i++) {
+      for (int j = 0; j < dimensions; j++) {
+          grid[i * dimensions + j] = j == 0 ? gridOffset + (double)i : 0.0;    
+      }
+    }
+  } else {
+    for (int i = 0; i < chunkLength; i++) {
+      for (int j = 0; j < dimensions; j++) {
+          grid[i * dimensions + j] = i * (1 - j);
+      }
+    }
   }
 
-  int tstep_counter = 0; // number of time steps (only coupling iteration time steps)
-  int t = 0;             // number of time steps (including subcycling time steps)
-  int tsub = 0;          // number of current subcycling time steps
-  int n_subcycles = 0;   // number of subcycles
-  //int t_steps_total = 0; // number of total timesteps, i.e., t_steps*n_subcycles
-  
-  interface.setMeshVertices(meshID, N + 1, grid, vertexIDs);
+  interface.setMeshVertices(meshID, chunkLength, grid, vertexIDs.data());
+  std::cout << "Initialize preCICE..." << std::endl;
+  interface.initialize();
 
-  cout << "Structure: init precice..." << endl;
-  precice_dt = interface.initialize();
-  
-  n_subcycles = (int)(precice_dt/dt);
-  //t_steps_total = 100*n_subcycles;
+  double t = 0;
+  double dt = 0.01;
 
   if (interface.isActionRequired(actionWriteInitialData())) {
-    interface.writeBlockScalarData(crossSectionLengthID, N + 1, vertexIDs, crossSectionLength);
-    //interface.initializeData();
+    interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
     interface.markActionFulfilled(actionWriteInitialData());
   }
 
   interface.initializeData();
 
   if (interface.isReadDataAvailable()) {
-    interface.readBlockScalarData(pressureID, N + 1, vertexIDs, pressure);
+    interface.readBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
   }
 
   while (interface.isCouplingOngoing()) {
-    // When an implicit coupling scheme is used, checkpointing is required
     if (interface.isActionRequired(actionWriteIterationCheckpoint())) {
-      
-      if(tstep_counter > 0){
-        cout << "Advancing in time, finished timestep: " << tstep_counter << endl;
-        t += n_subcycles;        
-        tsub = 0;
-      }
-      tstep_counter++;
-      
-      // write checkpoint, save state variables (not needed here, stationary solver)       
       interface.markActionFulfilled(actionWriteIterationCheckpoint());
     }
 
-    // choose smalles time step (sub-cycling if dt is smaller than precice_dt)
-    dt = std::min(precice_dt, dt);
-    
-    // advance in time for subcycling
-    tsub++;
-    
-    for (int i = 0; i <= N; i++) {
-      crossSectionLength[i] = 4.0 / ((2.0 - pressure[i]) * (2.0 - pressure[i]));
-    }
+    structureComputeSolution(rank, size, chunkLength, pressure, crossSectionLength); // Call Solver
 
-    // send crossSectionLength data to precice
-    interface.writeBlockScalarData(crossSectionLengthID, N + 1, vertexIDs, crossSectionLength);
+    interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
     
-    // advance
-    precice_dt = interface.advance(dt);
+    interface.advance(dt);
     
-    // receive pressure data from precice
-    interface.readBlockScalarData(pressureID, N + 1, vertexIDs, pressure);
+    interface.readBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
+    
 
-    if (interface.isActionRequired(actionReadIterationCheckpoint())) {
-      cout << "Iterate" << endl;
-      tsub = 0;
-      
+   if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. fluid not yet converged
       interface.markActionFulfilled(actionReadIterationCheckpoint());
+    } else {
+      t += dt;
     }
   }
 
-  interface.finalize();
 
-  delete [] crossSectionLength;
-  delete [] pressure;
   delete [] grid;
-  delete [] vertexIDs;
 
-  cout << "Exiting StructureSolver" << endl;
-
+  std::cout << "Exiting StructureSolver" << std::endl;
+  interface.finalize();
+  if (argc == 4){
+    MPI_Finalize();
+  }
   return 0;
 }

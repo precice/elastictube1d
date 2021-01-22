@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include <fstream>
 #include <iomanip>
@@ -28,12 +29,12 @@ void dgesv_(
 
 /* Function for fluid_nl i.e. non-linear */
 int fluid_nl(
-    double* crossSectionLength,
-    double* crossSectionLength_n,
-    double* velocity,
-    double* velocity_n,
-    double* pressure,
-    double* pressure_n,
+    std::vector<double> crossSectionLength,
+    std::vector<double> crossSectionLength_n,
+    std::vector<double> velocity,
+    std::vector<double> velocity_n,
+    std::vector<double> pressure,
+    std::vector<double> pressure_n,
     double t,
     int N,
     double kappa,
@@ -228,7 +229,7 @@ void exportMesh(std::ofstream& outFile, int N_slices, double* grid)
   outFile << std::endl;
 }
 
-void exportVectorData(std::ofstream& outFile, int N_slices, double* data, const char* dataname)
+void exportVectorData(std::ofstream& outFile, int N_slices, std::vector<double>  data, const char* dataname)
 {
 	outFile << "VECTORS " << dataname << " float" << std::endl;
 
@@ -246,7 +247,7 @@ void exportVectorData(std::ofstream& outFile, int N_slices, double* data, const 
 	outFile << std::endl;          
 }
 
-void exportScalarData(std::ofstream& outFile, int N_slices, double* data, std::string dataname)
+void exportScalarData(std::ofstream& outFile, int N_slices, std::vector<double>  data, std::string dataname)
 {  
 	outFile << "SCALARS " << dataname << " float" << std::endl;
 	outFile << "LOOKUP_TABLE default" << std::endl;
@@ -260,7 +261,7 @@ void exportScalarData(std::ofstream& outFile, int N_slices, double* data, std::s
 	outFile << std::endl;
 }
 
-void write_vtk(double t, int iteration, const char* filename_prefix, int N_slices, double* grid, double* velocity, double* pressure, double* diameter)
+void write_vtk(double t, int iteration, const char* filename_prefix, int N_slices, double* grid, std::vector<double>  velocity, std::vector<double>  pressure, std::vector<double>  diameter)
 {
 	std::stringstream filename_stream;
 	filename_stream << filename_prefix <<"_"<< iteration <<".vtk";
