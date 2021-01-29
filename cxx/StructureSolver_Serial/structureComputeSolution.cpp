@@ -1,8 +1,6 @@
 #include "StructureSolver.h"
-#include <vector>
 
-
-void structureComputeSolution(int rank, int size, int chunkLength, std::vector<double> pressure, std::vector<double> crossSectionLength)
+void structureComputeSolution(int rank, int size, int chunkLength, double* pressure, double* crossSectionLength)
 {
   /*
    * Update displacement of membrane based on pressure data from the fluid solver

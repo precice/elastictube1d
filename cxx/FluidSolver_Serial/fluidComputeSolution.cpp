@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cmath>
 #include <mpi.h>
+#include <vector>
 
 using std::sin;
 using std::sqrt;
@@ -28,8 +29,8 @@ void fluidComputeSolution(
     double tau,
     double gamma,
     double scaled_t,
-    double* pressure,
     double* pressure_n,
+    double* pressure,
     double* pressure_old,
     double* crossSectionLength,
     double* crossSectionLength_n,

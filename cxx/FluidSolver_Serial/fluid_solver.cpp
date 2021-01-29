@@ -57,13 +57,17 @@ int main(int argc, char** argv)
   }
 
   SolverInterface interface(solverName, configFileName, rank , size);
-  std::vector<double> pressure(chunkLength);
-  std::vector<double> pressure_n(chunkLength);
-  std::vector<double > crossSectionLength(chunkLength);
-  std::vector<double > crossSectionLength_n(chunkLength);
-  std::vector<double> velocity(chunkLength);
-  std::vector<double> velocity_n(chunkLength);
-  std::vector<int> vertexIDs(chunkLength);
+  double *velocity, *velocity_n, *pressure, *pressure_n, *crossSectionLength, *crossSectionLength_n;
+
+  velocity             = new double[chunkLength];
+  velocity_n           = new double[chunkLength];
+  pressure             = new double[chunkLength]; 
+  pressure_n           = new double[chunkLength];
+  crossSectionLength   = new double[chunkLength];
+  crossSectionLength_n = new double[chunkLength];
+
+  int *vertexIDs;
+  vertexIDs = new int[chunkLength];
 
   int dimensions = interface.getDimensions();
   int meshID = interface.getMeshID("Fluid_Nodes");
@@ -99,7 +103,7 @@ int main(int argc, char** argv)
   }
 
 
-  interface.setMeshVertices(meshID, chunkLength, grid, vertexIDs.data());
+  interface.setMeshVertices(meshID, chunkLength, grid, vertexIDs);
 
   std::cout << "Initialize preCICE..." << std::endl;
   interface.initialize();
@@ -108,14 +112,14 @@ int main(int argc, char** argv)
   double dt = 0.01;
 
   if (interface.isActionRequired(actionWriteInitialData())) {
-    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
+    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs, pressure);
     interface.markActionFulfilled(actionWriteInitialData());
   }
 
   interface.initializeData();
 
   if (interface.isReadDataAvailable()) {
-    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
+    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs, crossSectionLength);
   }
 
   int out_counter = 0;
@@ -128,9 +132,9 @@ int main(int argc, char** argv)
 
     if (argc == 6){
 	    fluidComputeSolution(rank, size, domainSize, chunkLength, kappa, tau, 0.0, t+dt,
-      pressure.data(), pressure_n.data(), pressure.data(),
-      crossSectionLength.data(), crossSectionLength_n.data(),
-      velocity.data(), velocity_n.data());
+      pressure, pressure_n, pressure,
+      crossSectionLength, crossSectionLength_n,
+      velocity, velocity_n);
     } else {
       fluid_nl(crossSectionLength, crossSectionLength_n,  
 	    velocity, velocity_n,                      
@@ -139,11 +143,11 @@ int main(int argc, char** argv)
     }
     
 
-    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
+    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs, pressure);
 
     interface.advance(dt);
 
-    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
+    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs, crossSectionLength);
 
     if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. not yet converged
       interface.markActionFulfilled(actionReadIterationCheckpoint());
@@ -160,21 +164,19 @@ int main(int argc, char** argv)
     }
   }
 
-  //delete [] velocity;
-  //delete [] velocity_n;
-  //delete [] pressure;
-  //delete [] pressure_n;
-  //delete [] crossSectionLength;
-  //delete [] crossSectionLength_n;
-  //delete [] vertexIDs;
+  delete [] velocity;
+  delete [] velocity_n;
+  delete [] pressure;
+  delete [] pressure_n;
+  delete [] crossSectionLength;
+  delete [] crossSectionLength_n;
+  delete [] vertexIDs;
   delete [] grid;
   interface.finalize();
   if (argc == 6){
     MPI_Finalize();
 
   }
-
-  std::cout << argc << "hello";
 
   return 0;
 }

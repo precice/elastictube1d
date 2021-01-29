@@ -1,6 +1,7 @@
 #include "FluidSolver.h"
 
 #include <iostream>
+#include <vector>
 
 void fluidDataDisplay(double* data, int length)
 {

@@ -36,6 +36,8 @@ int main(int argc, char** argv)
   int chunkLength = domainSize +1;
 
   std::cout << "N: " << domainSize << std::endl;
+  std::cout << "inputs: " << argc << std::endl;
+
 
   std::string solverName = "STRUCTURE";
 
@@ -61,14 +63,20 @@ int main(int argc, char** argv)
   std::cout << "preCICE configured..." << std::endl;
 
   //init data
-  std::vector<double> pressure(chunkLength);
-  std::vector<double > crossSectionLength(chunkLength);
-  std::vector<int> vertexIDs(chunkLength);
+  double *pressure, *crossSectionLength;
+  int *vertexIDs;
+
+  pressure             = new double[chunkLength]; 
+  crossSectionLength   = new double[chunkLength];
+  vertexIDs =  new int[chunkLength];
+
+
   
   int dimensions = interface.getDimensions();
   int meshID = interface.getMeshID("Structure_Nodes");
   int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
   int pressureID = interface.getDataID("Pressure", meshID);
+  std::cout << "debug..." << std::endl;
 
   double* grid;
   grid = new double[dimensions * chunkLength];
@@ -76,34 +84,44 @@ int main(int argc, char** argv)
 
   if (argc==4){
     for (int i = 0; i < chunkLength; i++) {
+      crossSectionLength[i] = 1.0;
+      pressure[i] = 0.0;
       for (int j = 0; j < dimensions; j++) {
           grid[i * dimensions + j] = j == 0 ? gridOffset + (double)i : 0.0;    
       }
     }
   } else {
     for (int i = 0; i < chunkLength; i++) {
+      crossSectionLength[i] = 1.0;
+      pressure[i] = 0.0;
       for (int j = 0; j < dimensions; j++) {
           grid[i * dimensions + j] = i * (1 - j);
       }
     }
   }
 
-  interface.setMeshVertices(meshID, chunkLength, grid, vertexIDs.data());
+  interface.setMeshVertices(meshID, chunkLength, grid, vertexIDs);
   std::cout << "Initialize preCICE..." << std::endl;
   interface.initialize();
+  std::cout << "debug..." << std::endl;
+
 
   double t = 0;
   double dt = 0.01;
 
   if (interface.isActionRequired(actionWriteInitialData())) {
-    interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
+    interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs, crossSectionLength);
     interface.markActionFulfilled(actionWriteInitialData());
   }
 
+
   interface.initializeData();
+  std::cout << "debug...init data" << std::endl;
+
+
 
   if (interface.isReadDataAvailable()) {
-    interface.readBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
+    interface.readBlockScalarData(pressureID, chunkLength, vertexIDs, pressure);
   }
 
   while (interface.isCouplingOngoing()) {
@@ -113,11 +131,11 @@ int main(int argc, char** argv)
 
     structureComputeSolution(rank, size, chunkLength, pressure, crossSectionLength); // Call Solver
 
-    interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
+    interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs, crossSectionLength);
     
     interface.advance(dt);
     
-    interface.readBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
+    interface.readBlockScalarData(pressureID, chunkLength, vertexIDs, pressure);
     
 
    if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. fluid not yet converged
@@ -127,8 +145,10 @@ int main(int argc, char** argv)
     }
   }
 
-
+  delete [] crossSectionLength;
+  delete [] pressure;
   delete [] grid;
+  delete [] vertexIDs;
 
   std::cout << "Exiting StructureSolver" << std::endl;
   interface.finalize();
@@ -137,3 +157,6 @@ int main(int argc, char** argv)
   }
   return 0;
 }
+
+
+  
