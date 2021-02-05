@@ -33,7 +33,6 @@ int main(int argc, char** argv)
 
   std::string solverName = "FLUID";
 
-  std::string outputFilePrefix = "Postproc/out_fluid"; //extra
 
     
   int gridOffset, rank = 0, size = 1;
@@ -55,6 +54,9 @@ int main(int argc, char** argv)
         gridOffset = ((domainSize + 1) % size) * ((domainSize + 1) / size + 1) + (rank - ((domainSize + 1) % size)) * (domainSize + 1) / size;
       }
   }
+
+  std::string outputFilePrefix = "Postproc/out_fluid" + std::to_string(rank); //extra
+
 
   SolverInterface interface(solverName, configFileName, rank , size);
   double *velocity, *velocity_n, *pressure, *pressure_n, *crossSectionLength, *crossSectionLength_n;
@@ -159,7 +161,9 @@ int main(int argc, char** argv)
         velocity_n[i] = velocity[i];
         crossSectionLength_n[i] = crossSectionLength[i];
       }
-      write_vtk(t, out_counter, outputFilePrefix.c_str(), domainSize, grid, velocity_n, pressure_n, crossSectionLength_n);
+      //write_vtk(t, out_counter, outputFilePrefix.c_str(), domainSize, grid, velocity_n, pressure_n, crossSectionLength_n);
+      write_vtk(t, out_counter, outputFilePrefix.c_str(), chunkLength, grid, velocity_n, pressure_n, crossSectionLength_n);
+
       out_counter++;
     }
   }
