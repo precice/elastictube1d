@@ -33,6 +33,7 @@ int main(int argc, char** argv)
 
   std::string solverName = "FLUID";
 
+  std::string outputFilePrefix = "Postproc/out_fluid"; //extra
 
     
   int gridOffset, rank = 0, size = 1;
@@ -42,6 +43,7 @@ int main(int argc, char** argv)
 	  MPI_Init(&argc, &argv);
   	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   	MPI_Comm_size(MPI_COMM_WORLD, &size);
+    outputFilePrefix += std::to_string(rank); //extra
 
     if ((domainSize + 1) % size == 0) {
         chunkLength = (domainSize + 1) / size;
@@ -55,7 +57,6 @@ int main(int argc, char** argv)
       }
   }
 
-  std::string outputFilePrefix = "Postproc/out_fluid" + std::to_string(rank); //extra
 
 
   SolverInterface interface(solverName, configFileName, rank , size);

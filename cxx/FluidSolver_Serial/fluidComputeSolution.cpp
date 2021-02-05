@@ -57,6 +57,8 @@ void fluidComputeSolution(
     MPI_Recv(velocity, chunkLength, MPI_DOUBLE, 0, tagStart + 5, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     MPI_Recv(velocity_n, chunkLength, MPI_DOUBLE, 0, tagStart + 6, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
+    std::cout << "velocity " << velocity[0] << " " << velocity[1] << " " << velocity[2] << " rank " << rank;
+
   } else {
     double *pressure_NLS, *pressure_n_NLS, *pressure_old_NLS;
     double *crossSectionLength_NLS, *crossSectionLength_n_NLS;
@@ -130,7 +132,8 @@ void fluidComputeSolution(
         Res[i] = 0.0;
       }
 
-      for (int i = 0; i < N; i++) {
+      for (int i = 1; i < N; i++) { // chnaged to 1
+        /* Momentum */
         Res[i] = velocity_n_NLS[i] * crossSectionLength_NLS[i] * dx;
         Res[i] = Res[i] - 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i] * velocity_NLS[i + 1] - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i] * velocity_NLS[i + 1];
         Res[i] = Res[i] - crossSectionLength_NLS[i] * dx * velocity_NLS[i] - 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i] * velocity_NLS[i] - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i] * velocity_NLS[i] + 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i - 1] * velocity_NLS[i] + 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i - 1] * velocity_NLS[i];
@@ -138,9 +141,12 @@ void fluidComputeSolution(
         Res[i] = Res[i] + 0.25 * crossSectionLength_NLS[i - 1] * pressure_NLS[i - 1] + 0.25 * crossSectionLength_NLS[i] * pressure_NLS[i - 1] - 0.25 * crossSectionLength_NLS[i - 1] * pressure_NLS[i] + 0.25 * crossSectionLength_NLS[i + 1] * pressure_NLS[i] - 0.25 * crossSectionLength_NLS[i] * pressure_NLS[i + 1] - 0.25 * crossSectionLength_NLS[i + 1] * pressure_NLS[i + 1];
 
         /* Continuity */
-        Res[i + N + 1] = -(crossSectionLength_NLS[i] - crossSectionLength_n_NLS[i]) * dx + pressure_old_NLS[i] * gamma * dx;
+        //Res[i + N + 1] = -(crossSectionLength_NLS[i] - crossSectionLength_n_NLS[i]) * dx + pressure_old_NLS[i] * gamma * dx;
+        Res[i + N + 1] = -(crossSectionLength_NLS[i] - crossSectionLength_n_NLS[i]) * dx;
         Res[i + N + 1] = Res[i + N + 1] + 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i - 1] + 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i - 1] + 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i] - 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i] - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i + 1] - 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i + 1];
-        Res[i + N + 1] = Res[i + N + 1] + alpha * pressure_NLS[i - 1] - 2 * alpha * pressure_NLS[i] - gamma * pressure_NLS[i] * dx + alpha * pressure_NLS[i + 1];
+        //Res[i + N + 1] = Res[i + N + 1] + alpha * pressure_NLS[i - 1] - 2 * alpha * pressure_NLS[i] - gamma * pressure_NLS[i] * dx + alpha * pressure_NLS[i + 1];
+        Res[i + N + 1] = Res[i + N + 1] + alpha * pressure_NLS[i - 1] - 2 * alpha * pressure_NLS[i] + alpha * pressure_NLS[i + 1];
+
       }
 
       // Boundary
@@ -206,7 +212,9 @@ void fluidComputeSolution(
 
         // Continuity, Pressure
         LHS[i + N + 1][N + 1 + i - 1] = LHS[i + N + 1][N + 1 + i - 1] - alpha;
-        LHS[i + N + 1][N + 1 + i] = LHS[i + N + 1][N + 1 + i] + 2 * alpha + gamma * dx;
+        LHS[i + N + 1][N + 1 + i] = LHS[i + N + 1][N + 1 + i] + 2 * alpha ;
+        //LHS[i + N + 1][N + 1 + i] = LHS[i + N + 1][N + 1 + i] + 2 * alpha + gamma * dx;
+
         LHS[i + N + 1][N + 1 + i + 1] = LHS[i + N + 1][N + 1 + i + 1] - alpha;
       }
 
@@ -277,6 +285,8 @@ void fluidComputeSolution(
         chunkLength_temp = (N + 1) / size;
         gridOffset = ((N + 1) % size) * ((N + 1) / size + 1) + (i - ((N + 1) % size)) * (N + 1) / size;
       }
+
+
       MPI_Send(pressure_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 0, MPI_COMM_WORLD);
       MPI_Send(pressure_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 1, MPI_COMM_WORLD);
       MPI_Send(crossSectionLength_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 3, MPI_COMM_WORLD);
