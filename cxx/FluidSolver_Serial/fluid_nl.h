@@ -5,11 +5,8 @@
 #define PI 3.14159265359
 
 int fluid_nl(double* crossSectionLength,
-             double* crossSectionLength_n,
              double* velocity,
-             double* velocity_n,
              double* pressure,
-             double* pressure_n,
              double t,
              int N,
              double kappa,

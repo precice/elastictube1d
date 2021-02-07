@@ -133,9 +133,9 @@ int main(int argc, char** argv)
       crossSectionLength, 
       velocity);
     } else {
-      fluid_nl(crossSectionLength, crossSectionLength,  
-	    velocity, velocity,                      
-	    pressure, pressure,            
+      fluid_nl(crossSectionLength,   
+	    velocity,           
+	    pressure,     
 	    t, domainSize, kappa, tau); 
     }
     

@@ -29,11 +29,8 @@ void dgesv_(
 /* Function for fluid_nl i.e. non-linear */
 int fluid_nl(
     double* crossSectionLength,
-    double* crossSectionLength_n,
     double* velocity,
-    double* velocity_n,
     double* pressure,
-    double* pressure_n,
     double t,
     int N,
     double kappa,
@@ -77,14 +74,14 @@ int fluid_nl(
 
     for (i = 1; i < N; i++) {
       /* Momentum */
-      Res[i] = velocity_n[i] * crossSectionLength[i] * dx;
+      Res[i] = velocity[i] * crossSectionLength[i] * dx;
       Res[i] = Res[i] - 0.25 * crossSectionLength[i + 1] * velocity[i] * velocity[i + 1] - 0.25 * crossSectionLength[i] * velocity[i] * velocity[i + 1];
       Res[i] = Res[i] - crossSectionLength[i] * dx * velocity[i] - 0.25 * crossSectionLength[i + 1] * velocity[i] * velocity[i] - 0.25 * crossSectionLength[i] * velocity[i] * velocity[i] + 0.25 * crossSectionLength[i] * velocity[i - 1] * velocity[i] + 0.25 * crossSectionLength[i - 1] * velocity[i - 1] * velocity[i];
       Res[i] = Res[i] + 0.25 * crossSectionLength[i - 1] * velocity[i - 1] * velocity[i - 1] + 0.25 * crossSectionLength[i] * velocity[i - 1] * velocity[i - 1];
       Res[i] = Res[i] + 0.25 * crossSectionLength[i - 1] * pressure[i - 1] + 0.25 * crossSectionLength[i] * pressure[i - 1] - 0.25 * crossSectionLength[i - 1] * pressure[i] + 0.25 * crossSectionLength[i + 1] * pressure[i] - 0.25 * crossSectionLength[i] * pressure[i + 1] - 0.25 * crossSectionLength[i + 1] * pressure[i + 1];
 
       /* Continuity */
-      Res[i + N + 1] = -(crossSectionLength[i] - crossSectionLength_n[i]) * dx;
+      Res[i + N + 1] = -(crossSectionLength[i] - crossSectionLength[i]) * dx;
       Res[i + N + 1] = Res[i + N + 1] + 0.25 * crossSectionLength[i - 1] * velocity[i - 1] + 0.25 * crossSectionLength[i] * velocity[i - 1] + 0.25 * crossSectionLength[i - 1] * velocity[i] - 0.25 * crossSectionLength[i + 1] * velocity[i] - 0.25 * crossSectionLength[i] * velocity[i + 1] - 0.25 * crossSectionLength[i + 1] * velocity[i + 1];
       Res[i + N + 1] = Res[i + N + 1] + alpha * pressure[i - 1] - 2 * alpha * pressure[i] + alpha * pressure[i + 1];
     }
@@ -104,7 +101,7 @@ int fluid_nl(
     Res[N] = -velocity[N] + 2 * velocity[N - 1] - velocity[N - 2];
 
     /* Pressure Outlet is "non-reflecting" */
-    tmp2 = sqrt(1 - pressure_n[N] / 2) - (velocity[N] - velocity_n[N]) / 4;
+    tmp2 = sqrt(1 - pressure[N] / 2) - (velocity[N] - velocity[N]) / 4;
     Res[2 * N + 1] = -pressure[N] + 2 * (1 - tmp2 * tmp2);
 
     k += 1; // Iteration Count
@@ -168,7 +165,7 @@ int fluid_nl(
     LHS[N][N - 2] = 1;
     // Pressure Outlet is Non-Reflecting
     LHS[2 * N + 1][2 * N + 1] = 1;
-    LHS[2 * N + 1][N] = -(sqrt(1 - pressure_n[N] / 2) - (velocity[N] - velocity_n[N]) / 4);
+    LHS[2 * N + 1][N] = -(sqrt(1 - pressure[N] / 2.0) - (velocity[N] - velocity[N]) / 4.0);
 
     /* LAPACK requires a 1D array 
        i.e. Linearizing 2D 
