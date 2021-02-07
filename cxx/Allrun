@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script runs the FluidSolver and StructureSolver binaries of the C++ variant
+# This script runs the FluidSolver and SolidSolver binaries of the C++ variant
 #
 # Terminal output of both processes is redirected into two separate log files.
 #
@@ -22,8 +22,8 @@ echo "Starting Fluid participant..."
 ${solverroot}FluidSolver ${solverroot}${configfile} $N $tau $kappa > Fluid.log 2>&1 &
 pid1=$!
 
-echo "Starting Structure participant..."
-${solverroot}StructureSolver ${solverroot}${configfile} $N > Structure.log 2>&1 &
+echo "Starting Solid participant..."
+${solverroot}SolidSolver ${solverroot}${configfile} $N > Solid.log 2>&1 &
 pid2=$!
 
 echo ""
@@ -31,14 +31,14 @@ echo "Waiting for participants to finish..."
 echo "(you may run 'tail -f Fluid.log' in another terminal to check the progress)"
 wait $pid1
 exitcode1=$?
-echo "Fluid participant finished. Waiting for Structure participant..."
+echo "Fluid participant finished. Waiting for Solid participant..."
 wait $pid2
 exitcode2=$?
-echo "Structure participant finished."
+echo "Solid participant finished."
 
-if [ $exitcode1 -ne 0 ] || [ $exitcode2 -ne 0 ] || [ "$(grep -c -E "error:" Fluid.log)" -ne 0 ] || [ "$(grep -c -E "error:" Structure.log)" -ne 0 ]; then
+if [ $exitcode1 -ne 0 ] || [ $exitcode2 -ne 0 ] || [ "$(grep -c -E "error:" Fluid.log)" -ne 0 ] || [ "$(grep -c -E "error:" Solid.log)" -ne 0 ]; then
   echo ""
-  echo "Something went wrong. See the Fluid.log and Structure.log files for more info."
+  echo "Something went wrong. See the Fluid.log and Solid.log files for more info."
   exit 1
 else
   echo ""

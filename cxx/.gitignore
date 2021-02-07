@@ -1,7 +1,5 @@
 FluidSolver
-FluidSolverParallel
-StructureSolver
-StructureSolverParallel
+SolidSolver
 *~
 CMakeFiles
 CMakeCache.txt

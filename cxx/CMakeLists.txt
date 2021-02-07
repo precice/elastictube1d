@@ -32,43 +32,20 @@ find_package(LAPACK REQUIRED)
 set(LINK_FLAGS ${LINK_FLAGS} ${LAPACK_LINKER_FLAGS})
 
 
-add_executable(StructureSolverParallel
-  "StructureSolver_Parallel/structureDataDisplay.cpp"
-  "StructureSolver_Parallel/StructureSolver.cpp"
-  "StructureSolver_Parallel/structureComputeSolution.cpp")
+add_executable(SolidSolver
+  "cxx-solid/SolidDataDisplay.cpp"
+  "cxx-solid/SolidComputeSolution.cpp"
+  "cxx-solid/Solid_solver.cpp")
 
-target_link_libraries(StructureSolverParallel PRIVATE precice::precice)
-target_link_libraries(StructureSolverParallel PUBLIC ${MPI_CXX_LIBRARIES})
+target_link_libraries(SolidSolver PRIVATE precice::precice)
+target_link_libraries(SolidSolver PUBLIC ${MPI_CXX_LIBRARIES})
 
-
-add_executable(FluidSolverParallel
-  "FluidSolver_Parallel/fluidDataDisplay.cpp"
-  "FluidSolver_Parallel/FluidSolver.cpp"
-  "FluidSolver_Parallel/fluidComputeSolution.cpp")
-
-target_link_libraries(FluidSolverParallel PRIVATE precice::precice)
-target_link_libraries(FluidSolverParallel PUBLIC ${MPI_CXX_LIBRARIES})
-target_link_libraries(FluidSolverParallel PUBLIC ${LAPACK_LIBRARIES})
-
-
-add_executable(StructureSolver
-  "StructureSolver_Serial/structureDataDisplay.cpp"
-  "StructureSolver_Serial/structureComputeSolution.cpp"
-  "StructureSolver_Serial/structure_solver.cpp")
-
-target_link_libraries(StructureSolver PRIVATE precice::precice)
-target_link_libraries(StructureSolver PUBLIC ${MPI_CXX_LIBRARIES})
-
-add_executable(StructureSerial
-  "StructureSolver_Serial/structureSerial.cpp")
-
-target_link_libraries(StructureSerial PRIVATE precice::precice)
 
 add_executable(FluidSolver
-  "FluidSolver_Serial/fluid_solver.cpp"
-  "FluidSolver_Serial/fluid_nl.cpp"
-  "FluidSolver_Serial/fluidComputeSolution.cpp"
-  "FluidSolver_Serial/fluidDataDisplay.cpp")
+  "cxx-fluid/fluid_solver.cpp"
+  "cxx-fluid/fluid_nl.cpp"
+  "cxx-fluid/fluidComputeSolution.cpp"
+  "cxx-fluid/fluidDataDisplay.cpp")
 
 target_link_libraries(FluidSolver PRIVATE precice::precice)
 target_link_libraries(FluidSolver PUBLIC ${LAPACK_LIBRARIES})
