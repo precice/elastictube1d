@@ -19,11 +19,11 @@ kappa=100
 
 
 echo "Starting Fluid participant..."
-mpiexec ${solverroot}FluidSolverParallel ${solverroot}${configfile} $N $tau $kappa > Fluid.log 2>&1 &
+mpiexec ${solverroot}FluidSolver ${solverroot}${configfile} $N $tau $kappa -parallel > Fluid.log 2>&1 &
 pid1=$!
 
 echo "Starting Structure participant..."
-mpiexec ${solverroot}StructureSolverParallel ${solverroot}${configfile} $N > Structure.log 2>&1 &
+mpiexec ${solverroot}StructureSolver ${solverroot}${configfile} $N -parallel> Structure.log 2>&1 &
 pid2=$!
 
 echo ""
