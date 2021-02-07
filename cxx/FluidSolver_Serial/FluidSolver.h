@@ -17,12 +17,8 @@ void fluidComputeSolution(
     double gamma,
     double t,
     double* pressure,
-    double* pressure_n,
-    double* pressure_old,
     double* crossSectionLength,
-    double* crossSectionLength_n,
-    double* velocity,
-    double* velocity_n);
+    double* velocity);
 
 void fluidDataDisplay(
     double* data,

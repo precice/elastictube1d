@@ -30,13 +30,9 @@ void fluidComputeSolution(
     double tau,
     double gamma,
     double scaled_t,
-    double* pressure_n,
     double* pressure,
-    double* pressure_old,
     double* crossSectionLength,
-    double* crossSectionLength_n,
-    double* velocity,
-    double* velocity_n)
+    double* velocity)
 {
   /*
    * Step 1: Recieve the complete dataset in process 0.
@@ -60,59 +56,45 @@ void fluidComputeSolution(
 
     int tagStart = 7 * rank; // dont needed
     MPI_Send(pressure, chunkLength, MPI_DOUBLE, 0, tagStart + 0, MPI_COMM_WORLD);
-    MPI_Send(pressure_n, chunkLength, MPI_DOUBLE, 0, tagStart + 1, MPI_COMM_WORLD);
-    MPI_Send(pressure_old, chunkLength, MPI_DOUBLE, 0, tagStart + 2, MPI_COMM_WORLD);
+    //MPI_Send(pressure_n, chunkLength, MPI_DOUBLE, 0, tagStart + 1, MPI_COMM_WORLD);
+    //MPI_Send(pressure_old, chunkLength, MPI_DOUBLE, 0, tagStart + 2, MPI_COMM_WORLD);
     MPI_Send(crossSectionLength, chunkLength, MPI_DOUBLE, 0, tagStart + 3, MPI_COMM_WORLD);
-    MPI_Send(crossSectionLength_n, chunkLength, MPI_DOUBLE, 0, tagStart + 4, MPI_COMM_WORLD);
+    //MPI_Send(crossSectionLength_n, chunkLength, MPI_DOUBLE, 0, tagStart + 4, MPI_COMM_WORLD);
     MPI_Send(velocity, chunkLength, MPI_DOUBLE, 0, tagStart + 5, MPI_COMM_WORLD);
-    MPI_Send(velocity_n, chunkLength, MPI_DOUBLE, 0, tagStart + 6, MPI_COMM_WORLD);
+    //MPI_Send(velocity_n, chunkLength, MPI_DOUBLE, 0, tagStart + 6, MPI_COMM_WORLD);
 
     MPI_Status status;
     MPI_Recv(press, chunkLength, MPI_DOUBLE, 0, tagStart + 0, MPI_COMM_WORLD, &status);
-    MPI_Recv(pressure_n, chunkLength, MPI_DOUBLE, 0, tagStart + 1, MPI_COMM_WORLD, &status);
     MPI_Recv(diam, chunkLength, MPI_DOUBLE, 0, tagStart + 3, MPI_COMM_WORLD, &status);
-    MPI_Recv(crossSectionLength_n, chunkLength, MPI_DOUBLE, 0, tagStart + 4, MPI_COMM_WORLD, &status);
     MPI_Recv(velo, chunkLength, MPI_DOUBLE, 0, tagStart + 5, MPI_COMM_WORLD, &status);
-    MPI_Recv(velocity_n, chunkLength, MPI_DOUBLE, 0, tagStart + 6, MPI_COMM_WORLD, &status);
-    //MPI_Recv(velo, 2, MPI_DOUBLE, 0, 15, MPI_COMM_WORLD, &status);
     
-    //std::cout << std::setprecision(14) ;
-    //std::cout << " received velocity " << velo[0] << " " << velo[5] << " " << velo[10] << " in rank " << rank << std::endl;
     for (int k = 0; k< chunkLength; k++){
       velocity[k] = velo[k];
       pressure[k] = press[k];
       crossSectionLength[k] = diam[k];
     }
     
-    std::cout << " velocity " << velocity[0] << " " << velocity[1] << " " << velocity[2] << " in rank " << rank << std::endl;
-
-    //std::cout << " received velocity " << velocity[0] << " " << velocity[1] << " " << velocity[2] << " rank " << rank << std::endl;
-    //std::cout << " vel received" << velo[0] << " " << velo[1] << std::endl;
-
-
   } else {
-    double *pressure_NLS, *pressure_n_NLS, *pressure_old_NLS;
-    double *crossSectionLength_NLS, *crossSectionLength_n_NLS;
-    double *velocity_NLS, *velocity_n_NLS;
+    double *pressure_NLS;
+    double *crossSectionLength_NLS;
+    double *velocity_NLS;
 
     int N = domainSize;
 
     pressure_NLS = new double[N + 1];
-    pressure_n_NLS = new double[N + 1];
-    pressure_old_NLS = new double[N + 1];
+
     crossSectionLength_NLS = new double[N + 1];
-    crossSectionLength_n_NLS = new double[N + 1];
+
     velocity_NLS = new double[N + 1];
-    velocity_n_NLS = new double[N + 1];
 
     for (int i = 0; i < chunkLength; i++) {
       pressure_NLS[i] = pressure[i];
-      pressure_n_NLS[i] = pressure_n[i];
-      pressure_old_NLS[i] = pressure_old[i];
+      //pressure_n_NLS[i] = pressure_n[i];
+      //pressure_old_NLS[i] = pressure_old[i];
       crossSectionLength_NLS[i] = crossSectionLength[i];
-      crossSectionLength_n_NLS[i] = crossSectionLength_n[i];
+      //crossSectionLength_n_NLS[i] = crossSectionLength_n[i];
       velocity_NLS[i] = velocity[i];
-      velocity_n_NLS[i] = velocity_n[i];
+      //velocity_n_NLS[i] = velocity_n[i];
     }
 
     for (int i = 1; i < size; i++) {
@@ -132,17 +114,14 @@ void fluidComputeSolution(
       }
 
       MPI_Recv(pressure_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      MPI_Recv(pressure_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      MPI_Recv(pressure_old_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      //MPI_Recv(pressure_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      //MPI_Recv(pressure_old_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       MPI_Recv(crossSectionLength_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      MPI_Recv(crossSectionLength_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 4, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      //MPI_Recv(crossSectionLength_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 4, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       MPI_Recv(velocity_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 5, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      MPI_Recv(velocity_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 6, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      //check if data is meaningful
+      //MPI_Recv(velocity_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 6, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
 
-    std::cout << std::setprecision(10) ;
-    //std::cout << " received velocity " << velocity[0] << " " << velocity[chunkLength] << " " << velocity[2*chunkLength] << " rank " << rank << std::endl;
 
     // LAPACK Variables here
     double *Res, **LHS, *A, alpha, dx, tmp, tmp2, temp_sum, norm_1, norm_2, norm = 1.0;
@@ -169,7 +148,7 @@ void fluidComputeSolution(
 
       for (int i = 1; i < N; i++) { // chnaged to 1
         /* Momentum */
-        Res[i] = velocity_n_NLS[i] * crossSectionLength_NLS[i] * dx;
+        Res[i] = velocity_NLS[i] * crossSectionLength_NLS[i] * dx;
         Res[i] = Res[i] - 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i] * velocity_NLS[i + 1] - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i] * velocity_NLS[i + 1];
         Res[i] = Res[i] - crossSectionLength_NLS[i] * dx * velocity_NLS[i] - 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i] * velocity_NLS[i] - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i] * velocity_NLS[i] + 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i - 1] * velocity_NLS[i] + 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i - 1] * velocity_NLS[i];
         Res[i] = Res[i] + 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i - 1] * velocity_NLS[i - 1] + 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i - 1] * velocity_NLS[i - 1];
@@ -177,7 +156,7 @@ void fluidComputeSolution(
 
         /* Continuity */
         //Res[i + N + 1] = -(crossSectionLength_NLS[i] - crossSectionLength_n_NLS[i]) * dx + pressure_old_NLS[i] * gamma * dx;
-        Res[i + N + 1] = -(crossSectionLength_NLS[i] - crossSectionLength_n_NLS[i]) * dx;
+        Res[i + N + 1] = -(crossSectionLength_NLS[i] - crossSectionLength_NLS[i]) * dx;
         Res[i + N + 1] = Res[i + N + 1] + 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i - 1] + 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i - 1] + 0.25 * crossSectionLength_NLS[i - 1] * velocity_NLS[i] - 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i] - 0.25 * crossSectionLength_NLS[i] * velocity_NLS[i + 1] - 0.25 * crossSectionLength_NLS[i + 1] * velocity_NLS[i + 1];
         //Res[i + N + 1] = Res[i + N + 1] + alpha * pressure_NLS[i - 1] - 2 * alpha * pressure_NLS[i] - gamma * pressure_NLS[i] * dx + alpha * pressure_NLS[i + 1];
         Res[i + N + 1] = Res[i + N + 1] + alpha * pressure_NLS[i - 1] - 2 * alpha * pressure_NLS[i] + alpha * pressure_NLS[i + 1];
@@ -197,7 +176,7 @@ void fluidComputeSolution(
       Res[N] = -velocity_NLS[N] + 2 * velocity_NLS[N - 1] - velocity_NLS[N - 2];
 
       // Pressure Outlet is "non-reflecting"
-      tmp2 = sqrt(1 - pressure_n_NLS[N] / 2) - (velocity_NLS[N] - velocity_n_NLS[N]) / 4;
+      tmp2 = sqrt(1 - pressure_NLS[N] / 2) - (velocity_NLS[N] - velocity_NLS[N]) / 4;
       Res[2 * N + 1] = -pressure_NLS[N] + 2 * (1 - tmp2 * tmp2);
 
       // Stopping Criteria
@@ -266,7 +245,7 @@ void fluidComputeSolution(
       LHS[N][N - 2] = 1;
       // Pressure Outlet is Non-Reflecting
       LHS[2 * N + 1][2 * N + 1] = 1;
-      LHS[2 * N + 1][N] = -(sqrt(1 - pressure_n_NLS[N] / 2.0) - (velocity_NLS[N] - velocity_n_NLS[N]) / 4.0);
+      LHS[2 * N + 1][N] = -(sqrt(1 - pressure_NLS[N] / 2.0) - (velocity_NLS[N] - velocity_NLS[N]) / 4.0);
 
       // Solve Linear System using LAPACK
 
@@ -320,8 +299,6 @@ void fluidComputeSolution(
         chunkLength_temp = (N + 1) / size;
         gridOffset = ((N + 1) % size) * ((N + 1) / size + 1) + (i - ((N + 1) % size)) * (N + 1) / size;
       }
-      std::cout << std::setprecision(16) ;
-      std::cout << " sent velocity " << velocity_NLS[gridOffset] << " " << velocity_NLS[gridOffset+5] << " " << velocity_NLS[gridOffset+10] << " to rank " << i << std::endl;
 
       double* vel = new double[5];
       vel[0] = 0.0123;
@@ -334,23 +311,15 @@ void fluidComputeSolution(
 
 
       MPI_Send(pressure_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 0, MPI_COMM_WORLD);
-      MPI_Send(pressure_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 1, MPI_COMM_WORLD);
       MPI_Send(crossSectionLength_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 3, MPI_COMM_WORLD);
-      MPI_Send(crossSectionLength_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 4, MPI_COMM_WORLD);
       MPI_Send(velocity_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 5, MPI_COMM_WORLD);
-      MPI_Send(velocity_n_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 6, MPI_COMM_WORLD);
-      //MPI_Send(vel+i, 2, MPI_DOUBLE, i, 15, MPI_COMM_WORLD);
 
     }
 
 
     delete [] pressure_NLS;
-    delete [] pressure_n_NLS;
-    delete [] pressure_old_NLS;
     delete [] crossSectionLength_NLS;
-    delete [] crossSectionLength_n_NLS;
     delete [] velocity_NLS;
-    delete [] velocity_n_NLS;
     delete [] Res;
     delete [] LHS;
     delete [] A;

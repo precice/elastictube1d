@@ -60,14 +60,11 @@ int main(int argc, char** argv)
 
 
   SolverInterface interface(solverName, configFileName, rank , size);
-  double *velocity, *velocity_n, *pressure, *pressure_n, *crossSectionLength, *crossSectionLength_n;
+  double *velocity, *pressure,  *crossSectionLength;
 
   velocity             = new double[chunkLength];
-  velocity_n           = new double[chunkLength];
   pressure             = new double[chunkLength]; 
-  pressure_n           = new double[chunkLength];
   crossSectionLength   = new double[chunkLength];
-  crossSectionLength_n = new double[chunkLength];
 
   int *vertexIDs;
   vertexIDs = new int[chunkLength];
@@ -83,11 +80,8 @@ int main(int argc, char** argv)
   
   for (int i = 0; i < chunkLength; i++) {
     pressure[i] = 0.0;
-    pressure_n[i] = 0.0;
     crossSectionLength[i] = 1.0;
-    crossSectionLength_n[i] = 1.0;
     velocity[i] = 1.0 / kappa;
-    velocity_n[i] = 1.0 / kappa;
   }
 
   if (argc==6){
@@ -135,9 +129,9 @@ int main(int argc, char** argv)
 
     if (argc == 6){
 	    fluidComputeSolution(rank, size, domainSize, chunkLength, kappa, tau, 0.0, t+dt,
-      pressure, pressure, pressure,
-      crossSectionLength, crossSectionLength,
-      velocity, velocity);
+      pressure, 
+      crossSectionLength, 
+      velocity);
     } else {
       fluid_nl(crossSectionLength, crossSectionLength,  
 	    velocity, velocity,                      
@@ -157,24 +151,15 @@ int main(int argc, char** argv)
       convergenceCounter++;
     } else {
       t += dt;
-      for (int i = 0; i < chunkLength; i++) {
-        pressure_n[i] = pressure[i];
-        velocity_n[i] = velocity[i];
-        crossSectionLength_n[i] = crossSectionLength[i];
-      }
-      //write_vtk(t, out_counter, outputFilePrefix.c_str(), domainSize, grid, velocity_n, pressure_n, crossSectionLength_n);
-      write_vtk(t, out_counter, outputFilePrefix.c_str(), chunkLength, grid, velocity_n, pressure_n, crossSectionLength_n);
+      write_vtk(t, out_counter, outputFilePrefix.c_str(), chunkLength, grid, velocity, pressure, crossSectionLength);
 
       out_counter++;
     }
   }
 
   delete [] velocity;
-  delete [] velocity_n;
   delete [] pressure;
-  delete [] pressure_n;
   delete [] crossSectionLength;
-  delete [] crossSectionLength_n;
   delete [] vertexIDs;
   delete [] grid;
   interface.finalize();
