@@ -135,13 +135,13 @@ int main(int argc, char** argv)
 
     if (argc == 6){
 	    fluidComputeSolution(rank, size, domainSize, chunkLength, kappa, tau, 0.0, t+dt,
-      pressure, pressure_n, pressure,
-      crossSectionLength, crossSectionLength_n,
-      velocity, velocity_n);
+      pressure, pressure, pressure,
+      crossSectionLength, crossSectionLength,
+      velocity, velocity);
     } else {
-      fluid_nl(crossSectionLength, crossSectionLength_n,  
-	    velocity, velocity_n,                      
-	    pressure, pressure_n,            
+      fluid_nl(crossSectionLength, crossSectionLength,  
+	    velocity, velocity,                      
+	    pressure, pressure,            
 	    t, domainSize, kappa, tau); 
     }
     

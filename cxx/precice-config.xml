@@ -51,7 +51,7 @@
 
     <coupling-scheme:serial-implicit>
       <participants first="FLUID" second="STRUCTURE"/>
-      <max-time value="1.0"/>
+      <max-time value="0.99"/>
       <time-window-size value="0.01" valid-digits="8"/>
       <max-iterations value="40"/>
       <exchange data="Pressure" mesh="Fluid_Nodes" from="FLUID" to="STRUCTURE" />

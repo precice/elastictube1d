@@ -7,7 +7,7 @@ import sys
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-T = 100  # number of timesteps performed
+T = 99  # number of timesteps performed
 
 arrayname = sys.argv[1]  # Which dataset should be plotted?
 data_path = sys.argv[2]  # Where is the data?
