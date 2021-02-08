@@ -4,6 +4,7 @@
 #include "precice/SolverInterface.hpp"
 #include <iostream>
 #include <mpi.h>
+#include <vector>
 
 using namespace precice;
 using namespace precice::constants;
@@ -60,23 +61,21 @@ int main(int argc, char** argv)
 
 
   SolverInterface interface(solverName, configFileName, rank , size);
-  double *velocity, *pressure,  *crossSectionLength;
-
-  velocity             = new double[chunkLength];
-  pressure             = new double[chunkLength]; 
-  crossSectionLength   = new double[chunkLength];
-
-  int *vertexIDs;
-  vertexIDs = new int[chunkLength];
 
   int dimensions = interface.getDimensions();
   int meshID = interface.getMeshID("Fluid_Nodes");
   int pressureID = interface.getDataID("Pressure", meshID);
   int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
 
-  
-  double* grid;
-  grid = new double[dimensions * chunkLength];
+  std::vector<double> pressure, crossSectionLength, velocity;
+  std::vector<int> vertexIDs;
+  std::vector<double> grid;
+
+  grid.resize(dimensions * chunkLength);
+  pressure.resize(chunkLength);
+  vertexIDs.resize(chunkLength);
+  crossSectionLength.resize(chunkLength);
+  velocity.resize(chunkLength);
   
   for (int i = 0; i < chunkLength; i++) {
     pressure[i] = 0.0;
@@ -100,7 +99,7 @@ int main(int argc, char** argv)
   }
 
 
-  interface.setMeshVertices(meshID, chunkLength, grid, vertexIDs);
+  interface.setMeshVertices(meshID, chunkLength, grid.data(), vertexIDs.data());
 
   std::cout << "Initialize preCICE..." << std::endl;
   interface.initialize();
@@ -109,14 +108,14 @@ int main(int argc, char** argv)
   double dt = 0.01;
 
   if (interface.isActionRequired(actionWriteInitialData())) {
-    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs, pressure);
+    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
     interface.markActionFulfilled(actionWriteInitialData());
   }
 
   interface.initializeData();
 
   if (interface.isReadDataAvailable()) {
-    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs, crossSectionLength);
+    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
   }
 
   int out_counter = 0;
@@ -129,39 +128,35 @@ int main(int argc, char** argv)
 
     if (argc == 6){
 	    fluidComputeSolution(rank, size, domainSize, chunkLength, kappa, tau, 0.0, t+dt,
-      pressure, 
-      crossSectionLength, 
-      velocity);
+      pressure.data(), 
+      crossSectionLength.data(), 
+      velocity.data());
     } else {
-      fluid_nl(crossSectionLength,   
-	    velocity,           
-	    pressure,     
+      fluid_nl(crossSectionLength.data(),   
+	    velocity.data(),           
+	    pressure.data(),     
 	    t, domainSize, kappa, tau); 
     }
     
 
-    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs, pressure);
+    interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
 
     interface.advance(dt);
 
-    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs, crossSectionLength);
+    interface.readBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
 
     if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. not yet converged
       interface.markActionFulfilled(actionReadIterationCheckpoint());
       convergenceCounter++;
     } else {
       t += dt;
-      write_vtk(t, out_counter, outputFilePrefix.c_str(), chunkLength, grid, velocity, pressure, crossSectionLength);
+      write_vtk(t, out_counter, outputFilePrefix.c_str(), chunkLength, grid.data(), velocity.data(), pressure.data(), crossSectionLength.data());
 
       out_counter++;
     }
   }
 
-  delete [] velocity;
-  delete [] pressure;
-  delete [] crossSectionLength;
-  delete [] vertexIDs;
-  delete [] grid;
+  std::cout << "Exiting FluidSolver" << std::endl;
   interface.finalize();
   if (argc == 6){
     MPI_Finalize();

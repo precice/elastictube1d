@@ -56,9 +56,7 @@ int main(int argc, char** argv)
   int meshID = interface.getMeshID("Solid_Nodes");
   int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
   int pressureID = interface.getDataID("Pressure", meshID);
-  std::cout << "debug..." << std::endl;
 
-  //init data
   std::vector<double> pressure, crossSectionLength;
   std::vector<int> vertexIDs;
   std::vector<double> grid;
@@ -90,7 +88,6 @@ int main(int argc, char** argv)
   interface.setMeshVertices(meshID, chunkLength, grid.data(), vertexIDs.data());
   std::cout << "Initialize preCICE..." << std::endl;
   interface.initialize();
-  std::cout << "debug..." << std::endl;
 
   double t = 0;
   double dt = 0.01;
