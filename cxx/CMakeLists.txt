@@ -43,8 +43,7 @@ target_link_libraries(SolidSolver PUBLIC ${MPI_CXX_LIBRARIES})
 add_executable(FluidSolver
   "cxx-fluid/fluid_solver.cpp"
   "cxx-fluid/fluid_nl.cpp"
-  "cxx-fluid/fluidComputeSolution.cpp"
-  "cxx-fluid/fluidDataDisplay.cpp")
+  "cxx-fluid/fluidComputeSolution.cpp")
 
 target_link_libraries(FluidSolver PRIVATE precice::precice)
 target_link_libraries(FluidSolver PUBLIC ${LAPACK_LIBRARIES})

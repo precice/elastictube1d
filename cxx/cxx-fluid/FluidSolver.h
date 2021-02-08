@@ -2,11 +2,6 @@
 
 const double PI = 3.14159265359;
 
-void fluidInit(
-    int rank,
-    int chunkLength,
-    double* data);
-
 void fluidComputeSolution(
     int rank,
     int size,
@@ -19,7 +14,3 @@ void fluidComputeSolution(
     double* pressure,
     double* crossSectionLength,
     double* velocity);
-
-void fluidDataDisplay(
-    double* data,
-    int counterLength);
