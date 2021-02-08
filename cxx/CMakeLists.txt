@@ -33,7 +33,6 @@ set(LINK_FLAGS ${LINK_FLAGS} ${LAPACK_LINKER_FLAGS})
 
 
 add_executable(SolidSolver
-  "cxx-solid/SolidDataDisplay.cpp"
   "cxx-solid/SolidComputeSolution.cpp"
   "cxx-solid/Solid_solver.cpp")
 
