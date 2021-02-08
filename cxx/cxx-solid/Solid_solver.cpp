@@ -5,16 +5,6 @@
 #include "SolidSolver.h"
 
 
-
-void printData(const std::vector<double>& data)
-{
-  std::cout << "Received data = " << data[0];
-  for (size_t i = 1; i < data.size(); i++) {
-    std::cout << ", " << data[i];
-  }
-  std::cout << std::endl;
-}
-
 int main(int argc, char** argv)
 {
   std::cout << "Starting Solid Solver..." << std::endl;
@@ -61,26 +51,23 @@ int main(int argc, char** argv)
 
   SolverInterface interface(solverName, configFileName, rank, size);
   std::cout << "preCICE configured..." << std::endl;
-
-  //init data
-  double *pressure, *crossSectionLength;
-  int *vertexIDs;
-
-  pressure             = new double[chunkLength]; 
-  crossSectionLength   = new double[chunkLength];
-  vertexIDs =  new int[chunkLength];
-
-
-  
+ 
   int dimensions = interface.getDimensions();
   int meshID = interface.getMeshID("Solid_Nodes");
   int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
   int pressureID = interface.getDataID("Pressure", meshID);
   std::cout << "debug..." << std::endl;
 
-  double* grid;
-  grid = new double[dimensions * chunkLength];
-  
+  //init data
+  std::vector<double> pressure, crossSectionLength;
+  std::vector<int> vertexIDs;
+  std::vector<double> grid;
+
+  grid.resize(dimensions * chunkLength);
+  pressure.resize(chunkLength);
+  vertexIDs.resize(chunkLength);
+  crossSectionLength.resize(chunkLength);
+
 
   if (argc==4){
     for (int i = 0; i < chunkLength; i++) {
@@ -100,28 +87,23 @@ int main(int argc, char** argv)
     }
   }
 
-  interface.setMeshVertices(meshID, chunkLength, grid, vertexIDs);
+  interface.setMeshVertices(meshID, chunkLength, grid.data(), vertexIDs.data());
   std::cout << "Initialize preCICE..." << std::endl;
   interface.initialize();
   std::cout << "debug..." << std::endl;
-
 
   double t = 0;
   double dt = 0.01;
 
   if (interface.isActionRequired(actionWriteInitialData())) {
-    interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs, crossSectionLength);
+    interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
     interface.markActionFulfilled(actionWriteInitialData());
   }
 
-
   interface.initializeData();
-  std::cout << "debug...init data" << std::endl;
-
-
 
   if (interface.isReadDataAvailable()) {
-    interface.readBlockScalarData(pressureID, chunkLength, vertexIDs, pressure);
+    interface.readBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
   }
 
   while (interface.isCouplingOngoing()) {
@@ -129,13 +111,13 @@ int main(int argc, char** argv)
       interface.markActionFulfilled(actionWriteIterationCheckpoint());
     }
 
-    SolidComputeSolution(rank, size, chunkLength, pressure, crossSectionLength); // Call Solver
+    SolidComputeSolution(rank, size, chunkLength, pressure.data(), crossSectionLength.data()); // Call Solver
 
-    interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs, crossSectionLength);
+    interface.writeBlockScalarData(crossSectionLengthID, chunkLength, vertexIDs.data(), crossSectionLength.data());
     
     interface.advance(dt);
     
-    interface.readBlockScalarData(pressureID, chunkLength, vertexIDs, pressure);
+    interface.readBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
     
 
    if (interface.isActionRequired(actionReadIterationCheckpoint())) { // i.e. fluid not yet converged
@@ -144,11 +126,6 @@ int main(int argc, char** argv)
       t += dt;
     }
   }
-
-  delete [] crossSectionLength;
-  delete [] pressure;
-  delete [] grid;
-  delete [] vertexIDs;
 
   std::cout << "Exiting SolidSolver" << std::endl;
   interface.finalize();
