@@ -63,7 +63,7 @@ int main(int argc, char** argv)
   SolverInterface interface(solverName, configFileName, rank , size);
 
   int dimensions = interface.getDimensions();
-  int meshID = interface.getMeshID("Fluid_Nodes");
+  int meshID = interface.getMeshID("Fluid-Nodes");
   int pressureID = interface.getDataID("Pressure", meshID);
   int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
 

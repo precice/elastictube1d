@@ -73,7 +73,7 @@ if plotting_mode == config.PlottingModes.VIDEO:
         writer = FFMpegWriter(fps=15, metadata=metadata)
         writer.setup(fig, "writer_test.mp4", 100)
 
-meshID = interface.get_mesh_id("Fluid_Nodes")
+meshID = interface.get_mesh_id("Fluid-Nodes")
 crossSectionLengthID = interface.get_data_id("CrossSectionLength", meshID)
 pressureID = interface.get_data_id("Pressure", meshID)
 

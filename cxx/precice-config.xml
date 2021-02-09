@@ -13,12 +13,12 @@
     <data:scalar name="CrossSectionLength"/>
 
     <!-- A common mesh that uses these data fields -->
-    <mesh name="Fluid_Nodes">
+    <mesh name="Fluid-Nodes">
         <use-data name="CrossSectionLength"/>
         <use-data name="Pressure"/>
     </mesh>
 
-    <mesh name="Solid_Nodes">
+    <mesh name="Solid-Nodes">
        <use-data name="CrossSectionLength"/>   
        <use-data name="Pressure"/>
     </mesh>
@@ -29,21 +29,21 @@
     
     <participant name="FLUID">
       <!-- Makes the named mesh available to the participant. Mesh is provided by the solver directly. -->
-      <use-mesh name="Fluid_Nodes" provide="yes"/>
-      <use-mesh name="Solid_Nodes" from="Solid"/>
+      <use-mesh name="Fluid-Nodes" provide="yes"/>
+      <use-mesh name="Solid-Nodes" from="Solid"/>
       <!-- Define input/output of the solver.  -->
-      <write-data name="Pressure" mesh="Fluid_Nodes"/>
-      <read-data  name="CrossSectionLength" mesh="Fluid_Nodes"/>
-      <!--<mapping:nearest-neighbor direction="write" from="Fluid_Nodes" to="Solid_Nodes" constraint="consistent" timing="initial"/>-->
-      <mapping:nearest-neighbor direction="read" from="Solid_Nodes" to="Fluid_Nodes" constraint="consistent" timing="initial"/>
+      <write-data name="Pressure" mesh="Fluid-Nodes"/>
+      <read-data  name="CrossSectionLength" mesh="Fluid-Nodes"/>
+      <!--<mapping:nearest-neighbor direction="write" from="-s" to="Solid_Nodes" constraint="consistent" timing="initial"/>-->
+      <mapping:nearest-neighbor direction="read" from="Solid-Nodes" to="Fluid-Nodes" constraint="consistent" timing="initial"/>
     </participant>
     
     <participant name="Solid">
-      <use-mesh name="Solid_Nodes" provide="yes"/>
-      <use-mesh name="Fluid_Nodes" from="FLUID"/>
-      <write-data name="CrossSectionLength" mesh="Solid_Nodes"/>
-      <read-data  name="Pressure"      mesh="Solid_Nodes"/>
-      <mapping:nearest-neighbor direction="read" from="Fluid_Nodes" to="Solid_Nodes" constraint="consistent" timing="initial"/>
+      <use-mesh name="Solid-Nodes" provide="yes"/>
+      <use-mesh name="Fluid-Nodes" from="FLUID"/>
+      <write-data name="CrossSectionLength" mesh="Solid-Nodes"/>
+      <read-data  name="Pressure" mesh="Solid-Nodes"/>
+      <mapping:nearest-neighbor direction="read" from="Fluid-Nodes" to="Solid-Nodes" constraint="consistent" timing="initial"/>
     </participant>
 
     <!-- Communication method, use TCP sockets, Change network to "ib0" on SuperMUC -->
@@ -54,13 +54,13 @@
       <max-time value="0.99"/>
       <time-window-size value="0.01" valid-digits="8"/>
       <max-iterations value="40"/>
-      <exchange data="Pressure" mesh="Fluid_Nodes" from="FLUID" to="Solid" />
-      <exchange data="CrossSectionLength" mesh="Solid_Nodes" from="Solid" to="FLUID" initialize="true"/>
-      <relative-convergence-measure data="Pressure" mesh="Fluid_Nodes" limit="1e-5"/>
-      <relative-convergence-measure data="CrossSectionLength" mesh="Solid_Nodes" limit="1e-5"/>
+      <exchange data="Pressure" mesh="Fluid-Nodes" from="FLUID" to="Solid" />
+      <exchange data="CrossSectionLength" mesh="Solid-Nodes" from="Solid" to="FLUID" initialize="true"/>
+      <relative-convergence-measure data="Pressure" mesh="Fluid-Nodes" limit="1e-5"/>
+      <relative-convergence-measure data="CrossSectionLength" mesh="Solid-Nodes" limit="1e-5"/>
       <acceleration:IQN-ILS>
         <!--PostProc always done on the second participant-->
-        <data name="CrossSectionLength" mesh="Solid_Nodes"/>
+        <data name="CrossSectionLength" mesh="Solid-Nodes"/>
         <initial-relaxation value="0.01"/>
         <max-used-iterations value="50"/>
         <time-windows-reused value="8"/>
