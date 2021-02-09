@@ -9,7 +9,7 @@ import tools.configuration_file as config
 import precice
 from precice import *
 
-print("Starting Structure Solver...")
+print("Starting Solid Solver...")
 
 parser = argparse.ArgumentParser()
 parser.add_argument("configurationFileName", help="Name of the xml config file.", nargs='?', type=str,
@@ -20,7 +20,7 @@ try:
 except SystemExit:
     print("")
     print("Did you forget adding the precice configuration file as an argument?")
-    print("Try '$ python StructureSolver.py precice-config.xml'")
+    print("Try '$ python SolidSolver.py precice-config.xml'")
     quit()
 
 configFileName = args.configurationFileName
@@ -28,7 +28,7 @@ N = config.n_elem
 
 print("N: " + str(N))
 
-solverName = "STRUCTURE"
+solverName = "Solid"
 
 print("Configure preCICE...")
 interface = precice.Interface(solverName, configFileName, 0, 1)
@@ -39,7 +39,7 @@ dimensions = interface.get_dimensions()
 pressure = config.p0 * np.ones(N + 1)
 crossSectionLength = config.a0 * np.ones(N + 1)
 
-meshID = interface.get_mesh_id("Structure_Nodes")
+meshID = interface.get_mesh_id("Solid_Nodes")
 crossSectionLengthID = interface.get_data_id("CrossSectionLength", meshID)
 pressureID = interface.get_data_id("Pressure", meshID)
 
@@ -53,7 +53,7 @@ vertexIDs = interface.set_mesh_vertices(meshID, grid)
 
 t = 0
 
-print("Structure: init precice...")
+print("Solid: init precice...")
 
 # preCICE defines timestep size of solver via precice-config.xml
 precice_dt = interface.initialize()
@@ -87,6 +87,6 @@ while interface.is_coupling_ongoing():
     else:
         t += precice_dt
 
-print("Exiting StructureSolver")
+print("Exiting SolidSolver")
 
 interface.finalize()
