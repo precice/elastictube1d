@@ -33,17 +33,17 @@ set(LINK_FLAGS ${LINK_FLAGS} ${LAPACK_LINKER_FLAGS})
 
 
 add_executable(SolidSolver
-  "cxx-solid/SolidComputeSolution.cpp"
-  "cxx-solid/Solid_solver.cpp")
+  "solid-cpp/SolidComputeSolution.cpp"
+  "solid-cpp/Solid_solver.cpp")
 
 target_link_libraries(SolidSolver PRIVATE precice::precice)
 target_link_libraries(SolidSolver PUBLIC ${MPI_CXX_LIBRARIES})
 
 
 add_executable(FluidSolver
-  "cxx-fluid/fluid_solver.cpp"
-  "cxx-fluid/fluid_nl.cpp"
-  "cxx-fluid/fluidComputeSolution.cpp")
+  "fluid-cpp/fluid_solver.cpp"
+  "fluid-cpp/fluid_nl.cpp"
+  "fluid-cpp/fluidComputeSolution.cpp")
 
 target_link_libraries(FluidSolver PRIVATE precice::precice)
 target_link_libraries(FluidSolver PUBLIC ${LAPACK_LIBRARIES})
