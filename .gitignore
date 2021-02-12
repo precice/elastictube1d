@@ -1,0 +1,11 @@
+fluid-cpp/build/
+solid-cpp/build/
+convergence-*
+iterations-*
+.scon*
+*.o
+*.log
+*.json
+*.pyc
+Postproc/fluid_data
+Postproc/*.vtk
