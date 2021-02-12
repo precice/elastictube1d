@@ -34,7 +34,6 @@
       <!-- Define input/output of the solver.  -->
       <write-data name="Pressure" mesh="Fluid-Nodes"/>
       <read-data  name="CrossSectionLength" mesh="Fluid-Nodes"/>
-      <!--<mapping:nearest-neighbor direction="write" from="Fluid_Nodes" to="Solid_Nodes" constraint="consistent" timing="initial"/>-->
       <mapping:nearest-neighbor direction="read" from="Solid-Nodes" to="Fluid-Nodes" constraint="consistent" timing="initial"/>
     </participant>
     
@@ -51,7 +50,7 @@
 
     <coupling-scheme:serial-implicit>
       <participants first="FLUID" second="Solid"/>
-      <max-time value="1.0"/>
+      <max-time value="0.99"/>
       <time-window-size value="0.01" valid-digits="8"/>
       <max-iterations value="40"/>
       <exchange data="Pressure" mesh="Fluid-Nodes" from="FLUID" to="Solid" />

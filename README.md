@@ -20,8 +20,6 @@ Both fluid and solid participant are supported in:
 
 ## Running the Simulation 
 
-Before you start: A working known combination for the input parameters is N=100, tau = 0.01, kappa = 100. Other parameters like the simulation's end time, you can modify them in the precice-config.xml.
-
 ### C++
 
 Open two separate terminals and start each participant by calling the respective run script. 
@@ -29,12 +27,11 @@ Open two separate terminals and start each participant by calling the respective
 Serial run:
 
 ```
-cd fluid-cpp
+./fluid-cpp/build/FluidSolver precice-config.xml N tau kappa
 ```
 and
 ```
-cd solid-cpp
-./SolidSolver precice-config.xml N
+./solid-cpp/build/SolidSolver precice-config.xml N
 ```
  
 Parallel run:
@@ -48,7 +45,7 @@ and
 cd solid-cpp
 mpiexec -np <nproc> ./SolidSolver precice-config.xml N -parallel
 ```
-
+A working known combination for the input parameters is N=100, tau = 0.01, kappa = 100. Other parameters like the simulation's end time, you can modify them in the precice-config.xml.
 Note that you first need to build the scripts `FluidSolver` and `SolidSolver`. Each script needs to be build separately.
 
 ```
@@ -70,15 +67,13 @@ make all
 Open two separate terminals and start each participant by calling the respective run script. Only serial run:
 
 ```
-cd fluid-python
-./FluidSolver precice-config.xml N tau kappa
+python3 ./fluid-python/FluidSolver.py precice-config.xml 
 ```
 and
 ```
-cd solid-python
-./SolidSolver precice-config.xml N
+python3 ./solid-python/SolidSolver.py precice-config.xml 
 ```
-
+Parameters such as N can be modified directly at the `configuration_file.py`.
 **Optional:** Visualization and video output of the fluid participant can be triggered via the options `--enable-plot` and `--write-video` of `FluidSolver.py`. 
 
 ## Post-processing
