@@ -52,12 +52,16 @@ mpiexec -np <nproc> ./SolidSolver precice-config.xml N -parallel
 Note that you first need to build the scripts `FluidSolver` and `SolidSolver`. Each script needs to be build separately.
 
 ```
-cd fluid-cpp/build & cmake ..
+cd fluid-cpp
+mkdir build && cd build
+cmake ..
 make all
 ```
 
 ```
-cd solid-cpp/build & cmake ..
+cd solid-cpp
+mkdir build && cd build
+cmake .. 
 make all
 ```
 
