@@ -30,7 +30,6 @@ Serial run:
 
 ```
 cd fluid-cpp
-./FluidSolver precice-config.xml N tau kappa
 ```
 and
 ```
@@ -50,10 +49,15 @@ cd solid-cpp
 mpiexec -np <nproc> ./SolidSolver precice-config.xml N -parallel
 ```
 
-Note that you first need to build the scripts `FluidSolver` and `SolidSolver`. To do so, run this in the root folder:
+Note that you first need to build the scripts `FluidSolver` and `SolidSolver`. Each script needs to be build separately.
 
 ```
-cmake .
+cd fluid-cpp/build & cmake ..
+make all
+```
+
+```
+cd solid-cpp/build & cmake ..
 make all
 ```
 

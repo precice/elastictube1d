@@ -15,3 +15,8 @@ iterations-*
 core
 Postproc/fluid_data
 Postproc/*.vtk
+fluid-cpp/build/
+solid-cpp/build/
+
+
+
