@@ -2,7 +2,7 @@ from __future__ import division, print_function
 import os
 import sys
 import argparse
-import configuration_file as config
+import outputConfiguration as config
 from thetaScheme import perform_partitioned_implicit_trapezoidal_rule_step, perform_partitioned_implicit_euler_step
 import numpy as np
 import tubePlotting as tubePlotting
@@ -44,9 +44,23 @@ print("Starting Fluid Solver...")
 
 configFileName = args.configurationFileName
 
-N = config.n_elem
-dx = config.L / N  # element length
-
+# physical properties of the tube
+r0 = 1/np.sqrt(np.pi)  # radius of the tube
+a0 = r0**2 * np.pi  # cross sectional area
+E = 10000  # elasticity module
+u0 = 10  # mean velocity
+ampl = 3  # amplitude of varying velocity
+frequency = 10  # frequency of variation
+t_shift = 0  # temporal shift of variation
+p0 = 0  # pressure at outlet
+velocity_in = lambda t: u0 + ampl * np.sin(frequency * (t+t_shift) * np.pi)  # inflow velocity
+L = 10  # length of tube/simulation domain
+N = 100
+dx = L/100
+# helper function to create constant cross section
+def crossSection0(N):
+    return a0 * np.ones(N + 1)
+    
 print("N: " + str(N))
 
 solverName = "FLUID"
@@ -57,12 +71,12 @@ print("preCICE configured...")
 
 dimensions = interface.get_dimensions()
 
-velocity = config.velocity_in(0) * np.ones(N+1)
-velocity_n = config.velocity_in(0) * np.ones(N+1)
-pressure = config.p0 * np.ones(N+1)
-pressure_n = config.p0 * np.ones(N+1)
-crossSectionLength = config.a0 * np.ones(N+1)
-crossSectionLength_n = config.a0 * np.ones(N+1)
+velocity = velocity_in(0) * np.ones(N+1)
+velocity_n = velocity_in(0) * np.ones(N+1)
+pressure = p0 * np.ones(N+1)
+pressure_n = p0 * np.ones(N+1)
+crossSectionLength = a0 * np.ones(N+1)
+crossSectionLength_n = a0 * np.ones(N+1)
 
 
 if plotting_mode == config.PlottingModes.VIDEO:
@@ -80,7 +94,7 @@ pressureID = interface.get_data_id("Pressure", meshID)
 vertexIDs = np.zeros(N+1)
 grid = np.zeros([N+1, dimensions])
 
-grid[:, 0] = np.linspace(0, config.L, N+1)  # x component
+grid[:, 0] = np.linspace(0, L, N+1)  # x component
 grid[:, 1] = 0  # y component, leave blank
 
 vertexIDs = interface.set_mesh_vertices(meshID, grid)
@@ -101,7 +115,7 @@ if interface.is_read_data_available():
     crossSectionLength = interface.read_block_scalar_data(crossSectionLengthID, vertexIDs)
 
 crossSectionLength_n = np.copy(crossSectionLength)
-velocity_n = config.velocity_in(0) * crossSectionLength_n[0] * np.ones(N+1) / crossSectionLength_n  # initialize such that mass conservation is fulfilled
+velocity_n = velocity_in(0) * crossSectionLength_n[0] * np.ones(N+1) / crossSectionLength_n  # initialize such that mass conservation is fulfilled
 
 print(crossSectionLength_n)
 
@@ -111,7 +125,7 @@ while interface.is_coupling_ongoing():
         interface.mark_action_fulfilled(action_write_iteration_checkpoint())
 
     velocity, pressure, success = perform_partitioned_implicit_euler_step(velocity_n, pressure_n, crossSectionLength_n,
-                                                                          crossSectionLength, dx, precice_dt, config.velocity_in(t + precice_dt), custom_coupling=False)
+                                                                          crossSectionLength, dx, precice_dt, velocity_in(t + precice_dt), custom_coupling=False)
     interface.write_block_scalar_data(pressureID, vertexIDs, pressure)
     precice_dt = interface.advance(precice_dt)
     crossSectionLength = interface.read_block_scalar_data(crossSectionLengthID, vertexIDs)

@@ -1,5 +1,7 @@
-fluid-cxx/build/
-solid-cxx/build/
+fluid-cpp/build/
+solid-cpp/build/
+fluid-python/__pycache__/
+solid-python/__pycache__/
 convergence-*
 iterations-*
 .scon*
@@ -7,5 +9,4 @@ iterations-*
 *.log
 *.json
 *.pyc
-Postproc/fluid_data
 Postproc/*.vtk

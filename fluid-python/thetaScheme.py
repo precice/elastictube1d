@@ -6,9 +6,6 @@
 from __future__ import division, print_function
 import numpy as np
 
-import configuration_file as config
-
-
 def perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in, custom_coupling, theta=1):
 
     k = 0
@@ -31,6 +28,9 @@ def perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, c
 
     alpha = 0
     success = True
+
+    E = 10000  # elasticity module
+    c_mk = np.sqrt(E/2*np.sqrt(np.pi))  # wave speed
 
     while success:  # perform Newton iterations to solve nonlinear system of equations
 
@@ -71,8 +71,8 @@ def perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, c
         res[N] = -velocity1[-1] + 2 * velocity1[-2] - velocity1[-3]
 
         # Pressure Outlet is "non-reflecting"
-        tmp2 = np.sqrt(config.c_mk ** 2 - pressure0[-1] / 2) - (velocity1[-1] - velocity0[-1]) / 4
-        res[2 * N + 1] = -pressure1[-1] + 2 * (config.c_mk ** 2 - tmp2 * tmp2)
+        tmp2 = np.sqrt(c_mk ** 2 - pressure0[-1] / 2) - (velocity1[-1] - velocity0[-1]) / 4
+        res[2 * N + 1] = -pressure1[-1] + 2 * (c_mk ** 2 - tmp2 * tmp2)
 
         k += 1  # Iteration Count
 
@@ -83,7 +83,7 @@ def perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, c
 
         if norm < 1e-10 and k > 1:
             break  # Nonlinear Solver success
-        elif k > config.k_max_nonlin:
+        elif k > 1000:
             print("Nonlinear Solver break, iterations: %i, residual norm: %e\n" % (k, norm))
             velocity1[:] = np.nan
             pressure1[:] = np.nan
@@ -130,7 +130,7 @@ def perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, c
 
         # Pressure Outlet is Non-Reflecting [1] eq. (15)
         system[2 * N + 1][2 * N + 1] = 1
-        system[2 * N + 1][N] = -(np.sqrt(config.c_mk ** 2 - pressure0[-1] / 2) - (velocity1[-1] - velocity0[-1]) / 4)
+        system[2 * N + 1][N] = -(np.sqrt(c_mk ** 2 - pressure0[-1] / 2) - (velocity1[-1] - velocity0[-1]) / 4)
 
         try:
             solution = np.linalg.solve(system, res)
