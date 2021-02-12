@@ -1,5 +1,5 @@
-#include "FluidSolver.h"
-#include "fluid_nl.h"
+#include "utilities.h"
+#include "FluidComputeSolution.h"
 
 #include "precice/SolverInterface.hpp"
 #include <iostream>
@@ -127,17 +127,16 @@ int main(int argc, char** argv)
     }
 
     if (argc == 6){
-	    fluidComputeSolution(rank, size, domainSize, chunkLength, kappa, tau, 0.0, t+dt,
+	    fluidComputeSolutionParallel(rank, size, domainSize, chunkLength, kappa, tau, 0.0, t+dt,
       pressure.data(), 
       crossSectionLength.data(), 
       velocity.data());
     } else {
-      fluid_nl(crossSectionLength.data(),   
+      fluidComputeSolutionSerial(crossSectionLength.data(),   
 	    velocity.data(),           
 	    pressure.data(),     
 	    t, domainSize, kappa, tau); 
     }
-    
 
     interface.writeBlockScalarData(pressureID, chunkLength, vertexIDs.data(), pressure.data());
 

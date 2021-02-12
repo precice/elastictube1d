@@ -34,7 +34,7 @@ set(LINK_FLAGS ${LINK_FLAGS} ${LAPACK_LINKER_FLAGS})
 
 add_executable(FluidSolver
   "fluid_solver.cpp"
-  "fluid_nl.cpp"
+  "utilities.cpp"
   "fluidComputeSolution.cpp")
 
 target_link_libraries(FluidSolver PRIVATE precice::precice)

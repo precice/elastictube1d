@@ -1,5 +1,5 @@
-
-
+fluid-cxx/build/
+solid-cxx/build/
 convergence-*
 iterations-*
 .scon*

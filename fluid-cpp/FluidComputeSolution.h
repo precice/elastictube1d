@@ -2,7 +2,7 @@
 
 const double PI = 3.14159265359;
 
-void fluidComputeSolution(
+void fluidComputeSolutionParallel(
     int rank,
     int size,
     int domainSize,
@@ -14,3 +14,11 @@ void fluidComputeSolution(
     double* pressure,
     double* crossSectionLength,
     double* velocity);
+
+int fluidComputeSolutionSerial(double* crossSectionLength,
+             double* velocity,
+             double* pressure,
+             double t,
+             int N,
+             double kappa,
+             double tau);
