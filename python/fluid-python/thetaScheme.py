@@ -6,7 +6,7 @@
 from __future__ import division, print_function
 import numpy as np
 
-import tools.configuration_file as config
+import configuration_file as config
 
 
 def perform_partitioned_theta_scheme_step(velocity0, pressure0, crossSection0, crossSection1, dx, tau, velocity_in, custom_coupling, theta=1):
