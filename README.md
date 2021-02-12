@@ -37,13 +37,11 @@ and
 Parallel run:
 
 ```
-cd fluid-cpp
-mpiexec -np <nproc> ./FluidSolver precice-config.xml N tau kappa -parallel
+mpiexec -np <nproc> ./fluid-cpp/build/FluidSolver precice-config.xml N tau kappa -parallel
 ```
 and
 ```
-cd solid-cpp
-mpiexec -np <nproc> ./SolidSolver precice-config.xml N -parallel
+mpiexec -np <nproc> ./solid-cpp/build/SolidSolver precice-config.xml N -parallel
 ```
 A working known combination for the input parameters is N=100, tau = 0.01, kappa = 100. Other parameters like the simulation's end time, you can modify them in the precice-config.xml.
 Note that you first need to build the scripts `FluidSolver` and `SolidSolver`. Each script needs to be build separately.
