@@ -64,7 +64,7 @@ make all
 
 ### python
 
-Open two separate terminals and start each participant by calling the respective run script. Only serial run:
+Open two separate terminals and start each participant by calling the respective run script. Only serial run is possible:
 
 ```
 python3 ./fluid-python/FluidSolver.py precice-config.xml 
@@ -73,27 +73,26 @@ and
 ```
 python3 ./solid-python/SolidSolver.py precice-config.xml 
 ```
-Parameters such as N can be modified directly at the `FluidSolver.py` and at the `SolidSolver.py`. The parameters must be coherent for the different solvers and participants. 
+Parameters such as N can be modified directly at the `FluidSolver.py` and at the `SolidSolver.py`. The parameters must be coherent between the different solvers and participants. 
 
 **Optional:** Visualization and video output of the fluid participant can be triggered via the options `--enable-plot` and `--write-video` of `FluidSolver.py`. To generate .vtk files during execution, you need to add the flag `--write-vtk`.
 
 ## Post-processing
 
-The visualization of results using python can be selected as an option during execution. 
-
-In case of running the C++ version, you can visualize the results with the `Postproc/fluid.py` script:
+The `Postproc/` folder contains the .vtk files resulting from the execution, which you can visualize using eg. paraview. Alternatively you can visualize the results with the provided `Postproc/fluid.py` script:
 
 ```bash
 $ python3 Postproc/fluid.py <quantity> Postproc/<prefix>
 ```
 Note the required arguments specifying which quantity to plot (`pressure`, `velocity` or `diameter`) and a name prefix for the target vtk files.
+
 For example, to plot the diameter using the default prefix for vtk files, we execute:
 ```bash
 $ python3 Postproc/fluid.py diameter Postproc/out_fluid_
 ```
 ![FSI3 setup](images/diameter.png)
 
-If you are run the case in parallel, you can visualize the results caclulated by one rank (eg. rank 0) as follows:
+If you run the case in parallel, you can visualize the results calculated by one rank (eg. rank 0) as follows:
 
 ```bash
 $ python3 Postproc/fluid.py diameter Postproc/out_fluid0_
