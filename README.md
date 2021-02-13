@@ -8,14 +8,16 @@ summary: The 1D Elastic Tube is a FSI case, that consists of an internal flow in
 
 ## Setup
 
-An accurate descrption of the setup is described [here] (https://github.com/precice/precice/wiki/1D-elastic-tube:-Case-Description). 
+An accurate descrption of the setup and the physics of the problem is described [here] (https://github.com/precice/precice/wiki/1D-elastic-tube:-Case-Description). 
 
 ## Available solvers
 
 Both fluid and solid participant are supported in:
 
 * *cxx*
-* *python*: This version is realized using the Python API for preCICE. Check [this entry in the preCICE wiki](https://github.com/precice/precice/wiki/1D-elastic-tube-using-the-Python-API) for more information on this example.
+* *python*: 
+
+The python version is realized using the Python API for preCICE. Check the [preCICE wiki](https://github.com/precice/precice/wiki/1D-elastic-tube-using-the-Python-API) for more information on this example.
 
 
 ## Running the Simulation 
@@ -71,8 +73,9 @@ and
 ```
 python3 ./solid-python/SolidSolver.py precice-config.xml 
 ```
-Parameters such as N can be modified directly at the `configuration_file.py`.
-**Optional:** Visualization and video output of the fluid participant can be triggered via the options `--enable-plot` and `--write-video` of `FluidSolver.py`. 
+Parameters such as N can be modified directly at the `FluidSolver.py` and at the `SolidSolver.py`. The parameters must be coherent for the different solvers and participants. 
+
+**Optional:** Visualization and video output of the fluid participant can be triggered via the options `--enable-plot` and `--write-video` of `FluidSolver.py`. To generate .vtk files during execution, you need to add the flag `--write-vtk`.
 
 ## Post-processing
 

@@ -119,6 +119,7 @@ velocity_n = velocity_in(0) * crossSectionLength_n[0] * np.ones(N+1) / crossSect
 
 print(crossSectionLength_n)
 
+time_it = 0
 while interface.is_coupling_ongoing():
     # When an implicit coupling scheme is used, checkpointing is required
     if interface.is_action_required(action_write_iteration_checkpoint()):
@@ -143,7 +144,8 @@ while interface.is_coupling_ongoing():
         pressure_n = np.copy(pressure)
         crossSectionLength_n = np.copy(crossSectionLength)
         if output_mode is config.OutputModes.VTK:
-            writeOutputToVTK(t, "fluid", dx, N+1, datanames=["velocity", "pressure", "crossSection"], data=[velocity_n, pressure_n, crossSectionLength_n])
+            writeOutputToVTK(time_it, "python_fluid_", dx, N+1, datanames=["velocity", "pressure", "diameter"], data=[velocity_n, pressure_n, crossSectionLength_n])
+        time_it += 1
 
 print("Exiting FluidSolver")
 
