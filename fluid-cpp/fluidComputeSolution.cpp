@@ -125,7 +125,7 @@ void fluidComputeSolutionParallel(
 
     // Stabilization intensity
     alpha = (N * kappa * tau) / (N * tau + 1);
-    dx = 1.0 / (N * kappa * tau);
+    dx = 1.0 / (N * kappa); //tau
     ampl = 100;
 
     int whileLoopCounter = 0;
@@ -323,6 +323,8 @@ int fluidComputeSolutionSerial(
   double alpha, dx;
   double tmp1, tmp2;
   double* Res;
+  double* pressure0;
+  double* velocity0;
   double** LHS;
   double temp_sum;
   double norm_1, norm_2;
@@ -332,7 +334,14 @@ int fluidComputeSolutionSerial(
   c_mk2 = 10000/2*sqrt(PI); 
 
 
+  //std::vector<double> pressure0, velocity0;
+  pressure0 = (double*)calloc((N+1), sizeof(double));
+  velocity0 = (double*)calloc((N+1), sizeof(double));
 
+  for (i=0; i < N; i++ ){
+    pressure0[i] = pressure[i];
+    velocity0[i] = velocity[i];
+  }
 
   // Used as Ax = b
   // i.e. LHS*x = Res
@@ -362,7 +371,7 @@ int fluidComputeSolutionSerial(
 
     for (i = 1; i < N; i++) {
       /* Momentum */ //theta = 1
-      Res[i] = (velocity[i] * crossSectionLength_old[i]-velocity[i]*crossSectionLength[i])* dx/tau;
+      Res[i] = (velocity0[i] * crossSectionLength_old[i]-velocity[i]*crossSectionLength[i])* dx/tau;
       //Res[i] = velocity_old[i] *crossSectionLength[i]* dx/tau;
 
       Res[i] = Res[i] - 0.25 * crossSectionLength[i + 1] * velocity[i] * velocity[i + 1] - 0.25 * crossSectionLength[i] * velocity[i] * velocity[i + 1];
@@ -387,11 +396,12 @@ int fluidComputeSolutionSerial(
     /* Pressure Inlet is lineary interpolated */
     Res[N + 1] = -pressure[0] + 2 * pressure[1] - pressure[2];
 
+
     /* Velocity Outlet is lineary interpolated */
     Res[N] = -velocity[N] + 2 * velocity[N - 1] - velocity[N - 2];
 
     /* Pressure Outlet is "non-reflecting" */
-    tmp2 = sqrt(c_mk2 - pressure[N] / 2) - (velocity[N] - velocity[N]) / 4;
+    tmp2 = sqrt(c_mk2 - pressure0[N] / 2) - (velocity[N] - velocity0[N]) / 4;
     Res[2 * N + 1] = -pressure[N] + 2 * (c_mk2 - tmp2 * tmp2);
 
     k += 1; // Iteration Count
@@ -455,7 +465,7 @@ int fluidComputeSolutionSerial(
     LHS[N][N - 2] = 1;
     // Pressure Outlet is Non-Reflecting
     LHS[2 * N + 1][2 * N + 1] = 1;
-    LHS[2 * N + 1][N] = -(sqrt(c_mk2 - pressure[N] / 2.0) - (velocity[N] - velocity[N]) / 4.0);
+    LHS[2 * N + 1][N] = -(sqrt(c_mk2 - pressure0[N] / 2.0) - (velocity[N] - velocity0[N]) / 4.0);
 
     /* LAPACK requires a 1D array 
        i.e. Linearizing 2D 

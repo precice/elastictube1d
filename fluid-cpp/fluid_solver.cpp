@@ -97,7 +97,7 @@ int main(int argc, char** argv)
   } else {
     for (int i = 0; i < chunkLength; i++) {
       for (int j = 0; j < dimensions; j++) {
-          grid[i * dimensions + j] = i * (1 - j);
+          grid[i * dimensions + j] = i * (1 - j) *0.1;
       }
     }
   }

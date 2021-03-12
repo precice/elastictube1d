@@ -8,7 +8,7 @@ summary: The 1D Elastic Tube is a FSI case, that consists of an internal flow in
 
 ## Setup
 
-An accurate descrption of the setup and the physics of the problem is described [here] (https://github.com/precice/precice/wiki/1D-elastic-tube:-Case-Description). 
+An accurate descrption of the setup and the physics of the problem is described [here](https://github.com/precice/precice/wiki/1D-elastic-tube:-Case-Description). 
 
 ## Available solvers
 
