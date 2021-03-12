@@ -16,6 +16,7 @@ void fluidComputeSolutionParallel(
     double* velocity);
 
 int fluidComputeSolutionSerial(double* crossSectionLength,
+	     double* crossSectionLength_old,
              double* velocity,
              double* pressure,
              double t,

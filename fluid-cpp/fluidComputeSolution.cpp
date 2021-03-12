@@ -310,6 +310,7 @@ void fluidComputeSolutionParallel(
 /* Function for fluid_nl i.e. non-linear */
 int fluidComputeSolutionSerial(
     double* crossSectionLength,
+    double* crossSectionLength_old,
     double* velocity,
     double* pressure,
     double t,
@@ -320,20 +321,26 @@ int fluidComputeSolutionSerial(
   /* fluid_nl Variables */
   int i, j = 0, k, ampl;
   double alpha, dx;
-  double tmp, tmp2;
+  double tmp1, tmp2;
   double* Res;
   double** LHS;
   double temp_sum;
   double norm_1, norm_2;
   double norm = 1.0;
+  double c_mk2; //c_mk**2
+
+  c_mk2 = 10000/2*sqrt(PI); 
+
+
+
 
   // Used as Ax = b
   // i.e. LHS*x = Res
   Res = (double*)calloc((2 * N + 2), sizeof(double));
   LHS = (double**)calloc((2 * N + 2), sizeof(double*));
-  for (i = 0; i < (2 * N + 2); ++i)
+  for (i = 0; i < (2 * N + 2); ++i){
     LHS[i] = (double*)calloc((2 * N + 2), sizeof(double));
-
+  }
   /* LAPACK Variables */
   double* A = (double*)calloc((2 * N + 2) * (2 * N + 2), sizeof(double));
   ;
@@ -345,7 +352,7 @@ int fluidComputeSolutionSerial(
 
   /* Stabilization Intensity */
   alpha = (N * kappa * tau) / (N * tau + 1);
-  dx = 1.0 / (N * kappa * tau);
+  dx = 1.0 / (N * kappa);
   ampl = 100;
 
   k = 0;
@@ -354,26 +361,28 @@ int fluidComputeSolutionSerial(
       Res[i] = 0.0;
 
     for (i = 1; i < N; i++) {
-      /* Momentum */
-      Res[i] = velocity[i] * crossSectionLength[i] * dx;
+      /* Momentum */ //theta = 1
+      Res[i] = (velocity[i] * crossSectionLength_old[i]-velocity[i]*crossSectionLength[i])* dx/tau;
+      //Res[i] = velocity_old[i] *crossSectionLength[i]* dx/tau;
+
       Res[i] = Res[i] - 0.25 * crossSectionLength[i + 1] * velocity[i] * velocity[i + 1] - 0.25 * crossSectionLength[i] * velocity[i] * velocity[i + 1];
-      Res[i] = Res[i] - crossSectionLength[i] * dx * velocity[i] - 0.25 * crossSectionLength[i + 1] * velocity[i] * velocity[i] - 0.25 * crossSectionLength[i] * velocity[i] * velocity[i] + 0.25 * crossSectionLength[i] * velocity[i - 1] * velocity[i] + 0.25 * crossSectionLength[i - 1] * velocity[i - 1] * velocity[i];
+      
+      Res[i] = Res[i] - 0.25 * crossSectionLength[i + 1] * velocity[i] * velocity[i] - 0.25 * crossSectionLength[i] * velocity[i] * velocity[i] + 0.25 * crossSectionLength[i] * velocity[i - 1] * velocity[i] + 0.25 * crossSectionLength[i - 1] * velocity[i - 1] * velocity[i];
+      
       Res[i] = Res[i] + 0.25 * crossSectionLength[i - 1] * velocity[i - 1] * velocity[i - 1] + 0.25 * crossSectionLength[i] * velocity[i - 1] * velocity[i - 1];
       Res[i] = Res[i] + 0.25 * crossSectionLength[i - 1] * pressure[i - 1] + 0.25 * crossSectionLength[i] * pressure[i - 1] - 0.25 * crossSectionLength[i - 1] * pressure[i] + 0.25 * crossSectionLength[i + 1] * pressure[i] - 0.25 * crossSectionLength[i] * pressure[i + 1] - 0.25 * crossSectionLength[i + 1] * pressure[i + 1];
 
       /* Continuity */
-      Res[i + N + 1] = -(crossSectionLength[i] - crossSectionLength[i]) * dx;
+      Res[i + N + 1] = (crossSectionLength_old[i] - crossSectionLength[i]) * dx/tau;
       Res[i + N + 1] = Res[i + N + 1] + 0.25 * crossSectionLength[i - 1] * velocity[i - 1] + 0.25 * crossSectionLength[i] * velocity[i - 1] + 0.25 * crossSectionLength[i - 1] * velocity[i] - 0.25 * crossSectionLength[i + 1] * velocity[i] - 0.25 * crossSectionLength[i] * velocity[i + 1] - 0.25 * crossSectionLength[i + 1] * velocity[i + 1];
       Res[i + N + 1] = Res[i + N + 1] + alpha * pressure[i - 1] - 2 * alpha * pressure[i] + alpha * pressure[i + 1];
     }
 
-    i = N - 1;
-
     /* Boundary */
 
     /* Velocity Inlet is prescribed */
-    tmp = sin(PI * (t+0.01)); //to not start with 0 velocity
-    Res[0] = (1.0 / kappa) + (1.0 / (kappa * ampl)) * tmp * tmp - velocity[0];
+    tmp1 = 10 + 3* sin(10* PI * (t+0.01)); //inlet velocity
+    Res[0] = tmp1 - velocity[0];
 
     /* Pressure Inlet is lineary interpolated */
     Res[N + 1] = -pressure[0] + 2 * pressure[1] - pressure[2];
@@ -382,8 +391,8 @@ int fluidComputeSolutionSerial(
     Res[N] = -velocity[N] + 2 * velocity[N - 1] - velocity[N - 2];
 
     /* Pressure Outlet is "non-reflecting" */
-    tmp2 = sqrt(1 - pressure[N] / 2) - (velocity[N] - velocity[N]) / 4;
-    Res[2 * N + 1] = -pressure[N] + 2 * (1 - tmp2 * tmp2);
+    tmp2 = sqrt(c_mk2 - pressure[N] / 2) - (velocity[N] - velocity[N]) / 4;
+    Res[2 * N + 1] = -pressure[N] + 2 * (c_mk2 - tmp2 * tmp2);
 
     k += 1; // Iteration Count
 
@@ -413,7 +422,7 @@ int fluidComputeSolutionSerial(
     for (i = 1; i < N; i++) {
       // Momentum, Velocity
       LHS[i][i - 1] = LHS[i][i - 1] - 0.25 * crossSectionLength[i - 1] * velocity[i - 1] * 2 - 0.25 * crossSectionLength[i] * velocity[i - 1] * 2 - 0.25 * crossSectionLength[i] * velocity[i] - 0.25 * crossSectionLength[i - 1] * velocity[i];
-      LHS[i][i] = LHS[i][i] + 0.25 * crossSectionLength[i + 1] * velocity[i + 1] + 0.25 * crossSectionLength[i] * velocity[i + 1] + crossSectionLength[i] * dx + 0.25 * crossSectionLength[i + 1] * velocity[i] * 2 + 0.25 * crossSectionLength[i] * velocity[i] * 2 - 0.25 * crossSectionLength[i] * velocity[i - 1] - 0.25 * crossSectionLength[i - 1] * velocity[i - 1];
+      LHS[i][i] = LHS[i][i] + 0.25 * crossSectionLength[i + 1] * velocity[i + 1] + 0.25 * crossSectionLength[i] * velocity[i + 1] + crossSectionLength[i] * dx / tau + 0.25 * crossSectionLength[i + 1] * velocity[i] * 2 + 0.25 * crossSectionLength[i] * velocity[i] * 2 - 0.25 * crossSectionLength[i] * velocity[i - 1] - 0.25 * crossSectionLength[i - 1] * velocity[i - 1];
       LHS[i][i + 1] = LHS[i][i + 1] + 0.25 * crossSectionLength[i + 1] * velocity[i] + 0.25 * crossSectionLength[i] * velocity[i];
 
       // Momentum, Pressure
@@ -446,7 +455,7 @@ int fluidComputeSolutionSerial(
     LHS[N][N - 2] = 1;
     // Pressure Outlet is Non-Reflecting
     LHS[2 * N + 1][2 * N + 1] = 1;
-    LHS[2 * N + 1][N] = -(sqrt(1 - pressure[N] / 2.0) - (velocity[N] - velocity[N]) / 4.0);
+    LHS[2 * N + 1][N] = -(sqrt(c_mk2 - pressure[N] / 2.0) - (velocity[N] - velocity[N]) / 4.0);
 
     /* LAPACK requires a 1D array 
        i.e. Linearizing 2D 

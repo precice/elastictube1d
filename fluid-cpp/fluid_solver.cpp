@@ -61,13 +61,15 @@ int main(int argc, char** argv)
 
 
   SolverInterface interface(solverName, configFileName, rank , size);
+  std::cout << "preCICE configured..." << std::endl;
+
 
   int dimensions = interface.getDimensions();
   int meshID = interface.getMeshID("Fluid-Nodes");
   int pressureID = interface.getDataID("Pressure", meshID);
   int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
 
-  std::vector<double> pressure, crossSectionLength, velocity;
+  std::vector<double> pressure, crossSectionLength, velocity, crossSectionLength_old;
   std::vector<int> vertexIDs;
   std::vector<double> grid;
 
@@ -75,12 +77,14 @@ int main(int argc, char** argv)
   pressure.resize(chunkLength);
   vertexIDs.resize(chunkLength);
   crossSectionLength.resize(chunkLength);
+  crossSectionLength_old.resize(chunkLength);
   velocity.resize(chunkLength);
   
   for (int i = 0; i < chunkLength; i++) {
     pressure[i] = 0.0;
     crossSectionLength[i] = 1.0;
-    velocity[i] = 1.0 / kappa;
+    crossSectionLength_old[i] = 1.0;
+    velocity[i] = 10.0;
   }
 
   if (argc==6){
@@ -132,7 +136,8 @@ int main(int argc, char** argv)
       crossSectionLength.data(), 
       velocity.data());
     } else {
-      fluidComputeSolutionSerial(crossSectionLength.data(),   
+      fluidComputeSolutionSerial(crossSectionLength.data(),
+      crossSectionLength_old.data(),   
 	    velocity.data(),           
 	    pressure.data(),     
 	    t, domainSize, kappa, tau); 
@@ -150,7 +155,9 @@ int main(int argc, char** argv)
     } else {
       t += dt;
       write_vtk(t, out_counter, outputFilePrefix.c_str(), chunkLength, grid.data(), velocity.data(), pressure.data(), crossSectionLength.data());
-
+      for (int i = 0; i < chunkLength; i++) {
+        crossSectionLength_old[i] = crossSectionLength[i];
+      }
       out_counter++;
     }
   }
