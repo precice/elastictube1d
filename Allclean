@@ -11,9 +11,8 @@ rm -f precice-FLUID-events.json \
       precice-FLUID-events-summary.log \
       precice-STRUCTUR-events-summary.log \
       Postproc/*.vtk \
-      Fluid.log \
-      Solid.log
 
 rm -r precice-run/
+rm -rfv precice-Solid-events-summary.log
 
 echo "Cleaning successful!"
