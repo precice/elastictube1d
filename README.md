@@ -14,11 +14,30 @@ An accurate descrption of the setup and the physics of the problem is described 
 
 Both fluid and solid participant are supported in:
 
-* *cxx*
-* *python*: 
+* *C++*
+* *python*
 
 The python version is realized using the Python API for preCICE. Check the [preCICE wiki](https://github.com/precice/precice/wiki/1D-elastic-tube-using-the-Python-API) for more information on this example.
 
+### Building the C++ Solver
+
+In order to use the C++ solver, you first need to build the scripts `FluidSolver` and `SolidSolver`. Each script needs to be built separately.
+
+```
+cd fluid-cpp
+mkdir build && cd build
+cmake ..
+make all
+```
+
+```
+cd solid-cpp
+mkdir build && cd build
+cmake .. 
+make all
+```
+
+Building can be skipped if you do not plan to use the C++ version.  
 
 ## Running the Simulation 
 
@@ -47,22 +66,6 @@ mpiexec -np <nproc> ./solid-cpp/build/SolidSolver precice-config.xml N -parallel
 ```
 A working known combination for the input parameters is N=100, tau = 0.01, kappa = 100. Other parameters like the simulation's end time, you can modify them in the precice-config.xml.
 
-Note that you first need to build the scripts `FluidSolver` and `SolidSolver`. Each script needs to be build separately.
-
-```
-cd fluid-cpp
-mkdir build && cd build
-cmake ..
-make all
-```
-
-```
-cd solid-cpp
-mkdir build && cd build
-cmake .. 
-make all
-```
-
 ### python
 
 Open two separate terminals and start each participant by calling the respective run script. Only serial run is possible:
@@ -74,7 +77,7 @@ and
 ```
 python3 ./solid-python/SolidSolver.py precice-config.xml 
 ```
-Parameters such as N can be modified directly at the `FluidSolver.py` and at the `SolidSolver.py`. The parameters must be coherent between the different solvers and participants. 
+Parameters such as N can be modified directly at the `FluidSolver.py` and at the `SolidSolver.py`. The parameters must be consistent between the different solvers and participants. 
 
 **Optional:** Visualization and video output of the fluid participant can be triggered via the options `--enable-plot` and `--write-video` of `FluidSolver.py`. To generate .vtk files during execution, you need to add the flag `--write-vtk`.
 
@@ -96,7 +99,7 @@ $ python3 Postproc/fluid.py diameter Postproc/out_fluid_
 If you run the case in parallel, you can visualize the results calculated by one rank (eg. rank 0) as follows:
 
 ```bash
-$ python3 Postproc/fluid.py diameter Postproc/out_fluid0_
+$ python3 Postproc/fluid.py diameter Postproc/out_fluid_
 ```
 
 An image of this diameter plot can be found in the `/images` folder.

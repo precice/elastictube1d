@@ -35,6 +35,7 @@
       <write-data name="Pressure" mesh="Fluid-Nodes"/>
       <read-data  name="CrossSectionLength" mesh="Fluid-Nodes"/>
       <mapping:nearest-neighbor direction="read" from="Solid-Nodes" to="Fluid-Nodes" constraint="consistent" timing="initial"/>
+      <watch-point mesh="Fluid-Nodes" name="outlet" coordinate="10.0; 0.0"/>
     </participant>
     
     <participant name="Solid">

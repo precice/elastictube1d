@@ -5,9 +5,8 @@ import argparse
 import outputConfiguration as config
 from thetaScheme import perform_partitioned_implicit_trapezoidal_rule_step, perform_partitioned_implicit_euler_step
 import numpy as np
-import tubePlotting as tubePlotting
+import tubePlotting
 
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as manimation
 

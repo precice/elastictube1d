@@ -319,7 +319,7 @@ int fluidComputeSolutionSerial(
     double tau)
 {
   /* fluid_nl Variables */
-  int i, j = 0, k, ampl;
+  int i, j = 0, k;
   double alpha, dx;
   double tmp1, tmp2;
   double* Res;
