@@ -280,15 +280,6 @@ void fluidComputeSolutionParallel(
         gridOffset = ((N + 1) % size) * ((N + 1) / size + 1) + (i - ((N + 1) % size)) * (N + 1) / size;
       }
 
-      double* vel = new double[5];
-      vel[0] = 0.0123;
-      vel[1] = 1e-9+0.01;
-
-      vel[2] = 2e-9+0.01;
-
-      vel[3] = 3e-9+0.01;
-      vel[4] = 4e-9+0.01;
-
 
       MPI_Send(pressure_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 0, MPI_COMM_WORLD);
       MPI_Send(crossSectionLength_NLS + gridOffset, chunkLength_temp, MPI_DOUBLE, i, tagStart + 3, MPI_COMM_WORLD);
@@ -362,7 +353,6 @@ int fluidComputeSolutionSerial(
   /* Stabilization Intensity */
   alpha = (N * kappa * tau) / (N * tau + 1);
   dx = 1.0 / (N * kappa);
-  ampl = 100;
 
   k = 0;
   while (1) {

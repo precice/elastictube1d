@@ -8,7 +8,25 @@ summary: The 1D Elastic Tube is a FSI case, that consists of an internal flow in
 
 ## Setup
 
-An accurate descrption of the setup and the physics of the problem is described [here](https://github.com/precice/precice/wiki/1D-elastic-tube:-Case-Description). 
+ALTERNATIVE TO THE LINK:
+
+We want to simulate the internal flow in a flexible tube as shown in the figure below (image from [1]).
+
+![FSI3 setup](images/setup.png)
+
+Fluid is assumed to be incompressible flow and gravity is neglected. Due to the axisymmetry, the flow can be described using a quasi-two dimensional continuity and momentum equations. The motivation and exact formulation of the equations that we consider can be found in [2]. 
+
+The following parameters have been chosen:
+- Length of the tube: L = 10
+- Inlet velocity: v_inlet = 10 + 3 sin (10 PI t)
+- Initial cross sectional area = 1
+- Initial velocity: v = 10
+- Initial pressure: p = 0
+- Young modulus: E = 10000
+
+LINK:
+
+An accurate description of the setup and the physics of the problem is described [here](https://github.com/precice/precice/wiki/1D-elastic-tube:-Case-Description). 
 
 ## Available solvers
 
@@ -94,7 +112,7 @@ For example, to plot the diameter using the default prefix for vtk files, we exe
 ```bash
 $ python3 Postproc/fluid.py diameter Postproc/out_fluid_
 ```
-![FSI3 setup](images/diameter.png)
+![FSI3 setup](images/python.png)
 
 If you run the case in parallel, you can visualize the results calculated by one rank (eg. rank 0) as follows:
 
@@ -107,10 +125,12 @@ An image of this diameter plot can be found in the `/images` folder.
 
 ## References
 
-[1] M. Mehl, B. Uekermann, H. Bijl, D. Blom, B. Gatzhammer, and A. van Zuijlen.
-Parallel coupling numerics for partitioned fluid-structure interaction simulations. CAMWA, 2016.  
+[1] B. Gatzhammer. Efficient and Flexible Partitioned Simulation of Fluid-Structure Interactions. Technische Universitaet Muenchen, Fakultaet fuer Informatik, 2014.
 [2] J. Degroote, P. Bruggeman, R. Haelterman, and J. Vierendeels. Stability of a coupling technique
 for partitioned solvers in FSI applications. Computers & Structures, 2008.
+[3] M. Mehl, B. Uekermann, H. Bijl, D. Blom, B. Gatzhammer, and A. van Zuijlen.
+Parallel coupling numerics for partitioned fluid-structure interaction simulations. CAMWA, 2016.  
+
 
 
 
