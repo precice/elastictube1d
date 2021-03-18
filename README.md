@@ -2,7 +2,7 @@
 title: 1D Elastic Tube
 permalink: unknown
 keywords: OpenFOAM, python
-summary: The 1D Elastic Tube is a FSI case, that consists of an internal flow in a flexible tube. The flow is unsteady and incompressible. This tutorial can be run using C++ or python.  Running the simulation takes a few minutes. 
+summary: The 1D Elastic Tube is a FSI case, that consists of an internal flow in a flexible tube. The flow is unsteady and incompressible. This tutorial contains C++ and Python variants of the fluid and solid solvers. Running the simulation takes just 1-2 minutes.  
 ---
 
 
@@ -14,14 +14,15 @@ We want to simulate the internal flow in a flexible tube as shown in the figure 
 
 ![FSI3 setup](images/setup.png)
 
-Fluid is assumed to be incompressible flow and gravity is neglected. Due to the axisymmetry, the flow can be described using a quasi-two dimensional continuity and momentum equations. The motivation and exact formulation of the equations that we consider can be found in [2]. 
+The flow is assumed to be incompressible flow and gravity is neglected. Due to the axisymmetry, the flow can be described using a quasi-two-dimensional continuity and momentum equations. The motivation and exact formulation of the equations that we consider can be found in [2]. 
 
 The following parameters have been chosen:
 - Length of the tube: L = 10
-- Inlet velocity: v_inlet = 10 + 3 sin (10 PI t)
+- Inlet velocity: $$ v_{inlet} = 10 + 3 sin (10 \pi t) $$
 - Initial cross sectional area = 1
 - Initial velocity: v = 10
 - Initial pressure: p = 0
+- Fluid density: $$ \rho = 1 $$
 - Young modulus: E = 10000
 
 LINK:
@@ -106,7 +107,7 @@ The `Postproc/` folder contains the .vtk files resulting from the execution, whi
 ```bash
 $ python3 Postproc/fluid.py <quantity> Postproc/<prefix>
 ```
-Note the required arguments specifying which quantity to plot (`pressure`, `velocity` or `diameter`) and a name prefix for the target vtk files.
+Note the required arguments specifying which quantity to plot (`pressure`, `velocity` or `diameter`) and the name prefix of the target vtk files.
 
 For example, to plot the diameter using the default prefix for vtk files, we execute:
 ```bash
