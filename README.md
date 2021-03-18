@@ -22,7 +22,7 @@ The following parameters have been chosen:
 - Initial cross sectional area = 1
 - Initial velocity: v = 10
 - Initial pressure: p = 0
-- Fluid density: $$ \rho = 1 $$
+- Fluid density: $ \rho = 1 $
 - Young modulus: E = 10000
 
 LINK:
@@ -83,7 +83,7 @@ and
 ```
 mpiexec -np <nproc> ./solid-cpp/build/SolidSolver precice-config.xml N -parallel
 ```
-A working known combination for the input parameters is N=100, tau = 0.01, kappa = 100. Other parameters like the simulation's end time, you can modify them in the precice-config.xml.
+A working known combination for the input parameters is N=100, tau = 0.01, kappa = 100. 
 
 ### python
 

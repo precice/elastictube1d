@@ -2,8 +2,8 @@ fluid-cpp/build/
 solid-cpp/build/
 fluid-python/__pycache__/
 solid-python/__pycache__/
-convergence-*
-iterations-*
+
+
 .scon*
 *.o
 *.log
