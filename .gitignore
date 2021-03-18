@@ -9,4 +9,4 @@ solid-python/__pycache__/
 *.log
 *.json
 *.pyc
-Postproc/*.vtk
+postproc/*.vtk

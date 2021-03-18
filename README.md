@@ -103,23 +103,23 @@ Parameters such as N can be modified directly at the `FluidSolver.py` and at the
 
 ## Post-processing
 
-The `Postproc/` folder contains the .vtk files resulting from the execution, which you can visualize using eg. paraview. Alternatively you can visualize the results with the provided `Postproc/fluid.py` script:
+The `postproc/` folder contains the .vtk files resulting from the execution, which you can visualize using eg. paraview. Alternatively you can visualize the results with the provided `postproc/fluid.py` script:
 
 ```bash
-$ python3 Postproc/fluid.py <quantity> Postproc/<prefix>
+$ python3 postproc/fluid.py <quantity> postproc/<prefix>
 ```
 Note the required arguments specifying which quantity to plot (`pressure`, `velocity` or `diameter`) and the name prefix of the target vtk files.
 
 For example, to plot the diameter using the default prefix for vtk files, we execute:
 ```bash
-$ python3 Postproc/fluid.py diameter Postproc/out_fluid_
+$ python3 postproc/fluid.py diameter postproc/out_fluid_
 ```
 ![FSI3 setup](images/python.png)
 
 If you run the case in parallel, you can visualize the results calculated by one rank (eg. rank 0) as follows:
 
 ```bash
-$ python3 Postproc/fluid.py diameter Postproc/out_fluid_
+$ python3 postproc/fluid.py diameter postproc/out_fluid_
 ```
 
 An image of this diameter plot can be found in the `/images` folder.

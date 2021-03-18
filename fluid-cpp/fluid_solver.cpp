@@ -34,7 +34,7 @@ int main(int argc, char** argv)
 
   std::string solverName = "FLUID";
 
-  std::string outputFilePrefix = "Postproc/out_fluid"; //extra
+  std::string outputFilePrefix = "postproc/out_fluid"; //extra
 
     
   int gridOffset, rank = 0, size = 1;

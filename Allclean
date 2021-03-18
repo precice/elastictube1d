@@ -10,7 +10,7 @@ rm -f precice-FLUID-events.json \
       precice-Solid-iterations.log \
       precice-FLUID-events-summary.log \
       precice-STRUCTUR-events-summary.log \
-      Postproc/*.vtk \
+      postproc/*.vtk \
 
 rm -r precice-run/
 rm -rfv precice-Solid-events-summary.log
