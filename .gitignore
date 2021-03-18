@@ -4,7 +4,7 @@ fluid-python/__pycache__/
 solid-python/__pycache__/
 
 
-.scon*
+
 *.o
 *.log
 *.json

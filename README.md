@@ -18,7 +18,8 @@ The flow is assumed to be incompressible flow and gravity is neglected. Due to t
 
 The following parameters have been chosen:
 - Length of the tube: L = 10
-- Inlet velocity: $$ v_{inlet} = 10 + 3 sin (10 \pi t) $$
+- Inlet velocity: 
+$$ v_{inlet} = 10 + 3 sin (10 \pi t) $$
 - Initial cross sectional area = 1
 - Initial velocity: v = 10
 - Initial pressure: p = 0
@@ -127,8 +128,9 @@ An image of this diameter plot can be found in the `/images` folder.
 ## References
 
 [1] B. Gatzhammer. Efficient and Flexible Partitioned Simulation of Fluid-Structure Interactions. Technische Universitaet Muenchen, Fakultaet fuer Informatik, 2014.
-[2] J. Degroote, P. Bruggeman, R. Haelterman, and J. Vierendeels. Stability of a coupling technique
-for partitioned solvers in FSI applications. Computers & Structures, 2008.
+
+[2] J. Degroote, P. Bruggeman, R. Haelterman, and J. Vierendeels. Stability of a coupling technique for partitioned solvers in FSI applications. Computers & Structures, 2008.
+
 [3] M. Mehl, B. Uekermann, H. Bijl, D. Blom, B. Gatzhammer, and A. van Zuijlen.
 Parallel coupling numerics for partitioned fluid-structure interaction simulations. CAMWA, 2016.  
 
