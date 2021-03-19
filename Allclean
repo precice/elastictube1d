@@ -3,12 +3,12 @@
 
 echo "Cleaning logs and output files from previous runs..."
 
-rm -f precice-FLUID-events.json \
+rm -f precice-Fluid-events.json \
       precice-Solid-events.json \
-      precice-FLUID-iterations.log \
+      precice-Fluid-iterations.log \
       precice-Solid-convergence.log \
       precice-Solid-iterations.log \
-      precice-FLUID-events-summary.log \
+      precice-Fluid-events-summary.log \
       precice-STRUCTUR-events-summary.log \
       postproc/*.vtk \
 

@@ -34,7 +34,7 @@ set(LINK_FLAGS ${LINK_FLAGS} ${LAPACK_LINKER_FLAGS})
 
 add_executable(SolidSolver
   "SolidComputeSolution.cpp"
-  "Solid_solver.cpp")
+  "SolidSolver.cpp")
 
 target_link_libraries(SolidSolver PRIVATE precice::precice)
 target_link_libraries(SolidSolver PUBLIC ${MPI_CXX_LIBRARIES})

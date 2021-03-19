@@ -12,18 +12,17 @@ ALTERNATIVE TO THE LINK:
 
 We want to simulate the internal flow in a flexible tube as shown in the figure below (image from [1]).
 
-![FSI3 setup](images/setup.png)
+![FSI3 setup](images/tutorials-elastictube1d-setup.png)
 
 The flow is assumed to be incompressible flow and gravity is neglected. Due to the axisymmetry, the flow can be described using a quasi-two-dimensional continuity and momentum equations. The motivation and exact formulation of the equations that we consider can be found in [2]. 
 
 The following parameters have been chosen:
 - Length of the tube: L = 10
-- Inlet velocity: 
-$$ v_{inlet} = 10 + 3 sin (10 \pi t) $$
+- Inlet velocity: $$ v_{inlet} = 10 + 3 sin (10 \pi t) $$
 - Initial cross sectional area = 1
 - Initial velocity: v = 10
 - Initial pressure: p = 0
-- Fluid density: $ \rho = 1 $
+- Fluid density: $$ \rho = 1 $$
 - Young modulus: E = 10000
 
 LINK:
@@ -114,15 +113,13 @@ For example, to plot the diameter using the default prefix for vtk files, we exe
 ```bash
 $ python3 postproc/fluid.py diameter postproc/out_fluid_
 ```
-![FSI3 setup](images/python.png)
+![FSI3 setup](images/tutorials-elastictube1d-diameter.png)
 
 If you run the case in parallel, you can visualize the results calculated by one rank (eg. rank 0) as follows:
 
 ```bash
 $ python3 postproc/fluid.py diameter postproc/out_fluid_
 ```
-
-An image of this diameter plot can be found in the `/images` folder.
 
 
 ## References

@@ -62,7 +62,7 @@ def crossSection0(N):
     
 print("N: " + str(N))
 
-solverName = "FLUID"
+solverName = "Fluid"
 
 print("Configure preCICE...")
 interface = precice.Interface(solverName, configFileName, 0, 1)
