@@ -53,7 +53,7 @@ int main(int argc, char** argv)
   std::cout << "preCICE configured..." << std::endl;
  
   int dimensions = interface.getDimensions();
-  int meshID = interface.getMeshID("Solid-Nodes");
+  int meshID = interface.getMeshID("Solid-Nodes-Mesh");
   int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
   int pressureID = interface.getDataID("Pressure", meshID);
 

@@ -51,7 +51,7 @@ dimensions = interface.get_dimensions()
 pressure = p0 * np.ones(N + 1)
 crossSectionLength = a0 * np.ones(N + 1)
 
-meshID = interface.get_mesh_id("Solid-Nodes")
+meshID = interface.get_mesh_id("Solid-Nodes-Mesh")
 crossSectionLengthID = interface.get_data_id("CrossSectionLength", meshID)
 pressureID = interface.get_data_id("Pressure", meshID)
 

@@ -65,7 +65,7 @@ int main(int argc, char** argv)
 
 
   int dimensions = interface.getDimensions();
-  int meshID = interface.getMeshID("Fluid-Nodes");
+  int meshID = interface.getMeshID("Fluid-Nodes-Mesh");
   int pressureID = interface.getDataID("Pressure", meshID);
   int crossSectionLengthID = interface.getDataID("CrossSectionLength", meshID);
 
