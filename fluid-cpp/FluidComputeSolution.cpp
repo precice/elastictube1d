@@ -380,7 +380,7 @@ int fluidComputeSolutionSerial(
     /* Boundary */
 
     /* Velocity Inlet is prescribed */
-    tmp1 = 10 + 3* sin(10* PI * (t+0.01)); //inlet velocity
+    tmp1 = 10 + 3* sin(10* PI * (t)); //inlet velocity
     Res[0] = tmp1 - velocity[0];
 
     /* Pressure Inlet is lineary interpolated */
