@@ -353,6 +353,9 @@ int fluidComputeSolutionSerial(
   /* Stabilization Intensity */
   alpha = (N * kappa * tau) / (N * tau + 1);
   dx = 1.0 / (N * kappa);
+  dx = 0.1;
+  alpha = 0;
+
 
   k = 0;
   while (1) {
@@ -374,7 +377,9 @@ int fluidComputeSolutionSerial(
       /* Continuity */
       Res[i + N + 1] = (crossSectionLength_old[i] - crossSectionLength[i]) * dx/tau;
       Res[i + N + 1] = Res[i + N + 1] + 0.25 * crossSectionLength[i - 1] * velocity[i - 1] + 0.25 * crossSectionLength[i] * velocity[i - 1] + 0.25 * crossSectionLength[i - 1] * velocity[i] - 0.25 * crossSectionLength[i + 1] * velocity[i] - 0.25 * crossSectionLength[i] * velocity[i + 1] - 0.25 * crossSectionLength[i + 1] * velocity[i + 1];
-      Res[i + N + 1] = Res[i + N + 1] + alpha * pressure[i - 1] - 2 * alpha * pressure[i] + alpha * pressure[i + 1];
+      //Res[i + N + 1] = Res[i + N + 1] + alpha * pressure[i - 1] - 2 * alpha * pressure[i] + alpha * pressure[i + 1];
+      Res[i + N + 1] = Res[i + N + 1] + alpha * (pressure[i - 1] - 2 * pressure[i] + pressure[i + 1]);
+
     }
 
     /* Boundary */
