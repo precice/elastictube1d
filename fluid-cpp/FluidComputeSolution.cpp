@@ -353,8 +353,8 @@ int fluidComputeSolutionSerial(
   /* Stabilization Intensity */
   alpha = (N * kappa * tau) / (N * tau + 1);
   dx = 1.0 / (N * kappa);
-  dx = 0.1;
-  alpha = 0;
+  //dx = 0.1;
+  //alpha = 0;
 
 
   k = 0;

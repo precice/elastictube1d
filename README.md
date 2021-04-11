@@ -1,6 +1,6 @@
 ---
 title: 1D Elastic Tube
-permalink: unknown
+permalink: https://www.precice.org/tutorials-elastic-tube-1d.html
 keywords: OpenFOAM, python
 summary: The 1D Elastic Tube is a FSI case, that consists of an internal flow in a flexible tube. The flow is unsteady and incompressible. This tutorial contains C++ and Python variants of the fluid and solid solvers. Running the simulation takes just 1-2 minutes.  
 ---
@@ -24,8 +24,6 @@ The following parameters have been chosen:
 - Initial pressure: p = 0
 - Fluid density: $$ \rho = 1 $$
 - Young modulus: E = 10000
-
-LINK:
 
 An accurate description of the setup and the physics of the problem is described [here](https://github.com/precice/precice/wiki/1D-elastic-tube:-Case-Description). 
 
@@ -85,6 +83,8 @@ mpiexec -np <nproc> ./solid-cpp/build/SolidSolver precice-config.xml N -parallel
 ```
 A working known combination for the input parameters is N=100, tau = 0.01, kappa = 100. 
 
+{% include warning.html content= "Running serial or parallel leads to different results. Please refer to this [open issue](https://github.com/precice/elastictube1d/pull/39#issuecomment-817322565) for more insight" %}
+
 ### python
 
 Open two separate terminals and start each participant by calling the respective run script. Only serial run is possible:
@@ -99,6 +99,8 @@ python3 ./solid-python/SolidSolver.py precice-config.xml
 Parameters such as N can be modified directly at the `FluidSolver.py` and at the `SolidSolver.py`. The parameters must be consistent between the different solvers and participants. 
 
 **Optional:** Visualization and video output of the fluid participant can be triggered via the options `--enable-plot` and `--write-video` of `FluidSolver.py`. To generate .vtk files during execution, you need to add the flag `--write-vtk`.
+
+{% include warning.html content= "The cpp and python solvers lead to different results. Please consider the python's results as the correct ones and refer to this [open issue](https://github.com/precice/elastictube1d/pull/39#issuecomment-817318591) for more insight" %}
 
 ## Post-processing
 

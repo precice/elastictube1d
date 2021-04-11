@@ -143,7 +143,7 @@ while interface.is_coupling_ongoing():
         pressure_old = np.copy(pressure)
         crossSectionLength_old = np.copy(crossSectionLength)
         if output_mode is config.OutputModes.VTK:
-            writeOutputToVTK(time_it, "python_fluid_", dx, datanames=["velocity", "pressure", "diameter"], data=[velocity_old, pressure_old, crossSectionLength_old])
+            writeOutputToVTK(time_it, "out_fluid_", dx, datanames=["velocity", "pressure", "diameter"], data=[velocity_old, pressure_old, crossSectionLength_old])
         time_it += 1
 
 print("Exiting FluidSolver")
