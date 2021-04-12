@@ -75,18 +75,20 @@ The run scripts set the input parameters `N = 100`, `tau = 0.01`, `kappa = 100`.
 
 {% include warning.html content= "Running serial or parallel leads to different results. Please refer to this [open issue](https://github.com/precice/elastictube1d/issues/40) for more insight" %}
 
-### python
+### Python
 
 Open two separate terminals and start each participant by calling the respective run script. Only serial run is possible:
 
 ```
-python3 ./fluid-python/FluidSolver.py precice-config.xml 
+cd fluid-python
+./run.sh
 ```
 and
 ```
-python3 ./solid-python/SolidSolver.py precice-config.xml 
+cd solid-python
+./run.sh
 ```
-Parameters such as N can be modified directly at the `FluidSolver.py` and at the `SolidSolver.py`. The parameters must be consistent between the different solvers and participants. 
+Parameters such as `N` can be modified directly at the `FluidSolver.py` and at the `SolidSolver.py`. The parameters must be consistent between the different solvers and participants. 
 
 **Optional:** Visualization and video output of the fluid participant can be triggered via the options `--enable-plot` and `--write-video` of `FluidSolver.py`. To generate .vtk files during execution, you need to add the flag `--write-vtk`.
 
