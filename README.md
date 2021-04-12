@@ -83,7 +83,7 @@ mpiexec -np <nproc> ./solid-cpp/build/SolidSolver precice-config.xml N -parallel
 ```
 A working known combination for the input parameters is N=100, tau = 0.01, kappa = 100. 
 
-{% include warning.html content= "Running serial or parallel leads to different results. Please refer to this [open issue](https://github.com/precice/elastictube1d/pull/39#issuecomment-817322565) for more insight" %}
+{% include warning.html content= "Running serial or parallel leads to different results. Please refer to this [open issue](https://github.com/precice/elastictube1d/issues/40) for more insight" %}
 
 ### python
 
@@ -100,7 +100,7 @@ Parameters such as N can be modified directly at the `FluidSolver.py` and at the
 
 **Optional:** Visualization and video output of the fluid participant can be triggered via the options `--enable-plot` and `--write-video` of `FluidSolver.py`. To generate .vtk files during execution, you need to add the flag `--write-vtk`.
 
-{% include warning.html content= "The cpp and python solvers lead to different results. Please consider the python's results as the correct ones and refer to this [open issue](https://github.com/precice/elastictube1d/pull/39#issuecomment-817318591) for more insight" %}
+{% include warning.html content= "The cpp and python solvers lead to different results. Please consider the Python results as the correct ones and refer to this [open issue](https://github.com/precice/elastictube1d/issues/41) for more insight" %}
 
 ## Post-processing
 
