@@ -1,5 +1,5 @@
-#!/bin/bash
-
+#!/bin/sh
+set -e -u
 
 echo "Cleaning logs and output files from previous runs..."
 
