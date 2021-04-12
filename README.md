@@ -30,10 +30,9 @@ The following parameters have been chosen:
 
 Both fluid and solid participant are supported in:
 
-* *C++*
-* *python*
+* *C++*: An example solver using the intrinsic [C++ API of preCICE](couple-your-code-api.html)
+* *Python*: An example solver using the preCICE [Python bindings](installation-bindings-python.html)
 
-The python version is realized using the Python API for preCICE. Check the [preCICE wiki](https://github.com/precice/precice/wiki/1D-elastic-tube-using-the-Python-API) for more information on this example.
 
 ### Building the C++ Solver
 
