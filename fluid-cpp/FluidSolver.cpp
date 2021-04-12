@@ -17,7 +17,7 @@ int main(int argc, char** argv)
     std::cout << std::endl;
     std::cout << "Fluid: Usage: mpiexec -np <#procs> " << argv[0] << " <configurationFileName> <N> <tau> <kappa> -parallel" << std::endl;
     std::cout << "or" << std::endl;
-    std::cout << "Usage: " << argv[0] << " configurationFileName> <N> <tau> <kappa>" << std::endl;
+    std::cout << "Usage: " << argv[0] << " <configurationFileName> <N> <tau> <kappa>" << std::endl;
     std::cout << std::endl;
     std::cout << "N:     Number of mesh elements, needs to be equal for fluid and Solid solver." << std::endl;
     std::cout << "tau:   Dimensionless time step size." << std::endl;
