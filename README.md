@@ -25,7 +25,6 @@ The following parameters have been chosen:
 - Fluid density: $$ \rho = 1 $$
 - Young modulus: E = 10000
 
-An accurate description of the setup and the physics of the problem is described [here](https://github.com/precice/precice/wiki/1D-elastic-tube:-Case-Description). 
 
 ## Available solvers
 
@@ -104,7 +103,7 @@ Parameters such as N can be modified directly at the `FluidSolver.py` and at the
 
 ## Post-processing
 
-The `postproc/` folder contains the .vtk files resulting from the execution, which you can visualize using eg. paraview. Alternatively you can visualize the results with the provided `postproc/fluid.py` script:
+The `postproc/` folder contains the .vtk files resulting from the execution, which you can visualize using eg. paraview. Alternatively you can visualize the results with the provided `postproc/plot-fluid.py` script:
 
 ```bash
 $ python3 postproc/fluid.py <quantity> postproc/<prefix>
