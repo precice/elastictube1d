@@ -8,11 +8,9 @@
   
   <solver-interface dimensions="2">
     
-    <!-- Data fields that are exchanged between the solvers -->
     <data:scalar name="Pressure"/>
     <data:scalar name="CrossSectionLength"/>
 
-    <!-- A common mesh that uses these data fields -->
     <mesh name="Fluid-Nodes-Mesh">
         <use-data name="CrossSectionLength"/>
         <use-data name="Pressure"/>
@@ -22,19 +20,13 @@
        <use-data name="CrossSectionLength"/>   
        <use-data name="Pressure"/>
     </mesh>
-
-    <!-- Represents each solver using preCICE. In a coupled simulation, two participants have to be
-         defined. The name of the participant has to match the name given on construction of the
-         precice::SolverInterface object used by the participant. -->
     
     <participant name="Fluid">
-      <!-- Makes the named mesh available to the participant. Mesh is provided by the solver directly. -->
       <use-mesh name="Fluid-Nodes-Mesh" provide="yes"/>
       <use-mesh name="Solid-Nodes-Mesh" from="Solid"/>
-      <!-- Define input/output of the solver.  -->
       <write-data name="Pressure" mesh="Fluid-Nodes-Mesh"/>
       <read-data  name="CrossSectionLength" mesh="Fluid-Nodes-Mesh"/>
-      <mapping:nearest-neighbor direction="read" from="Solid-Nodes-Mesh" to="Fluid-Nodes-Mesh" constraint="consistent" timing="initial"/>
+      <mapping:nearest-neighbor direction="read" from="Solid-Nodes-Mesh" to="Fluid-Nodes-Mesh" constraint="consistent"/>
       <watch-point mesh="Fluid-Nodes-Mesh" name="outlet" coordinate="10.0; 0.0"/>
     </participant>
     
@@ -43,10 +35,9 @@
       <use-mesh name="Fluid-Nodes-Mesh" from="Fluid"/>
       <write-data name="CrossSectionLength" mesh="Solid-Nodes-Mesh"/>
       <read-data  name="Pressure" mesh="Solid-Nodes-Mesh"/>
-      <mapping:nearest-neighbor direction="read" from="Fluid-Nodes-Mesh" to="Solid-Nodes-Mesh" constraint="consistent" timing="initial"/>
+      <mapping:nearest-neighbor direction="read" from="Fluid-Nodes-Mesh" to="Solid-Nodes-Mesh" constraint="consistent"/>
     </participant>
 
-    <!-- Communication method, use TCP sockets, Change network to "ib0" on SuperMUC -->
     <m2n:sockets from="Fluid" to="Solid"/>
 
     <coupling-scheme:serial-implicit>
@@ -59,7 +50,6 @@
       <relative-convergence-measure data="Pressure" mesh="Fluid-Nodes-Mesh" limit="1e-5"/>
       <relative-convergence-measure data="CrossSectionLength" mesh="Solid-Nodes-Mesh" limit="1e-5"/>
       <acceleration:IQN-ILS>
-        <!--PostProc always done on the second participant-->
         <data name="CrossSectionLength" mesh="Solid-Nodes-Mesh"/>
         <initial-relaxation value="0.01"/>
         <max-used-iterations value="50"/>
