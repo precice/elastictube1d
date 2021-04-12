@@ -1,1 +1,0 @@
-Here the 1D elastic tube example is realized using the Python API of preCICE. Refer to the [preCICE wiki](https://github.com/precice/precice/wiki/1D-elastic-tube-using-the-Python-API) for more information on this example.
