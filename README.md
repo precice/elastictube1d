@@ -8,8 +8,6 @@ summary: The 1D Elastic Tube is a FSI case, that consists of an internal flow in
 
 ## Setup
 
-ALTERNATIVE TO THE LINK:
-
 We want to simulate the internal flow in a flexible tube as shown in the figure below (image from [1]).
 
 ![FSI3 setup](images/tutorials-elastictube1d-setup.png)
@@ -91,6 +89,8 @@ cd solid-python
 Parameters such as `N` can be modified directly at the `FluidSolver.py` and at the `SolidSolver.py`. The parameters must be consistent between the different solvers and participants. 
 
 **Optional:** Visualization and video output of the fluid participant can be triggered via the options `--enable-plot` and `--write-video` of `FluidSolver.py`. To generate .vtk files during execution, you need to add the flag `--write-vtk`.
+
+![Elastic tube animation](images/tutorials-elastictube1d-animation.gif)
 
 {% include warning.html content= "The cpp and python solvers lead to different results. Please consider the Python results as the correct ones and refer to this [open issue](https://github.com/precice/elastictube1d/issues/41) for more insight" %}
 
