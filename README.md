@@ -31,7 +31,7 @@ The following parameters have been chosen:
 Both fluid and solid participant are supported in:
 
 * *C++*: An example solver using the intrinsic [C++ API of preCICE](couple-your-code-api.html)
-* *Python*: An example solver using the preCICE [Python bindings](installation-bindings-python.html)
+* *Python*: An example solver using the preCICE [Python bindings](installation-bindings-python.html). This solver also depends on the Python libraries `numpy scipy matplotlib vtk tkinter mpi4py`.
 
 
 ### Building the C++ Solver
