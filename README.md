@@ -61,26 +61,18 @@ Building can be skipped if you do not plan to use the C++ version.
 
 Open two separate terminals and start each participant by calling the respective run script. 
 
-Serial run:
-
 ```
-./fluid-cpp/build/FluidSolver precice-config.xml N tau kappa
-```
-and
-```
-./solid-cpp/build/SolidSolver precice-config.xml N
-```
- 
-Parallel run:
-
-```
-mpiexec -np <nproc> ./fluid-cpp/build/FluidSolver precice-config.xml N tau kappa -parallel
+cd fluid-cpp
+./run.sh
+# or, in parallel: ./run.sh -parallel
 ```
 and
 ```
-mpiexec -np <nproc> ./solid-cpp/build/SolidSolver precice-config.xml N -parallel
+cd solid-cpp
+./run.sh
 ```
-A working known combination for the input parameters is N=100, tau = 0.01, kappa = 100. 
+
+The run scripts set the input parameters `N = 100`, `tau = 0.01`, `kappa = 100`. 
 
 {% include warning.html content= "Running serial or parallel leads to different results. Please refer to this [open issue](https://github.com/precice/elastictube1d/issues/40) for more insight" %}
 
