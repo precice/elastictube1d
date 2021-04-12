@@ -10,7 +10,7 @@ summary: The 1D Elastic Tube is a FSI case, that consists of an internal flow in
 
 We want to simulate the internal flow in a flexible tube as shown in the figure below (image from [1]).
 
-![FSI3 setup](images/tutorials-elastictube1d-setup.png)
+![FSI3 setup](images/tutorials-elastic-tube-1d-setup.png)
 
 The flow is assumed to be incompressible flow and gravity is neglected. Due to the axisymmetry, the flow can be described using a quasi-two-dimensional continuity and momentum equations. The motivation and exact formulation of the equations that we consider can be found in [2]. 
 
@@ -90,7 +90,7 @@ Parameters such as `N` can be modified directly at the `FluidSolver.py` and at t
 
 **Optional:** Visualization and video output of the fluid participant can be triggered via the options `--enable-plot` and `--write-video` of `FluidSolver.py`. To generate .vtk files during execution, you need to add the flag `--write-vtk`.
 
-![Elastic tube animation](images/tutorials-elastictube1d-animation.gif)
+![Elastic tube animation](images/tutorials-elastic-tube-1d-animation.gif)
 
 {% include warning.html content= "The cpp and python solvers lead to different results. Please consider the Python results as the correct ones and refer to this [open issue](https://github.com/precice/elastictube1d/issues/41) for more insight" %}
 
@@ -107,7 +107,7 @@ For example, to plot the diameter using the default prefix for vtk files, we exe
 ```bash
 $ python3 postproc/plot-fluid.py diameter postproc/out_fluid_
 ```
-![FSI3 setup](images/tutorials-elastictube1d-diameter.png)
+![FSI3 setup](images/tutorials-elastic-tube-1d-diameter.png)
 
 If you run the case in parallel, you can visualize the results calculated by one rank (eg. rank 0) as follows:
 
